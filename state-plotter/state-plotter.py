@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/python3.6
 
 # ------------------------------------------------------------------------------
 # Copyright (c) 2019, Battelle Memorial Institute All rights reserved.
