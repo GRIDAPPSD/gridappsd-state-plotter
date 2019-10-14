@@ -65,16 +65,19 @@ from matplotlib import backend_bases
 cnPairDict = {}
 nodePhasePairDict = {}
 tsData = []
+tsDataPaused = []
 vDataDict = {}
+vDataDictPaused = {}
 vLinesDict = {}
 angDataDict = {}
+angDataDictPaused = {}
 angLinesDict = {}
 tsInit = 0
 pausedFlag = False
 showFlag = False
 
 
-def seCallback(header, message):
+def measurementCallback(header, message):
     msgdict = message['message']
     ts = msgdict['timestamp']
     estVolt = msgdict['Estimate']['SvEstVoltages']
@@ -99,14 +102,25 @@ def seCallback(header, message):
             # not for every node/phase pair match, but only add when a match
             # is confirmed for one of the node/phase pairs
             if matchCount == 1:
-                if len(tsData) > 0:
-                    tsData.append(ts - tsInit)
+                if pausedFlag:
+                    if len(tsData) > 0:
+                        tsDataPaused.append(ts - tsInit)
+                    else:
+                        tsInit = ts
+                        tsDataPaused.append(0)
                 else:
-                    tsInit = ts
-                    tsData.append(0)
+                    if len(tsData) > 0:
+                        tsData.append(ts - tsInit)
+                    else:
+                        tsInit = ts
+                        tsData.append(0)
 
-            vDataDict[pair].append(v)
-            angDataDict[pair].append(angle)
+            if pausedFlag:
+                vDataDictPaused[pair].append(v)
+                angDataDictPaused[pair].append(angle)
+            else:
+                vDataDict[pair].append(v)
+                angDataDict[pair].append(angle)
 
             # no reason to keep checking more pairs if we've found all we
             # are looking for
@@ -119,7 +133,7 @@ def seCallback(header, message):
 
 def plotData(event):
     # avoid error by making sure there is data to plot
-    if len(tsData)==0 or pausedFlag:
+    if len(tsData)==0:
         return
 
     if showFlag:
@@ -280,6 +294,17 @@ def pauseCallback(event):
     pauseAx.images[0].set_data(playIcon if pausedFlag else pauseIcon)
     plt.draw()
 
+    if not pausedFlag:
+        # add all the data that came in since the pause button was hit
+        tsData.extend(tsDataPaused)
+        # clear the "paused" data so we build from scratch with the next pause
+        tsDataPaused.clear()
+        for pair in nodePhasePairDict:
+            vDataDict[pair].extend(vDataDictPaused[pair])
+            angDataDict[pair].extend(angDataDictPaused[pair])
+            vDataDictPaused[pair].clear()
+            angDataDictPaused[pair].clear()
+
     plotData(None)
 
 
@@ -432,7 +457,9 @@ def initPlot():
         # create empty lists for the per pair data for each plot so we can
         # just do append calls when data to plot arrives
         vDataDict[pair] = []
+        vDataDictPaused[pair] = []
         angDataDict[pair] = []
+        angDataDictPaused[pair] = []
         # create a lines dictionary entry per node/phase pair for each plot
         vLinesDict[pair], = vAx.plot([], [], label=nodePhasePairDict[pair])
         angLinesDict[pair], = angAx.plot([], [], label=nodePhasePairDict[pair])
@@ -458,7 +485,7 @@ def _main():
     queryConnectivityPairs()
 
     # subscribe to state-estimator measurement output
-    gapps.subscribe('/topic/goss.gridappsd.state-estimator.out.'+sys.argv[1], seCallback)
+    gapps.subscribe('/topic/goss.gridappsd.state-estimator.out.'+sys.argv[1], measurementCallback)
 
     # matplotlib setup
     initPlot()
