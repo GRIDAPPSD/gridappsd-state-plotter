@@ -49,7 +49,6 @@ __version__ = '0.0.1'
 
 import sys
 import json
-import csv
 
 # gridappsd-python module
 from gridappsd import GridAPPSD
@@ -359,11 +358,17 @@ def queryConnectivityPairs():
     # match connectivity node,phase pairs with the config file for determining
     # what data to plot
     try:
-        with open('../state-plotter-config.csv') as csvfile:
-            readCSV = csv.reader(csvfile)
-            for row in readCSV:
-                if row[0] in cnPairDict:
-                    nodePhasePairDict[cnPairDict[row[0]] + ',' + row[1]] = row[0] + ',' + row[1]
+        with open('../state-plotter-config.csv') as pairfile:
+            for line in pairfile:
+                # strip all whitespace from line whether at beginning, middle, or end
+                line = ''.join(line.split())
+                # skip empty and commented out lines
+                if line=='' or line.startswith('#'):
+                    next
+
+                pair = line.split(',')
+                if len(pair)==2 and pair[0] in cnPairDict:
+                    nodePhasePairDict[cnPairDict[pair[0]] + ',' + pair[1]] = line
     except:
         print(sys.argv[0] + ': Node/Phase pair configuration file state-plotter-config.csv does not exist.\n')
         exit()
