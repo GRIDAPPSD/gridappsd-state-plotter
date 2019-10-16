@@ -49,6 +49,7 @@ __version__ = '0.0.1'
 
 import sys
 import json
+import math
 
 # gridappsd-python module
 from gridappsd import GridAPPSD
@@ -471,7 +472,8 @@ def initPlot():
 
     # need to wait on creating legend after other initialization until the
     #lines are defined
-    vAx.legend()
+    cols = math.ceil(len(nodePhasePairDict)/12)
+    vAx.legend(ncol=cols)
 
 
 def _main():
