@@ -353,8 +353,8 @@ def queryConnectivityPairs():
     for node in results:
         cnname = node['cnname']['value']
         cnid = node['cnid']['value']
-        cnPairDict[cnname] = cnid
-    #print(cnPairDict)
+        cnPairDict[cnname.upper()] = cnid
+    print(cnPairDict)
 
     # match connectivity node,phase pairs with the config file for determining
     # what data to plot
@@ -366,10 +366,10 @@ def queryConnectivityPairs():
                 # skip empty and commented out lines
                 if line=='' or line.startswith('#'):
                     next
-
+                 
                 pair = line.split(',')
-                if len(pair)==2 and pair[0] in cnPairDict:
-                    nodePhasePairDict[cnPairDict[pair[0]] + ',' + pair[1]] = line
+                if len(pair)==2 and pair[0].upper() in cnPairDict:
+                    nodePhasePairDict[cnPairDict[pair[0].upper()] + ',' + pair[1]] = line
     except:
         print(sys.argv[0] + ': Node/Phase pair configuration file state-plotter-config.csv does not exist.\n')
         exit()
@@ -472,8 +472,10 @@ def initPlot():
 
     # need to wait on creating legend after other initialization until the
     #lines are defined
-    cols = math.ceil(len(nodePhasePairDict)/12)
-    vAx.legend(ncol=cols)
+    #cols = math.ceil(len(nodePhasePairDict)/12)
+    #vAx.legend(ncol=cols)
+    if len(nodePhasePairDict) <= 10:
+        vAx.legend()
 
 
 def _main():
