@@ -75,15 +75,16 @@ angLinesDict = {}
 tsInit = 0
 pausedFlag = False
 showFlag = False
+firstPassFlag = True
+plotNumber = 0
 
 
-def measurementCallback(header, message):
+def measurementConfigCallback(header, message):
     msgdict = message['message']
     ts = msgdict['timestamp']
     estVolt = msgdict['Estimate']['SvEstVoltages']
     matchCount = 0
-    global tsInit
-    global pausedFlag
+    global tsInit, PausedFlag
 
     for item in estVolt:
         pair = item['ConnectivityNode'] + ',' + item['phase']
@@ -126,6 +127,69 @@ def measurementCallback(header, message):
             # are looking for
             if matchCount == len(nodePhasePairDict):
                 break
+
+    # update plot with the new data
+    plotData(None)
+
+
+def measurementNoConfigCallback(header, message):
+    msgdict = message['message']
+    ts = msgdict['timestamp']
+    estVolt = msgdict['Estimate']['SvEstVoltages']
+    matchCount = 0
+    global tsInit, pausedFlag, firstPassFlag, plotNumber
+
+    for item in estVolt:
+        pair = item['ConnectivityNode'] + ',' + item['phase']
+        v = item['v']
+        angle = item['angle']
+
+        print(sys.argv[0] + ': node,phase pair: ' + pair)
+        print(sys.argv[0] + ': timestamp: ' + str(ts))
+        print(sys.argv[0] + ': v: ' + str(v))
+        print(sys.argv[0] + ': angle: ' + str(angle) + '\n')
+
+        if firstPassFlag:
+            vDataDict[pair] = []
+            vDataDictPaused[pair] = []
+            angDataDict[pair] = []
+            angDataDictPaused[pair] = []
+            # create a lines dictionary entry per node/phase pair for each plot
+            vLinesDict[pair], = vAx.plot([], [], label=pair)
+            angLinesDict[pair], = angAx.plot([], [], label=pair)
+
+        matchCount += 1
+
+        # a little trick to add to the timestamp list for every measurement,
+        # not for every node/phase pair
+        if matchCount == 1:
+            if pausedFlag:
+                if len(tsData) > 0:
+                    tsDataPaused.append(ts - tsInit)
+                else:
+                    tsInit = ts
+                    tsDataPaused.append(0)
+            else:
+                if len(tsData) > 0:
+                    tsData.append(ts - tsInit)
+                else:
+                    tsInit = ts
+                    tsData.append(0)
+
+        if pausedFlag:
+            vDataDictPaused[pair].append(v)
+            angDataDictPaused[pair].append(angle)
+        else:
+            vDataDict[pair].append(v)
+            angDataDict[pair].append(angle)
+
+        # no reason to keep checking more pairs if we've found all we
+        # are looking for
+        if plotNumber>0 and matchCount==plotNumber:
+            break
+
+    # only do the dictionary initializtion code on the first call
+    firstPassFlag = False
 
     # update plot with the new data
     plotData(None)
@@ -347,7 +411,7 @@ def queryConnectivityPairs():
             "queryString": connectivity_names_query
             }
 
-    connectivity_names_response = gapps.get_response('goss.gridappsd.process.request.data.powergridmodel', connectivity_names_request, timeout=15)
+    connectivity_names_response = gapps.get_response('goss.gridappsd.process.request.data.powergridmodel', connectivity_names_request, timeout=600)
 
     results = connectivity_names_response['data']['results']['bindings']
     for node in results:
@@ -373,10 +437,11 @@ def queryConnectivityPairs():
     except:
         print(sys.argv[0] + ': Node/Phase pair configuration file state-plotter-config.csv does not exist.\n')
         exit()
+
     #print(sys.argv[0] + ': ' + str(nodePhasePairDict))
 
 
-def initPlot():
+def initPlot(configFlag, legendFlag):
     # plot attributes needed by plotData function
     global tsZoomSldr, tsPanSldr
     global vAx, vZoomSldr, vPanSldr
@@ -459,27 +524,27 @@ def initPlot():
     vPanSldr = Slider(vPanAx, 'pan', 0, 100, valinit=50, valfmt='%d', valstep=1.0, orientation='vertical')
     vPanSldr.on_changed(plotData)
 
-    for pair in nodePhasePairDict:
-        # create empty lists for the per pair data for each plot so we can
-        # just do append calls when data to plot arrives
-        vDataDict[pair] = []
-        vDataDictPaused[pair] = []
-        angDataDict[pair] = []
-        angDataDictPaused[pair] = []
-        # create a lines dictionary entry per node/phase pair for each plot
-        vLinesDict[pair], = vAx.plot([], [], label=nodePhasePairDict[pair])
-        angLinesDict[pair], = angAx.plot([], [], label=nodePhasePairDict[pair])
+    if configFlag:
+        for pair in nodePhasePairDict:
+            # create empty lists for the per pair data for each plot so we can
+            # just do append calls when data to plot arrives
+            vDataDict[pair] = []
+            vDataDictPaused[pair] = []
+            angDataDict[pair] = []
+            angDataDictPaused[pair] = []
+            # create a lines dictionary entry per node/phase pair for each plot
+            vLinesDict[pair], = vAx.plot([], [], label=nodePhasePairDict[pair])
+            angLinesDict[pair], = angAx.plot([], [], label=nodePhasePairDict[pair])
 
-    # need to wait on creating legend after other initialization until the
-    #lines are defined
-    #cols = math.ceil(len(nodePhasePairDict)/12)
-    #vAx.legend(ncol=cols)
-    if len(nodePhasePairDict) <= 10:
-        vAx.legend()
+        # need to wait on creating legend after other initialization until the
+        #lines are defined
+        if legendFlag or len(nodePhasePairDict)<=10:
+            cols = math.ceil(len(nodePhasePairDict)/12)
+            vAx.legend(ncol=cols)
 
 
 def _main():
-    global gapps, sim_id
+    global gapps, sim_id, plotNumber
 
     if len(sys.argv) < 2:
         print('Usage: ' + sys.argv[0] + ' sim_id sim_req\n')
@@ -487,17 +552,34 @@ def _main():
 
     sim_id = sys.argv[1]
 
+    plotLegendFlag = False
+    plotConfigFlag = True
+    for arg in sys.argv:
+        if arg == '-legend':
+            legendFlag = True
+        elif arg == '-all':
+            plotConfigFlag = False
+        elif arg[0]=='-' and arg[1:].isdigit():
+            plotConfigFlag = False
+            plotNumber = int(arg[1:])
+
     gapps = GridAPPSD()
 
-    # GridAPPS-D query to get connectivity node,phase pairs to determine what
-    # to plot based on the state-plotter-config file
-    queryConnectivityPairs()
+    if plotConfigFlag:
+        # GridAPPS-D query to get connectivity node,phase pairs to determine
+        # what to plot based on the state-plotter-config file
+        queryConnectivityPairs()
 
-    # subscribe to state-estimator measurement output
-    gapps.subscribe('/topic/goss.gridappsd.state-estimator.out.'+sys.argv[1], measurementCallback)
+        # subscribe to state-estimator measurement output
+        gapps.subscribe('/topic/goss.gridappsd.state-estimator.out.'+
+                        sys.argv[1], measurementConfigCallback)
+    else:
+        # subscribe to state-estimator measurement output
+        gapps.subscribe('/topic/goss.gridappsd.state-estimator.out.'+
+                        sys.argv[1], measurementNoConfigCallback)
 
     # matplotlib setup
-    initPlot()
+    initPlot(plotConfigFlag, plotLegendFlag)
 
     # interactive plot event loop allows both the ActiveMQ messages to be
     # received and plot GUI events
