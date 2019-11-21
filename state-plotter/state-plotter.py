@@ -222,6 +222,7 @@ def plotData(event):
         # determine how many points are being plotted to give the properly
         # sized slice of the full lists of data, which impacts y-axis scaling
         tsZoom = int(tsZoomSldr.val)
+        #TODO: Don't assume 3 timesteps between points
         points = int(tsZoom/3.0) + 1
         if points > len(tsData):
             points = len(tsData)
@@ -260,16 +261,18 @@ def plotData(event):
             #    xmax = tsZoom
 
         vAx.set_xlim(xmin, xmax)
-        #print(sys.argv[0] + ': xmin: ' + str(xmin))
-        #print(sys.argv[0] + ': xmax: ' + str(xmax))
+        print(sys.argv[0] + ': xmin: ' + str(xmin))
+        print(sys.argv[0] + ': xmax: ' + str(xmax))
 
         if xmin > 0:
+            #TODO: Don't assume 3 timesteps between points
             startpt = int(xmin/3.0)
         else:
             startpt = 0
+        #TODO: Don't assume 3 timesteps between points
         endpt = int(xmax/3.0) + 1
-        #print(sys.argv[0] + ': startpt: ' + str(startpt))
-        #print(sys.argv[0] + ': endpt: ' + str(endpt) + '\n')
+        print(sys.argv[0] + ': startpt: ' + str(startpt))
+        print(sys.argv[0] + ': endpt: ' + str(endpt) + '\n')
 
         vYmax = sys.float_info.min
         vYmin = sys.float_info.max
