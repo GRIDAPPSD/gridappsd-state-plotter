@@ -82,6 +82,7 @@ plotNumber = 0
 def measurementConfigCallback(header, message):
     msgdict = message['message']
     ts = msgdict['timestamp']
+    print(sys.argv[0] + ': measurement timestamp: ' + str(ts), flush=True)
     estVolt = msgdict['Estimate']['SvEstVoltages']
     matchCount = 0
     global tsInit, PausedFlag
@@ -94,10 +95,10 @@ def measurementConfigCallback(header, message):
             v = item['v']
             angle = item['angle']
 
-            print(sys.argv[0] + ': node,phase pair: ' + pair)
-            print(sys.argv[0] + ': timestamp: ' + str(ts))
-            print(sys.argv[0] + ': v: ' + str(v))
-            print(sys.argv[0] + ': angle: ' + str(angle) + '\n')
+            #print(sys.argv[0] + ': node,phase pair: ' + pair, flush=True)
+            #print(sys.argv[0] + ': timestamp: ' + str(ts), flush=True)
+            #print(sys.argv[0] + ': v: ' + str(v), flush=True)
+            #print(sys.argv[0] + ': angle: ' + str(angle) + '\n', flush=True)
 
             # a little trick to add to the timestamp list for every measurement,
             # not for every node/phase pair match, but only add when a match
@@ -135,6 +136,7 @@ def measurementConfigCallback(header, message):
 def measurementNoConfigCallback(header, message):
     msgdict = message['message']
     ts = msgdict['timestamp']
+    print(sys.argv[0] + ': measurement timestamp: ' + str(ts), flush=True)
     estVolt = msgdict['Estimate']['SvEstVoltages']
     matchCount = 0
     global tsInit, pausedFlag, firstPassFlag, plotNumber
@@ -144,10 +146,10 @@ def measurementNoConfigCallback(header, message):
         v = item['v']
         angle = item['angle']
 
-        print(sys.argv[0] + ': node,phase pair: ' + pair)
-        print(sys.argv[0] + ': timestamp: ' + str(ts))
-        print(sys.argv[0] + ': v: ' + str(v))
-        print(sys.argv[0] + ': angle: ' + str(angle) + '\n')
+        #print(sys.argv[0] + ': node,phase pair: ' + pair, flush=True)
+        #print(sys.argv[0] + ': timestamp: ' + str(ts), flush=True)
+        #print(sys.argv[0] + ': v: ' + str(v), flush=True)
+        #print(sys.argv[0] + ': angle: ' + str(angle) + '\n', flush=True)
 
         if firstPassFlag:
             vDataDict[pair] = []
@@ -219,14 +221,7 @@ def plotData(event):
             angYmin = min(angYmin, min(angDataDict[pair]))
             angYmax = max(angYmax, max(angDataDict[pair]))
     else:
-        # determine how many points are being plotted to give the properly
-        # sized slice of the full lists of data, which impacts y-axis scaling
         tsZoom = int(tsZoomSldr.val)
-        #TODO: Don't assume 3 timesteps between points
-        points = int(tsZoom/3.0) + 1
-        if points > len(tsData):
-            points = len(tsData)
-
         time = int(tsPanSldr.val)
         if time == 100:
             # this fills data from the right
@@ -261,18 +256,43 @@ def plotData(event):
             #    xmax = tsZoom
 
         vAx.set_xlim(xmin, xmax)
-        print(sys.argv[0] + ': xmin: ' + str(xmin))
-        print(sys.argv[0] + ': xmax: ' + str(xmax))
+        print(sys.argv[0] + ': xmin: ' + str(xmin), flush=True)
+        print(sys.argv[0] + ': xmax: ' + str(xmax), flush=True)
 
+        startpt = 0
         if xmin > 0:
-            #TODO: Don't assume 3 timesteps between points
-            startpt = int(xmin/3.0)
-        else:
-            startpt = 0
-        #TODO: Don't assume 3 timesteps between points
-        endpt = int(xmax/3.0) + 1
-        print(sys.argv[0] + ': startpt: ' + str(startpt))
-        print(sys.argv[0] + ': endpt: ' + str(endpt) + '\n')
+            # don't assume 3 timesteps between points, calculate startpt instead
+            #startpt = int(xmin/3.0)
+            for ix in range(len(tsData)):
+                #print(sys.argv[0] + ': startpt ix: ' + str(ix) + ', tsData: ' + str(tsData[ix]), flush=True)
+                if tsData[ix] >= xmin:
+                    # if it's feasible, set starting point to 1 before the
+                    # calculated point so there is no data gap at the left edge
+                    if ix > 1:
+                        startpt = ix - 1
+                    #print(sys.argv[0] + ': startpt break ix: ' + str(ix) + ', tsData: ' + str(tsData[ix]), flush=True)
+                    break
+
+        # don't assume 3 timesteps between points, calculate endpt instead
+        #endpt = int(xmax/3.0) + 1
+        endpt = 0
+        if xmax > 0:
+            endpt = len(tsData)-1
+            for ix in range(endpt,-1,-1):
+                #print(sys.argv[0] + ': endpt ix: ' + str(ix) + ', tsData: ' + str(tsData[ix]), flush=True)
+                if tsData[ix] <= xmax:
+                    # if it's feasible, set ending point to 1 after the
+                    # calculated point so there is no data gap at the right edge
+                    if ix < endpt:
+                        endpt = ix + 1
+                    #print(sys.argv[0] + ': endpt break ix: ' + str(ix) + ', tsData: ' + str(tsData[ix]), flush=True)
+                    break
+
+        # always add 1 to endpt because array slice uses -1 for upper bound
+        endpt += 1
+
+        print(sys.argv[0] + ': startpt: ' + str(startpt), flush=True)
+        print(sys.argv[0] + ': endpt: ' + str(endpt) + '\n', flush=True)
 
         vYmax = sys.float_info.min
         vYmin = sys.float_info.max
@@ -302,8 +322,8 @@ def plotData(event):
 
     newvYmin = vMid - vHeight/2.0
     newvYmax = newvYmin + vHeight
-    #print(sys.argv[0] + ': calculated newvYmin: ' + str(newvYmin))
-    #print(sys.argv[0] + ': calculated newvYmax: ' + str(newvYmax))
+    #print(sys.argv[0] + ': calculated newvYmin: ' + str(newvYmin), flush=True)
+    #print(sys.argv[0] + ': calculated newvYmax: ' + str(newvYmax), flush=True)
 
     if newvYmin < vYmin:
         newvYmin = vYmin
@@ -311,8 +331,8 @@ def plotData(event):
     elif newvYmax > vYmax:
         newvYmax = vYmax
         newvYmin = newvYmax - vHeight
-    #print(sys.argv[0] + ': final newvYmin: ' + str(newvYmin))
-    #print(sys.argv[0] + ': final newvYmax: ' + str(newvYmax) + '\n')
+    #print(sys.argv[0] + ': final newvYmin: ' + str(newvYmin), flush=True)
+    #print(sys.argv[0] + ': final newvYmax: ' + str(newvYmax) + '\n', flush=True)
 
     # override auto-scaling with the calculated y-axis limits
     # apply a fixed margin to the axis limits
@@ -331,8 +351,8 @@ def plotData(event):
 
     newangYmin = angMid - angHeight/2.0
     newangYmax = newangYmin + angHeight
-    #print(sys.argv[0] + ': calculated newangYmin: ' + str(newangYmin))
-    #print(sys.argv[0] + ': calculated newangYmax: ' + str(newangYmax))
+    #print(sys.argv[0] + ': calculated newangYmin: ' + str(newangYmin), flush=True)
+    #print(sys.argv[0] + ': calculated newangYmax: ' + str(newangYmax), flush=True)
 
     if newangYmin < angYmin:
         newangYmin = angYmin
@@ -340,8 +360,8 @@ def plotData(event):
     elif newangYmax > angYmax:
         newangYmax = angYmax
         newangYmin = newangYmax - angHeight
-    #print(sys.argv[0] + ': final newangYmin: ' + str(newangYmin))
-    #print(sys.argv[0] + ': final newangYmax: ' + str(newangYmax) + '\n')
+    #print(sys.argv[0] + ': final newangYmin: ' + str(newangYmin), flush=True)
+    #print(sys.argv[0] + ': final newangYmax: ' + str(newangYmax) + '\n', flush=True)
 
     # override auto-scaling with the calculated y-axis limits
     # apply a fixed margin to the axis limits
@@ -421,7 +441,7 @@ def queryConnectivityPairs():
         cnname = node['cnname']['value']
         cnid = node['cnid']['value']
         cnPairDict[cnname.upper()] = cnid
-    print(cnPairDict)
+    print(cnPairDict, flush=True)
 
     # match connectivity node,phase pairs with the config file for determining
     # what data to plot
@@ -438,10 +458,10 @@ def queryConnectivityPairs():
                 if len(pair)==2 and pair[0].upper() in cnPairDict:
                     nodePhasePairDict[cnPairDict[pair[0].upper()] + ',' + pair[1]] = line
     except:
-        print(sys.argv[0] + ': Node/Phase pair configuration file state-plotter-config.csv does not exist.\n')
+        print(sys.argv[0] + ': Node/Phase pair configuration file state-plotter-config.csv does not exist.\n', flush=True)
         exit()
 
-    #print(sys.argv[0] + ': ' + str(nodePhasePairDict))
+    #print(sys.argv[0] + ': ' + str(nodePhasePairDict), flush=True)
 
 
 def initPlot(configFlag, legendFlag):
@@ -494,7 +514,7 @@ def initPlot(configFlag, legendFlag):
     # slider that's because the show all button uses a checkbox image and you
     # can't use both an image and a label with a button so this is a clever way
     # to get that behavior since matplotlib doesn't have a simple label widget
-    tsZoomSldr = Slider(tsZoomAx, 'show all           zoom', 1, 100, valinit=30, valfmt='%d', valstep=1.0)
+    tsZoomSldr = Slider(tsZoomAx, 'show all           zoom', 1, 360, valinit=180, valfmt='%d', valstep=1.0)
     tsZoomSldr.on_changed(plotData)
 
     # show all button that's embedded in the middle of the slider above
@@ -550,7 +570,7 @@ def _main():
     global gapps, sim_id, plotNumber
 
     if len(sys.argv) < 2:
-        print('Usage: ' + sys.argv[0] + ' sim_id sim_req\n')
+        print('Usage: ' + sys.argv[0] + ' sim_id sim_req\n', flush=True)
         exit()
 
     sim_id = sys.argv[1]
