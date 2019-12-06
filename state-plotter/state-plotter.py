@@ -79,15 +79,29 @@ firstPassFlag = True
 plotNumber = 0
 
 
+def round(value):
+    # round value to the nearest 10
+    lower = int(value/10.0) * 10;
+    upper = lower + 10;
+    return upper if (value-lower > upper-value) else lower
+
+
 def measurementConfigCallback(header, message):
     msgdict = message['message']
     ts = msgdict['timestamp']
     print(sys.argv[0] + ': measurement timestamp: ' + str(ts), flush=True)
     estVolt = msgdict['Estimate']['SvEstVoltages']
     matchCount = 0
-    global tsInit, PausedFlag
+    pairCount = 0
+    global tsZoomSldr, tsInit, PausedFlag
 
     for item in estVolt:
+        pairCount += 1
+
+        if firstPassFlag and matchCount==len(nodePhasePairDict):
+            # short circuit processing if we are just counting
+            continue
+
         pair = item['ConnectivityNode'] + ',' + item['phase']
 
         if pair in nodePhasePairDict:
@@ -126,8 +140,30 @@ def measurementConfigCallback(header, message):
 
             # no reason to keep checking more pairs if we've found all we
             # are looking for
-            if matchCount == len(nodePhasePairDict):
+            if matchCount==len(nodePhasePairDict) and not firstPassFlag:
                 break
+
+    # update the timestamp zoom slider upper limit and default value
+    if firstPassFlag:
+        # scale based on cube root of number of node/phase pairs
+        # 18 is just a magic number that seems to produce reasonable values
+        # for the 3 models used as test cases--20 is a bit too big, 15 too small
+        upper = 18 * (pairCount**(1./3))
+        # round to the nearest 10 to keep the slider from looking odd
+        upper = round(upper)
+        # sanity check just in case
+        upper = max(upper, 60)
+        # // is integer floor division operator
+        default = upper // 2;
+        #print('setting slider upper limit: ' + str(upper) + ', default value: ' + str(default) + ', matchCount: ' + str(matchCount), flush=True)
+        tsZoomSldr.valmin = 1
+        tsZoomSldr.valmax = upper
+        tsZoomSldr.val = default
+        tsZoomSldr.ax.set_xlim(tsZoomSldr.valmin, tsZoomSldr.valmax)
+        tsZoomSldr.set_val(tsZoomSldr.val)
+
+        # clear flag that does pair counting
+        firstPassFlag = False
 
     # update plot with the new data
     plotData(None)
@@ -139,28 +175,33 @@ def measurementNoConfigCallback(header, message):
     print(sys.argv[0] + ': measurement timestamp: ' + str(ts), flush=True)
     estVolt = msgdict['Estimate']['SvEstVoltages']
     matchCount = 0
-    global tsInit, pausedFlag, firstPassFlag, plotNumber
+    global tsZoomSldr, tsInit, pausedFlag, firstPassFlag, plotNumber
 
     for item in estVolt:
         pair = item['ConnectivityNode'] + ',' + item['phase']
         v = item['v']
         angle = item['angle']
 
-        #print(sys.argv[0] + ': node,phase pair: ' + pair, flush=True)
+        #print(sys.argv[0] + ': node,phase pair: ' + pair + ', matchCount: ' + str(matchCount), flush=True)
         #print(sys.argv[0] + ': timestamp: ' + str(ts), flush=True)
         #print(sys.argv[0] + ': v: ' + str(v), flush=True)
         #print(sys.argv[0] + ': angle: ' + str(angle) + '\n', flush=True)
 
+        matchCount += 1
+
         if firstPassFlag:
+            # short circuit processing if we are just counting
+            if plotNumber>0 and matchCount>plotNumber:
+                continue
+
             vDataDict[pair] = []
             vDataDictPaused[pair] = []
             angDataDict[pair] = []
             angDataDictPaused[pair] = []
+
             # create a lines dictionary entry per node/phase pair for each plot
             vLinesDict[pair], = vAx.plot([], [], label=pair)
             angLinesDict[pair], = angAx.plot([], [], label=pair)
-
-        matchCount += 1
 
         # a little trick to add to the timestamp list for every measurement,
         # not for every node/phase pair
@@ -187,11 +228,30 @@ def measurementNoConfigCallback(header, message):
 
         # no reason to keep checking more pairs if we've found all we
         # are looking for
-        if plotNumber>0 and matchCount==plotNumber:
+        if plotNumber>0 and matchCount==plotNumber and not firstPassFlag:
             break
 
-    # only do the dictionary initializtion code on the first call
-    firstPassFlag = False
+    # update the timestamp zoom slider upper limit and default value
+    if firstPassFlag:
+        # scale based on cube root of number of node/phase pairs
+        # 18 is just a magic number that seems to produce reasonable values
+        # for the 3 models used as test cases--20 is a bit too big, 15 too small
+        upper = 18 * (matchCount**(1./3))
+        # round to the nearest 10 to keep the slider from looking odd
+        upper = round(upper)
+        # sanity check just in case
+        upper = max(upper, 60)
+        # // is integer floor division operator
+        default = upper // 2;
+        #print('setting slider upper limit: ' + str(upper) + ', default value: ' + str(default) + ', matchCount: ' + str(matchCount), flush=True)
+        tsZoomSldr.valmin = 1
+        tsZoomSldr.valmax = upper
+        tsZoomSldr.val = default
+        tsZoomSldr.ax.set_xlim(tsZoomSldr.valmin, tsZoomSldr.valmax)
+        tsZoomSldr.set_val(tsZoomSldr.val)
+
+        # only do the dictionary initializtion code on the first call
+        firstPassFlag = False
 
     # update plot with the new data
     plotData(None)
@@ -514,7 +574,7 @@ def initPlot(configFlag, legendFlag):
     # slider that's because the show all button uses a checkbox image and you
     # can't use both an image and a label with a button so this is a clever way
     # to get that behavior since matplotlib doesn't have a simple label widget
-    tsZoomSldr = Slider(tsZoomAx, 'show all           zoom', 1, 360, valinit=180, valfmt='%d', valstep=1.0)
+    tsZoomSldr = Slider(tsZoomAx, 'show all           zoom', 0, 1, valfmt='%d', valstep=1.0)
     tsZoomSldr.on_changed(plotData)
 
     # show all button that's embedded in the middle of the slider above
