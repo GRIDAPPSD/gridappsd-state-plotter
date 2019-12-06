@@ -79,29 +79,41 @@ firstPassFlag = True
 plotNumber = 0
 
 
-def round(value):
-    # round value to the nearest 10
-    lower = int(value/10.0) * 10;
-    upper = lower + 10;
-    return upper if (value-lower > upper-value) else lower
-
-
 def measurementConfigCallback(header, message):
     msgdict = message['message']
     ts = msgdict['timestamp']
     print(sys.argv[0] + ': measurement timestamp: ' + str(ts), flush=True)
+
     estVolt = msgdict['Estimate']['SvEstVoltages']
     matchCount = 0
     pairCount = 0
-    global tsZoomSldr, tsInit, PausedFlag
+    global tsZoomSldr, tsInit, pausedFlag, firstPassFlag
+
+    # update the timestamp zoom slider upper limit and default value
+    if firstPassFlag:
+        pairCount = len(estVolt)
+
+        # scale based on cube root of number of node/phase pairs
+        # 18 is just a magic number that seems to produce reasonable values
+        # for the 3 models used as test cases--20 is a bit too big, 15 too small
+        upper = 18 * (pairCount**(1./3))
+        # round to the nearest 10 to keep the slider from looking odd
+        upper = int(round(upper/10.0)) * 10;
+        # sanity check just in case
+        upper = max(upper, 60)
+        # // is integer floor division operator
+        default = upper // 2;
+        #print('setting slider upper limit: ' + str(upper) + ', default value: ' + str(default) + ', matchCount: ' + str(matchCount), flush=True)
+        tsZoomSldr.valmin = 1
+        tsZoomSldr.valmax = upper
+        tsZoomSldr.val = default
+        tsZoomSldr.ax.set_xlim(tsZoomSldr.valmin, tsZoomSldr.valmax)
+        tsZoomSldr.set_val(tsZoomSldr.val)
+
+        # clear flag that sets zoom slider values
+        firstPassFlag = False
 
     for item in estVolt:
-        pairCount += 1
-
-        if firstPassFlag and matchCount==len(nodePhasePairDict):
-            # short circuit processing if we are just counting
-            continue
-
         pair = item['ConnectivityNode'] + ',' + item['phase']
 
         if pair in nodePhasePairDict:
@@ -140,17 +152,32 @@ def measurementConfigCallback(header, message):
 
             # no reason to keep checking more pairs if we've found all we
             # are looking for
-            if matchCount==len(nodePhasePairDict) and not firstPassFlag:
+            if matchCount == len(nodePhasePairDict):
                 break
+
+    # update plot with the new data
+    plotData(None)
+
+
+def measurementNoConfigCallback(header, message):
+    msgdict = message['message']
+    ts = msgdict['timestamp']
+    print(sys.argv[0] + ': measurement timestamp: ' + str(ts), flush=True)
+
+    estVolt = msgdict['Estimate']['SvEstVoltages']
+    matchCount = 0
+    global tsZoomSldr, tsInit, pausedFlag, firstPassFlag, plotNumber
 
     # update the timestamp zoom slider upper limit and default value
     if firstPassFlag:
+        pairCount = len(estVolt)
+
         # scale based on cube root of number of node/phase pairs
         # 18 is just a magic number that seems to produce reasonable values
         # for the 3 models used as test cases--20 is a bit too big, 15 too small
         upper = 18 * (pairCount**(1./3))
         # round to the nearest 10 to keep the slider from looking odd
-        upper = round(upper)
+        upper = int(round(upper/10.0)) * 10;
         # sanity check just in case
         upper = max(upper, 60)
         # // is integer floor division operator
@@ -161,21 +188,6 @@ def measurementConfigCallback(header, message):
         tsZoomSldr.val = default
         tsZoomSldr.ax.set_xlim(tsZoomSldr.valmin, tsZoomSldr.valmax)
         tsZoomSldr.set_val(tsZoomSldr.val)
-
-        # clear flag that does pair counting
-        firstPassFlag = False
-
-    # update plot with the new data
-    plotData(None)
-
-
-def measurementNoConfigCallback(header, message):
-    msgdict = message['message']
-    ts = msgdict['timestamp']
-    print(sys.argv[0] + ': measurement timestamp: ' + str(ts), flush=True)
-    estVolt = msgdict['Estimate']['SvEstVoltages']
-    matchCount = 0
-    global tsZoomSldr, tsInit, pausedFlag, firstPassFlag, plotNumber
 
     for item in estVolt:
         pair = item['ConnectivityNode'] + ',' + item['phase']
@@ -190,10 +202,6 @@ def measurementNoConfigCallback(header, message):
         matchCount += 1
 
         if firstPassFlag:
-            # short circuit processing if we are just counting
-            if plotNumber>0 and matchCount>plotNumber:
-                continue
-
             vDataDict[pair] = []
             vDataDictPaused[pair] = []
             angDataDict[pair] = []
@@ -228,30 +236,11 @@ def measurementNoConfigCallback(header, message):
 
         # no reason to keep checking more pairs if we've found all we
         # are looking for
-        if plotNumber>0 and matchCount==plotNumber and not firstPassFlag:
+        if plotNumber>0 and matchCount==plotNumber:
             break
 
-    # update the timestamp zoom slider upper limit and default value
-    if firstPassFlag:
-        # scale based on cube root of number of node/phase pairs
-        # 18 is just a magic number that seems to produce reasonable values
-        # for the 3 models used as test cases--20 is a bit too big, 15 too small
-        upper = 18 * (matchCount**(1./3))
-        # round to the nearest 10 to keep the slider from looking odd
-        upper = round(upper)
-        # sanity check just in case
-        upper = max(upper, 60)
-        # // is integer floor division operator
-        default = upper // 2;
-        #print('setting slider upper limit: ' + str(upper) + ', default value: ' + str(default) + ', matchCount: ' + str(matchCount), flush=True)
-        tsZoomSldr.valmin = 1
-        tsZoomSldr.valmax = upper
-        tsZoomSldr.val = default
-        tsZoomSldr.ax.set_xlim(tsZoomSldr.valmin, tsZoomSldr.valmax)
-        tsZoomSldr.set_val(tsZoomSldr.val)
-
-        # only do the dictionary initializtion code on the first call
-        firstPassFlag = False
+    # only do the dictionary initializtion code on the first call
+    firstPassFlag = False
 
     # update plot with the new data
     plotData(None)
