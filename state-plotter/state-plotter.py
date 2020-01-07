@@ -213,11 +213,17 @@ def measurementConfigCallback(header, message):
                             simmeas = simDataTS[simmrid]
                             if 'magnitude' in simmeas:
                                 simvmag = simmeas['magnitude']
-                                vmagdiff = 100.0*abs(vmag - simvmag)/simvmag
+                                if simvmag != 0.0:
+                                    vmagdiff = 100.0*abs(vmag - simvmag)/simvmag
+                                else:
+                                    vmagdiff = 0.0
                                 vDiffDataDictPaused[sepair].append(vmagdiff)
                                 print(sys.argv[0] + ': paused semag: ' + str(vmag) + ', simmag: ' + str(simvmag) + ', % diff: ' + str(vmagdiff), flush=True)
                                 simvangle = simmeas['angle']
-                                vanglediff = 100.0*abs((abs(vangle)-abs(simvangle))/simvangle)
+                                if simvangle != 0.0:
+                                    vanglediff = 100.0*abs((abs(vangle)-abs(simvangle))/simvangle)
+                                else:
+                                    vanglediff = 0.0
                                 angDiffDataDictPaused[sepair].append(vanglediff)
                                 print(sys.argv[0] + ': paused seangle: ' + str(vangle) + ', simvangle: ' + str(simvangle) + ', % diff: ' + str(vanglediff), flush=True)
             else:
@@ -230,11 +236,17 @@ def measurementConfigCallback(header, message):
                             simmeas = simDataTS[simmrid]
                             if 'magnitude' in simmeas:
                                 simvmag = simmeas['magnitude']
-                                vmagdiff = 100.0*abs(vmag - simvmag)/simvmag
+                                if simvmag != 0.0:
+                                    vmagdiff = 100.0*abs(vmag - simvmag)/simvmag
+                                else:
+                                    vmagdiff = 0.0
                                 vDiffDataDict[sepair].append(vmagdiff)
                                 print(sys.argv[0] + ': semag: ' + str(vmag) + ', simmag: ' + str(simvmag) + ', % diff: ' + str(vmagdiff), flush=True)
                                 simvangle = simmeas['angle']
-                                vanglediff = 100.0*abs((abs(vangle)-abs(simvangle))/simvangle)
+                                if simvangle != 0.0:
+                                    vanglediff = 100.0*abs((abs(vangle)-abs(simvangle))/simvangle)
+                                else:
+                                    vanglediff = 0.0
                                 angDiffDataDict[sepair].append(vanglediff)
                                 print(sys.argv[0] + ': seangle: ' + str(vangle) + ', simvangle: ' + str(simvangle) + ', % diff: ' + str(vanglediff), flush=True)
 
@@ -348,11 +360,17 @@ def measurementNoConfigCallback(header, message):
                         simmeas = simDataTS[simmrid]
                         if 'magnitude' in simmeas:
                             simvmag = simmeas['magnitude']
-                            vmagdiff = 100.0*abs(vmag - simvmag)/simvmag
+                            if simvmag != 0.0:
+                                vmagdiff = 100.0*abs(vmag - simvmag)/simvmag
+                            else:
+                                vmagdiff = 0.0
                             vDiffDataDictPaused[sepair].append(vmagdiff)
                             print(sys.argv[0] + ': paused semag: ' + str(vmag) + ', simmag: ' + str(simvmag) + ', % diff: ' + str(vmagdiff), flush=True)
                             simvangle = simmeas['angle']
-                            vanglediff = 100.0*abs((abs(vangle)-abs(simvangle))/simvangle)
+                            if simvangle != 0.0:
+                                vanglediff = 100.0*abs((abs(vangle)-abs(simvangle))/simvangle)
+                            else:
+                                vanglediff = 0.0
                             angDiffDataDictPaused[sepair].append(vanglediff)
                             print(sys.argv[0] + ': paused seangle: ' + str(vangle) + ', simvangle: ' + str(simvangle) + ', % diff: ' + str(vanglediff), flush=True)
 
@@ -366,11 +384,17 @@ def measurementNoConfigCallback(header, message):
                         simmeas = simDataTS[simmrid]
                         if 'magnitude' in simmeas:
                             simvmag = simmeas['magnitude']
-                            vmagdiff = 100.0*abs(vmag - simvmag)/simvmag
+                            if simvmag != 0.0:
+                                vmagdiff = 100.0*abs(vmag - simvmag)/simvmag
+                            else:
+                                vmagdiff = 0.0;
                             vDiffDataDict[sepair].append(vmagdiff)
                             print(sys.argv[0] + ': semag: ' + str(vmag) + ', simmag: ' + str(simvmag) + ', % diff: ' + str(vmagdiff), flush=True)
                             simvangle = simmeas['angle']
-                            vanglediff = 100.0*abs((abs(vangle)-abs(simvangle))/simvangle)
+                            if simvangle != 0.0:
+                                vanglediff = 100.0*abs((abs(vangle)-abs(simvangle))/simvangle)
+                            else:
+                                vanglediff = 0.0
                             angDiffDataDict[sepair].append(vanglediff)
                             print(sys.argv[0] + ': seangle: ' + str(vangle) + ', simvangle: ' + str(simvangle) + ', % diff: ' + str(vanglediff), flush=True)
 
