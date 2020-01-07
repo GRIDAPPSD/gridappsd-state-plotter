@@ -79,7 +79,6 @@ angDiffDataDictPaused = {}
 angLinesDict = {}
 simDataDict = {}
 busToSimMRIDDict = {}
-SEMRIDToBusDict = {}
 SEPairToSimMRIDDict = {}
 tsInit = 0
 pausedFlag = False
@@ -105,19 +104,21 @@ def mapBusToSimMRID():
         for line in csvfp:
             # strip whitespace including trailing newline
             line = ''.join(line.split())
-            pair = line.split(',')
-            busToSimMRIDDict[pair[0]] = pair[1]
+            bus, simmrid = line.split(',')
+            busToSimMRIDDict[bus] = simmrid
 
 
 def mapSEPairToSimMRID():
-    for semrid, busname in SEMRIDToBusDict.items():
-        # busname is the link between SEMRIDToBusDict and busToSimMRIDDict
-        if busname+'.1' in busToSimMRIDDict:
-          SEPairToSimMRIDDict[semrid+',A'] = busToSimMRIDDict[busname+'.1']
-        if busname+'.2' in busToSimMRIDDict:
-          SEPairToSimMRIDDict[semrid+',B'] = busToSimMRIDDict[busname+'.2']
-        if busname+'.3' in busToSimMRIDDict:
-          SEPairToSimMRIDDict[semrid+',C'] = busToSimMRIDDict[busname+'.3']
+    for busname, simmrid in busToSimMRIDDict.items():
+        bus, phase = busname.split('.')
+        if bus in cnPairDict:
+            semrid = cnPairDict[bus]
+            if phase == '1':
+                SEPairToSimMRIDDict[semrid+',A'] = simmrid
+            elif phase == '2':
+                SEPairToSimMRIDDict[semrid+',B'] = simmrid
+            elif phase == '3':
+                SEPairToSimMRIDDict[semrid+',C'] = simmrid
 
 
 def measurementConfigCallback(header, message):
@@ -675,7 +676,6 @@ def queryConnectivityPairs():
         cnname = node['cnname']['value']
         cnid = node['cnid']['value']
         cnPairDict[cnname.upper()] = cnid
-        SEMRIDToBusDict[cnid] = cnname.upper()
     #print(cnPairDict, flush=True)
 
 
@@ -691,9 +691,10 @@ def connectivityPairsToPlot():
                 if line=='' or line.startswith('#'):
                     next
                  
-                pair = line.split(',')
-                if len(pair)==2 and pair[0].upper() in cnPairDict:
-                    nodePhasePairDict[cnPairDict[pair[0].upper()] + ',' + pair[1]] = line
+                bus, phase = line.split(',')
+                bus = node.upper()
+                if bus in cnPairDict:
+                    nodePhasePairDict[cnPairDict[bus] + ',' + phase] = line
     except:
         print(sys.argv[0] + ': Node/Phase pair configuration file state-plotter-config.csv does not exist.\n', flush=True)
         exit()
