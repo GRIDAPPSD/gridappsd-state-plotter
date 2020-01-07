@@ -79,7 +79,7 @@ angDiffDataDictPaused = {}
 angLinesDict = {}
 simDataDict = {}
 busToSimMRIDDict = {}
-SEPairToBusDict = {}
+SEMRIDToBusDict = {}
 SEPairToSimMRIDDict = {}
 tsInit = 0
 pausedFlag = False
@@ -89,118 +89,35 @@ plotNumber = 0
 
 
 def mapBusToSimMRID():
-    # hardwire for the 13-node simulation
-    busToSimMRIDDict['684.1'] = '_05e37282-d9dc-4582-9594-3643b2e2eb95'
-    busToSimMRIDDict['675.2'] = '_0db9d3b9-7162-49e9-bcf7-e8c2636b37e8'
-    busToSimMRIDDict['633.1'] = '_17092da8-b205-46fe-ba21-00cb551c8ac8'
-    busToSimMRIDDict['632.2'] = '_1779251b-8477-414c-9fcb-6382cc086760'
-    busToSimMRIDDict['632.3'] = '_189ef94e-f793-4ef1-a3b1-e4cadb2f1b0b'
-    busToSimMRIDDict['675.1'] = '_19247a22-4efd-4e20-afbf-b3c5b7238dca'
-    busToSimMRIDDict['670.2'] = '_1d0ca991-09d1-4cd2-939a-862ddd9a6068'
-    busToSimMRIDDict['652.1'] = '_209419ff-b820-404a-be99-42d8e0c3e0aa'
-    busToSimMRIDDict['RG60.2'] = '_23bef6d2-b822-4e4e-b796-1a12c753e652'
-    busToSimMRIDDict['675.3'] = '_24b6358e-ac7e-454f-add3-5b32f3ff499a'
-    busToSimMRIDDict['670.1'] = '_306e9fe6-be2c-4290-85b9-424a27e1e311'
-    busToSimMRIDDict['675.1'] = '_32acf072-1f54-4805-842a-a8faed592b63'
-    busToSimMRIDDict['671.3'] = '_39eeccd4-cb24-46f0-a700-19e5ccc526b6'
-    busToSimMRIDDict['646.3'] = '_3bde0f12-9c1b-446c-93ad-4ce00dba48ff'
-    busToSimMRIDDict['645.2'] = '_438315e8-63dd-47fa-9aa8-6a597cc826aa'
-    busToSimMRIDDict['634.3'] = '_4e5293b2-d52f-4c3a-873d-20e5d39218eb'
-    busToSimMRIDDict['675.3'] = '_4e64ab59-9a25-432c-8e21-bd9e50594c56'
-    busToSimMRIDDict['670.3'] = '_533b6e23-df06-4228-b7a9-af6067fcb580'
-    busToSimMRIDDict['692.3'] = '_5beb243b-5d33-411c-97ac-4a85a6c401a3'
-    busToSimMRIDDict['645.2'] = '_6a9ee88c-8f51-4188-8e2a-efbc0d1c2625'
-    busToSimMRIDDict['645.3'] = '_6f262695-de38-4029-8cd4-0bcf7ff83ae4'
-    busToSimMRIDDict['633.3'] = '_779fda85-f2b7-4f8f-85f8-745186ebeb3c'
-    busToSimMRIDDict['611.3'] = '_82d4fcbc-e89a-4ab7-a47d-e8e0cd143098'
-    busToSimMRIDDict['671.1'] = '_82deef13-ea88-4b94-aa08-5c6db8ae609a'
-    busToSimMRIDDict['680.1'] = '_867222d2-8caf-4b8a-93a8-1bd85128aa55'
-    busToSimMRIDDict['652.1'] = '_87e9a62c-6800-46c8-93bf-6d9a64bddc93'
-    busToSimMRIDDict['634.1'] = '_88b3b894-a2bc-4466-9d92-d76c69879a41'
-    busToSimMRIDDict['646.2'] = '_8e4aa0ce-25ab-428e-8563-6b5e50499b86'
-    busToSimMRIDDict['RG60.3'] = '_8f6c102e-679f-4d85-97aa-03f1251f1374'
-    busToSimMRIDDict['680.3'] = '_a80bad80-eac3-407b-938c-a9231327655a'
-    busToSimMRIDDict['680.2'] = '_aae1bfdf-ab2e-4c08-b4ae-6ab2464fa0e1'
-    busToSimMRIDDict['671.2'] = '_b0545eaa-6017-485f-b806-804f0cd5abce'
-    busToSimMRIDDict['671.3'] = '_b17cdfc8-4fd0-4970-a872-5ef996e5b3ba'
-    busToSimMRIDDict['646.2'] = '_b2a5e699-ab2a-45b8-9ae6-afa7dc70b20c'
-    busToSimMRIDDict['671.1'] = '_bc0291cc-8348-4f49-9138-d749894b54c1'
-    busToSimMRIDDict['692.3'] = '_bcbfd71a-8e3b-4549-b68d-591104379b8c'
-    busToSimMRIDDict['671.2'] = '_c4304fbe-4b00-4059-ba76-349111b3afa1'
-    busToSimMRIDDict['633.2'] = '_c509cfe8-e382-40bc-bb2a-6548eaa3878d'
-    busToSimMRIDDict['670.2'] = '_cb6c46f6-cc1b-4c41-8000-a451c92ea3dd'
-    busToSimMRIDDict['692.1'] = '_cc924276-07a7-4684-8f2c-1eea3736d089'
-    busToSimMRIDDict['RG60.1'] = '_ccac973d-3173-4dff-a660-c3b345107e1f'
-    busToSimMRIDDict['675.2'] = '_ced92b6a-6d8e-4bb8-a4b4-3b5a4b36cad2'
-    busToSimMRIDDict['692.2'] = '_d80b1456-0867-472e-a260-9b4227ad7428'
-    busToSimMRIDDict['670.1'] = '_dd7f2a73-d8ac-4e91-9cac-1a4d4b5ae26a'
-    busToSimMRIDDict['611.3'] = '_e2452e22-f8c0-4a3a-8988-6fba878f3936'
-    busToSimMRIDDict['670.3'] = '_e34343f4-6ca2-402e-a810-5a73f1b310a8'
-    busToSimMRIDDict['684.3'] = '_e431a318-3b13-46fa-8d8f-ba4407ad4e37'
-    busToSimMRIDDict['632.1'] = '_e5cce1a5-fbe5-4317-8cd2-8fe1477a8023'
-    busToSimMRIDDict['634.2'] = '_f607dd94-fcbd-4d22-82d8-27a3b9b81c75'
+    # TODO Hardwire busToSimMRIDDict entries until I can code the real query
+    sim_req = sys.argv[2]
+    # ieee13nodecktassets
+    if '_5B816B93-7A5F-B64C-8460-47C17D6E4B0F' in sim_req:
+        busToSimFile = 'busToSim.13.csv'
+    # ieee123
+    elif '_C1C3E687-6FFD-C753-582B-632A27E28507' in sim_req:
+        busToSimFile = 'busToSim.123.csv'
+    # test9500new
+    elif '_AAE94E4A-2465-6F5E-37B1-3E72183A4E44' in sim_req:
+        busToSimFile = 'busToSim.9500.csv'
 
-
-def mapSEPairToBus():
-    # hardwire for the 13-node simulation
-    SEPairToBusDict['_899E6879-B873-4FD7-A2E6-8A9B593C2158,C'] ='611.3'
-    SEPairToBusDict['_62B2A9AC-EF27-40FE-A904-25AF0D3987AC,C'] ='632.3'
-    SEPairToBusDict['_62B2A9AC-EF27-40FE-A904-25AF0D3987AC,B'] ='632.2'
-    SEPairToBusDict['_62B2A9AC-EF27-40FE-A904-25AF0D3987AC,A'] ='632.1'
-    SEPairToBusDict['_4C26F83B-2E05-4FB6-8FE5-27390101F50D,C'] ='633.3'
-    SEPairToBusDict['_4C26F83B-2E05-4FB6-8FE5-27390101F50D,B'] ='633.2'
-    SEPairToBusDict['_4C26F83B-2E05-4FB6-8FE5-27390101F50D,A'] ='633.1'
-    SEPairToBusDict['_4C26F83B-2E05-4FB6-8FE5-27390101F50D,A'] ='633.1'
-    SEPairToBusDict['_4C26F83B-2E05-4FB6-8FE5-27390101F50D,B'] ='633.2'
-    SEPairToBusDict['_4C26F83B-2E05-4FB6-8FE5-27390101F50D,C'] ='633.3'
-    SEPairToBusDict['_63B9F317-11A2-45CD-9614-78DDBFA3909A,A'] ='634.1'
-    SEPairToBusDict['_63B9F317-11A2-45CD-9614-78DDBFA3909A,C'] ='634.3'
-    SEPairToBusDict['_63B9F317-11A2-45CD-9614-78DDBFA3909A,B'] ='634.2'
-    SEPairToBusDict['_63B9F317-11A2-45CD-9614-78DDBFA3909A,A'] ='634.1'
-    SEPairToBusDict['_63B9F317-11A2-45CD-9614-78DDBFA3909A,B'] ='634.2'
-    SEPairToBusDict['_63B9F317-11A2-45CD-9614-78DDBFA3909A,C'] ='634.3'
-    SEPairToBusDict['_3F9FE328-1990-405A-A5D6-39EA2A8CD54F,B'] ='645.2'
-    SEPairToBusDict['_3F9FE328-1990-405A-A5D6-39EA2A8CD54F,C'] ='645.3'
-    SEPairToBusDict['_1285BECC-0B66-40A5-A177-C2FDB5BA65B0,C'] ='646.3'
-    SEPairToBusDict['_1285BECC-0B66-40A5-A177-C2FDB5BA65B0,B'] ='646.2'
-    SEPairToBusDict['_C101AE7A-1AE4-4C41-8031-95BD9649123E,A'] ='650.1'
-    SEPairToBusDict['_C101AE7A-1AE4-4C41-8031-95BD9649123E,B'] ='650.2'
-    SEPairToBusDict['_C101AE7A-1AE4-4C41-8031-95BD9649123E,C'] ='650.3'
-    SEPairToBusDict['_C101AE7A-1AE4-4C41-8031-95BD9649123E,A'] ='650.1'
-    SEPairToBusDict['_C101AE7A-1AE4-4C41-8031-95BD9649123E,C'] ='650.3'
-    SEPairToBusDict['_C101AE7A-1AE4-4C41-8031-95BD9649123E,B'] ='650.2'
-    SEPairToBusDict['_45AC6D6A-DB87-413F-9777-4F67C88B94C8,A'] ='652.1'
-    SEPairToBusDict['_DB6600DE-F938-4561-B761-3574020DB511,A'] ='670.1'
-    SEPairToBusDict['_DB6600DE-F938-4561-B761-3574020DB511,C'] ='670.3'
-    SEPairToBusDict['_DB6600DE-F938-4561-B761-3574020DB511,B'] ='670.2'
-    SEPairToBusDict['_7BDEF197-D8A0-4A25-AB61-BD1E7DB2DFF0,C'] ='671.3'
-    SEPairToBusDict['_7BDEF197-D8A0-4A25-AB61-BD1E7DB2DFF0,B'] ='671.2'
-    SEPairToBusDict['_7BDEF197-D8A0-4A25-AB61-BD1E7DB2DFF0,A'] ='671.1'
-    SEPairToBusDict['_258D72A8-A526-40C7-B8E0-7BB4FC0949DA,B'] ='675.2'
-    SEPairToBusDict['_258D72A8-A526-40C7-B8E0-7BB4FC0949DA,C'] ='675.3'
-    SEPairToBusDict['_258D72A8-A526-40C7-B8E0-7BB4FC0949DA,A'] ='675.1'
-    SEPairToBusDict['_F5569573-C551-408C-8712-239C8B4BB875,A'] ='680.1'
-    SEPairToBusDict['_F5569573-C551-408C-8712-239C8B4BB875,C'] ='680.3'
-    SEPairToBusDict['_F5569573-C551-408C-8712-239C8B4BB875,B'] ='680.2'
-    SEPairToBusDict['_5CAFECA3-0A26-4E19-868B-DD2C4272BB00,A'] ='684.1'
-    SEPairToBusDict['_5CAFECA3-0A26-4E19-868B-DD2C4272BB00,C'] ='684.3'
-    SEPairToBusDict['_77F5D0E1-8307-420C-B2DB-CEC1B2EC0FF7,B'] ='692.2'
-    SEPairToBusDict['_77F5D0E1-8307-420C-B2DB-CEC1B2EC0FF7,C'] ='692.3'
-    SEPairToBusDict['_77F5D0E1-8307-420C-B2DB-CEC1B2EC0FF7,A'] ='692.1'
-    SEPairToBusDict['_55920F9D-7F3D-42B8-A044-D894520DB034,C'] ='RG60.3'
-    SEPairToBusDict['_55920F9D-7F3D-42B8-A044-D894520DB034,B'] ='RG60.2'
-    SEPairToBusDict['_55920F9D-7F3D-42B8-A044-D894520DB034,A'] ='RG60.1'
-    SEPairToBusDict['_B8E8BF94-1E49-4002-97EF-2EDDC1304183,A'] ='SOURCEBUS.1'
-    SEPairToBusDict['_B8E8BF94-1E49-4002-97EF-2EDDC1304183,B'] ='SOURCEBUS.2'
-    SEPairToBusDict['_B8E8BF94-1E49-4002-97EF-2EDDC1304183,C'] ='SOURCEBUS.3'
+    with open('../' + busToSimFile) as csvfp:
+        for line in csvfp:
+            # strip whitespace including trailing newline
+            line = ''.join(line.split())
+            pair = line.split(',')
+            busToSimMRIDDict[pair[0]] = pair[1]
 
 
 def mapSEPairToSimMRID():
-    # iterate over SEPairToBusDict
-    for sepair, busname in SEPairToBusDict.items():
-        # busname is the link between SEPairToBusDict and busToSimMRIDDict
-        if busname in busToSimMRIDDict:
-          SEPairToSimMRIDDict[sepair] = busToSimMRIDDict[busname]
+    for semrid, busname in SEMRIDToBusDict.items():
+        # busname is the link between SEMRIDToBusDict and busToSimMRIDDict
+        if busname+'.1' in busToSimMRIDDict:
+          SEPairToSimMRIDDict[semrid+',A'] = busToSimMRIDDict[busname+'.1']
+        if busname+'.2' in busToSimMRIDDict:
+          SEPairToSimMRIDDict[semrid+',B'] = busToSimMRIDDict[busname+'.2']
+        if busname+'.3' in busToSimMRIDDict:
+          SEPairToSimMRIDDict[semrid+',C'] = busToSimMRIDDict[busname+'.3']
 
 
 def measurementConfigCallback(header, message):
@@ -729,12 +646,16 @@ def queryConnectivityPairs():
     connectivity_names_response = gapps.get_response('goss.gridappsd.process.request.data.powergridmodel', connectivity_names_request, timeout=600)
 
     results = connectivity_names_response['data']['results']['bindings']
+
     for node in results:
         cnname = node['cnname']['value']
         cnid = node['cnid']['value']
         cnPairDict[cnname.upper()] = cnid
-    print(cnPairDict, flush=True)
+        SEMRIDToBusDict[cnid] = cnname.upper()
+    #print(cnPairDict, flush=True)
 
+
+def connectivityPairsToPlot():
     # match connectivity node,phase pairs with the config file for determining
     # what data to plot
     try:
@@ -884,22 +805,23 @@ def _main():
 
     gapps = GridAPPSD()
 
-    if plotConfigFlag:
-        # GridAPPS-D query to get connectivity node,phase pairs to determine
-        # what to plot based on the state-plotter-config file
-        queryConnectivityPairs()
+    # GridAPPS-D query to get connectivity node,phase pairs
+    queryConnectivityPairs()
 
-        # subscribe to state-estimator measurement output
+    if plotConfigFlag:
+        # Determine what to plot based on the state-plotter-config file
+        connectivityPairsToPlot()
+
+        # subscribe to state-estimator measurement output--with config file
         gapps.subscribe('/topic/goss.gridappsd.state-estimator.out.'+
                         sys.argv[1], measurementConfigCallback)
     else:
-        # subscribe to state-estimator measurement output
+        # subscribe to state-estimator measurement output--without config file
         gapps.subscribe('/topic/goss.gridappsd.state-estimator.out.'+
                         sys.argv[1], measurementNoConfigCallback)
 
     # create dictionaries to map between simulation and state-estimator output
     mapBusToSimMRID()
-    mapSEPairToBus()
     mapSEPairToSimMRID()
 
     # subscribe to simulation output for comparison with measurements
