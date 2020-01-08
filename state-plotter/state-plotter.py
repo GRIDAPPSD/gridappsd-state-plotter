@@ -67,16 +67,16 @@ cnPairDict = {}
 nodePhasePairDict = {}
 tsData = []
 tsDataPaused = []
-vDataDict = {}
-vDataDictPaused = {}
-vDiffDataDict = {}
-vDiffDataDictPaused = {}
-vLinesDict = {}
-angDataDict = {}
-angDataDictPaused = {}
-angDiffDataDict = {}
-angDiffDataDictPaused = {}
-angLinesDict = {}
+vmagDataDict = {}
+vmagDataDictPaused = {}
+vmagDiffDataDict = {}
+vmagDiffDataDictPaused = {}
+vmagLinesDict = {}
+vangDataDict = {}
+vangDataDictPaused = {}
+vangDiffDataDict = {}
+vangDiffDataDictPaused = {}
+vangLinesDict = {}
 simDataDict = {}
 busToSimMRIDDict = {}
 SEPairToSimMRIDDict = {}
@@ -206,8 +206,8 @@ def measurementConfigCallback(header, message):
                         tsData.append(0)
 
             if pausedFlag:
-                vDataDictPaused[sepair].append(vmag)
-                angDataDictPaused[sepair].append(vangle)
+                vmagDataDictPaused[sepair].append(vmag)
+                vangDataDictPaused[sepair].append(vangle)
                 if simDataTS is not None:
                     if sepair in SEPairToSimMRIDDict:
                         simmrid = SEPairToSimMRIDDict[sepair]
@@ -219,18 +219,18 @@ def measurementConfigCallback(header, message):
                                     vmagdiff = 100.0*abs(vmag - simvmag)/simvmag
                                 else:
                                     vmagdiff = 0.0
-                                vDiffDataDictPaused[sepair].append(vmagdiff)
+                                vmagDiffDataDictPaused[sepair].append(vmagdiff)
                                 print(sys.argv[0] + ', ts: ' + str(ts) + ', sepair: ' + sepair + ', paused semag: ' + str(vmag) + ', simmag: ' + str(simvmag) + ', % diff: ' + str(vmagdiff), flush=True)
                                 simvangle = simmeas['angle']
                                 if simvangle != 0.0:
                                     vanglediff = 100.0*abs((abs(vangle)-abs(simvangle))/simvangle)
                                 else:
                                     vanglediff = 0.0
-                                angDiffDataDictPaused[sepair].append(vanglediff)
+                                vangDiffDataDictPaused[sepair].append(vanglediff)
                                 print(sys.argv[0] + ', ts: ' + str(ts) + ', sepair: ' + sepair + ', paused seangle: ' + str(vangle) + ', simvangle: ' + str(simvangle) + ', % diff: ' + str(vanglediff), flush=True)
             else:
-                vDataDict[sepair].append(vmag)
-                angDataDict[sepair].append(vangle)
+                vmagDataDict[sepair].append(vmag)
+                vangDataDict[sepair].append(vangle)
                 if simDataTS is not None:
                     if sepair in SEPairToSimMRIDDict:
                         simmrid = SEPairToSimMRIDDict[sepair]
@@ -242,14 +242,14 @@ def measurementConfigCallback(header, message):
                                     vmagdiff = 100.0*abs(vmag - simvmag)/simvmag
                                 else:
                                     vmagdiff = 0.0
-                                vDiffDataDict[sepair].append(vmagdiff)
+                                vmagDiffDataDict[sepair].append(vmagdiff)
                                 print(sys.argv[0] + ', ts: ' + str(ts) + ', sepair: ' + sepair + ', semag: ' + str(vmag) + ', simmag: ' + str(simvmag) + ', % diff: ' + str(vmagdiff), flush=True)
                                 simvangle = simmeas['angle']
                                 if simvangle != 0.0:
                                     vanglediff = 100.0*abs((abs(vangle)-abs(simvangle))/simvangle)
                                 else:
                                     vanglediff = 0.0
-                                angDiffDataDict[sepair].append(vanglediff)
+                                vangDiffDataDict[sepair].append(vanglediff)
                                 print(sys.argv[0] + ', ts: ' + str(ts) + ', sepair: ' + sepair + ', seangle: ' + str(vangle) + ', simvangle: ' + str(simvangle) + ', % diff: ' + str(vanglediff), flush=True)
 
             # no reason to keep checking more pairs if we've found all we
@@ -323,18 +323,18 @@ def measurementNoConfigCallback(header, message):
         matchCount += 1
 
         if firstPassFlag:
-            vDataDict[sepair] = []
-            vDataDictPaused[sepair] = []
-            vDiffDataDict[sepair] = []
-            vDiffDataDictPaused[sepair] = []
-            angDataDict[sepair] = []
-            angDataDictPaused[sepair] = []
-            angDiffDataDict[sepair] = []
-            angDiffDataDictPaused[sepair] = []
+            vmagDataDict[sepair] = []
+            vmagDataDictPaused[sepair] = []
+            vmagDiffDataDict[sepair] = []
+            vmagDiffDataDictPaused[sepair] = []
+            vangDataDict[sepair] = []
+            vangDataDictPaused[sepair] = []
+            vangDiffDataDict[sepair] = []
+            vangDiffDataDictPaused[sepair] = []
 
             # create a lines dictionary entry per node/phase pair for each plot
-            vLinesDict[sepair], = vmagAx.plot([], [], label=sepair)
-            angLinesDict[sepair], = vangAx.plot([], [], label=sepair)
+            vmagLinesDict[sepair], = vmagAx.plot([], [], label=sepair)
+            vangLinesDict[sepair], = vangAx.plot([], [], label=sepair)
 
         # a little trick to add to the timestamp list for every measurement,
         # not for every node/phase pair
@@ -353,8 +353,8 @@ def measurementNoConfigCallback(header, message):
                     tsData.append(0)
 
         if pausedFlag:
-            vDataDictPaused[sepair].append(vmag)
-            angDataDictPaused[sepair].append(vangle)
+            vmagDataDictPaused[sepair].append(vmag)
+            vangDataDictPaused[sepair].append(vangle)
             if simDataTS is not None:
                 if sepair in SEPairToSimMRIDDict:
                     simmrid = SEPairToSimMRIDDict[sepair]
@@ -366,19 +366,19 @@ def measurementNoConfigCallback(header, message):
                                 vmagdiff = 100.0*abs(vmag - simvmag)/simvmag
                             else:
                                 vmagdiff = 0.0
-                            vDiffDataDictPaused[sepair].append(vmagdiff)
+                            vmagDiffDataDictPaused[sepair].append(vmagdiff)
                             print(sys.argv[0] + ', ts: ' + str(ts) + ', sepair: ' + sepair + ', paused semag: ' + str(vmag) + ', simmag: ' + str(simvmag) + ', % diff: ' + str(vmagdiff), flush=True)
                             simvangle = simmeas['angle']
                             if simvangle != 0.0:
                                 vanglediff = 100.0*abs((abs(vangle)-abs(simvangle))/simvangle)
                             else:
                                 vanglediff = 0.0
-                            angDiffDataDictPaused[sepair].append(vanglediff)
+                            vangDiffDataDictPaused[sepair].append(vanglediff)
                             print(sys.argv[0] + ', ts: ' + str(ts) + ', sepair: ' + sepair + ', paused seangle: ' + str(vangle) + ', simvangle: ' + str(simvangle) + ', % diff: ' + str(vanglediff), flush=True)
 
         else:
-            vDataDict[sepair].append(vmag)
-            angDataDict[sepair].append(vangle)
+            vmagDataDict[sepair].append(vmag)
+            vangDataDict[sepair].append(vangle)
             if simDataTS is not None:
                 if sepair in SEPairToSimMRIDDict:
                     simmrid = SEPairToSimMRIDDict[sepair]
@@ -390,14 +390,14 @@ def measurementNoConfigCallback(header, message):
                                 vmagdiff = 100.0*abs(vmag - simvmag)/simvmag
                             else:
                                 vmagdiff = 0.0;
-                            vDiffDataDict[sepair].append(vmagdiff)
+                            vmagDiffDataDict[sepair].append(vmagdiff)
                             print(sys.argv[0] + ', ts: ' + str(ts) + ', sepair: ' + sepair + ', semag: ' + str(vmag) + ', simmag: ' + str(simvmag) + ', % diff: ' + str(vmagdiff), flush=True)
                             simvangle = simmeas['angle']
                             if simvangle != 0.0:
                                 vanglediff = 100.0*abs((abs(vangle)-abs(simvangle))/simvangle)
                             else:
                                 vanglediff = 0.0
-                            angDiffDataDict[sepair].append(vanglediff)
+                            vangDiffDataDict[sepair].append(vanglediff)
                             print(sys.argv[0] + ', ts: ' + str(ts) + ', sepair: ' + sepair + ', seangle: ' + str(vangle) + ', simvangle: ' + str(simvangle) + ', % diff: ' + str(vanglediff), flush=True)
 
         # no reason to keep checking more pairs if we've found all we
@@ -461,21 +461,21 @@ def plotData(event):
     if showFlag:
         vmagAx.set_xlim((0, int(tsData[-1])))
 
-        vYmax = sys.float_info.min
-        vYmin = sys.float_info.max
-        for pair in vDataDict:
-            vLinesDict[pair].set_xdata(tsData)
-            vLinesDict[pair].set_ydata(vDataDict[pair])
-            vYmin = min(vYmin, min(vDataDict[pair]))
-            vYmax = max(vYmax, max(vDataDict[pair]))
+        vmagYmax = sys.float_info.min
+        vmagYmin = sys.float_info.max
+        for pair in vmagDataDict:
+            vmagLinesDict[pair].set_xdata(tsData)
+            vmagLinesDict[pair].set_ydata(vmagDataDict[pair])
+            vmagYmin = min(vmagYmin, min(vmagDataDict[pair]))
+            vmagYmax = max(vmagYmax, max(vmagDataDict[pair]))
 
-        angYmax = sys.float_info.min
-        angYmin = sys.float_info.max
-        for pair in angDataDict:
-            angLinesDict[pair].set_xdata(tsData)
-            angLinesDict[pair].set_ydata(angDataDict[pair])
-            angYmin = min(angYmin, min(angDataDict[pair]))
-            angYmax = max(angYmax, max(angDataDict[pair]))
+        vangYmax = sys.float_info.min
+        vangYmin = sys.float_info.max
+        for pair in vangDataDict:
+            vangLinesDict[pair].set_xdata(tsData)
+            vangLinesDict[pair].set_ydata(vangDataDict[pair])
+            vangYmin = min(vangYmin, min(vangDataDict[pair]))
+            vangYmax = max(vangYmax, max(vangDataDict[pair]))
     else:
         tsZoom = int(tsZoomSldr.val)
         time = int(tsPanSldr.val)
@@ -550,79 +550,79 @@ def plotData(event):
         print(sys.argv[0] + ': startpt: ' + str(startpt), flush=True)
         print(sys.argv[0] + ': endpt: ' + str(endpt) + '\n', flush=True)
 
-        vYmax = sys.float_info.min
-        vYmin = sys.float_info.max
-        for pair in vDataDict:
-            vLinesDict[pair].set_xdata(tsData[startpt:endpt])
-            vLinesDict[pair].set_ydata(vDataDict[pair][startpt:endpt])
-            vYmin = min(vYmin, min(vDataDict[pair][startpt:endpt]))
-            vYmax = max(vYmax, max(vDataDict[pair][startpt:endpt]))
+        vmagYmax = sys.float_info.min
+        vmagYmin = sys.float_info.max
+        for pair in vmagDataDict:
+            vmagLinesDict[pair].set_xdata(tsData[startpt:endpt])
+            vmagLinesDict[pair].set_ydata(vmagDataDict[pair][startpt:endpt])
+            vmagYmin = min(vmagYmin, min(vmagDataDict[pair][startpt:endpt]))
+            vmagYmax = max(vmagYmax, max(vmagDataDict[pair][startpt:endpt]))
 
-        angYmax = sys.float_info.min
-        angYmin = sys.float_info.max
-        for pair in angDataDict:
-            angLinesDict[pair].set_xdata(tsData[startpt:endpt])
-            angLinesDict[pair].set_ydata(angDataDict[pair][startpt:endpt])
-            angYmin = min(angYmin, min(angDataDict[pair][startpt:endpt]))
-            angYmax = max(angYmax, max(angDataDict[pair][startpt:endpt]))
+        vangYmax = sys.float_info.min
+        vangYmin = sys.float_info.max
+        for pair in vangDataDict:
+            vangLinesDict[pair].set_xdata(tsData[startpt:endpt])
+            vangLinesDict[pair].set_ydata(vangDataDict[pair][startpt:endpt])
+            vangYmin = min(vangYmin, min(vangDataDict[pair][startpt:endpt]))
+            vangYmax = max(vangYmax, max(vangDataDict[pair][startpt:endpt]))
 
     # voltage plot y-axis zoom and pan calculation
-    vZoom = int(vmagZoomSldr.val)
-    if vZoom == 100:
-        vHeight = vYmax - vYmin
+    vmagZoom = int(vmagZoomSldr.val)
+    if vmagZoom == 100:
+        vmagHeight = vmagYmax - vmagYmin
     else:
-        vHeight = (vYmax-vYmin)*vZoom/100.0
+        vmagHeight = (vmagYmax-vmagYmin)*vmagZoom/100.0
 
     vPan = int(vmagPanSldr.val)
-    vMid = vYmin + (vYmax-vYmin)*vPan/100.0
+    vMid = vmagYmin + (vmagYmax-vmagYmin)*vPan/100.0
 
-    newvYmin = vMid - vHeight/2.0
-    newvYmax = newvYmin + vHeight
-    #print(sys.argv[0] + ': calculated newvYmin: ' + str(newvYmin), flush=True)
-    #print(sys.argv[0] + ': calculated newvYmax: ' + str(newvYmax), flush=True)
+    newvmagYmin = vMid - vmagHeight/2.0
+    newvmagYmax = newvmagYmin + vmagHeight
+    #print(sys.argv[0] + ': calculated newvmagYmin: ' + str(newvmagYmin), flush=True)
+    #print(sys.argv[0] + ': calculated newvmagYmax: ' + str(newvmagYmax), flush=True)
 
-    if newvYmin < vYmin:
-        newvYmin = vYmin
-        newvYmax = newvYmin + vHeight
-    elif newvYmax > vYmax:
-        newvYmax = vYmax
-        newvYmin = newvYmax - vHeight
-    #print(sys.argv[0] + ': final newvYmin: ' + str(newvYmin), flush=True)
-    #print(sys.argv[0] + ': final newvYmax: ' + str(newvYmax) + '\n', flush=True)
+    if newvmagYmin < vmagYmin:
+        newvmagYmin = vmagYmin
+        newvmagYmax = newvmagYmin + vmagHeight
+    elif newvmagYmax > vmagYmax:
+        newvmagYmax = vmagYmax
+        newvmagYmin = newvmagYmax - vmagHeight
+    #print(sys.argv[0] + ': final newvmagYmin: ' + str(newvmagYmin), flush=True)
+    #print(sys.argv[0] + ': final newvmagYmax: ' + str(newvmagYmax) + '\n', flush=True)
 
     # override auto-scaling with the calculated y-axis limits
     # apply a fixed margin to the axis limits
-    vMargin = vHeight*0.03
-    vmagAx.set_ylim((newvYmin-vMargin, newvYmax+vMargin))
+    vmagMargin = vmagHeight*0.03
+    vmagAx.set_ylim((newvmagYmin-vmagMargin, newvmagYmax+vmagMargin))
 
     # angle plot y-axis zoom and pan calculation
-    angZoom = int(vangZoomSldr.val)
-    if angZoom == 100:
-        angHeight = angYmax - angYmin
+    vangZoom = int(vangZoomSldr.val)
+    if vangZoom == 100:
+        vangHeight = vangYmax - vangYmin
     else:
-        angHeight = (angYmax-angYmin)*angZoom/100.0
+        vangHeight = (vangYmax-vangYmin)*vangZoom/100.0
 
-    angPan = int(vangPanSldr.val)
-    angMid = angYmin + (angYmax-angYmin)*angPan/100.0
+    vangPan = int(vangPanSldr.val)
+    vangMid = vangYmin + (vangYmax-vangYmin)*vangPan/100.0
 
-    newangYmin = angMid - angHeight/2.0
-    newangYmax = newangYmin + angHeight
-    #print(sys.argv[0] + ': calculated newangYmin: ' + str(newangYmin), flush=True)
-    #print(sys.argv[0] + ': calculated newangYmax: ' + str(newangYmax), flush=True)
+    newvangYmin = vangMid - vangHeight/2.0
+    newvangYmax = newvangYmin + vangHeight
+    #print(sys.argv[0] + ': calculated newvangYmin: ' + str(newvangYmin), flush=True)
+    #print(sys.argv[0] + ': calculated newvangYmax: ' + str(newvangYmax), flush=True)
 
-    if newangYmin < angYmin:
-        newangYmin = angYmin
-        newangYmax = newangYmin + angHeight
-    elif newangYmax > angYmax:
-        newangYmax = angYmax
-        newangYmin = newangYmax - angHeight
-    #print(sys.argv[0] + ': final newangYmin: ' + str(newangYmin), flush=True)
-    #print(sys.argv[0] + ': final newangYmax: ' + str(newangYmax) + '\n', flush=True)
+    if newvangYmin < vangYmin:
+        newvangYmin = vangYmin
+        newvangYmax = newvangYmin + vangHeight
+    elif newvangYmax > vangYmax:
+        newvangYmax = vangYmax
+        newvangYmin = newvangYmax - vangHeight
+    #print(sys.argv[0] + ': final newvangYmin: ' + str(newvangYmin), flush=True)
+    #print(sys.argv[0] + ': final newvangYmax: ' + str(newvangYmax) + '\n', flush=True)
 
     # override auto-scaling with the calculated y-axis limits
     # apply a fixed margin to the axis limits
-    angMargin = angHeight*0.03
-    vangAx.set_ylim((newangYmin-angMargin, newangYmax+angMargin))
+    vangMargin = vangHeight*0.03
+    vangAx.set_ylim((newvangYmin-vangMargin, newvangYmax+vangMargin))
 
     # flush all the plot changes
     plt.draw()
@@ -643,15 +643,15 @@ def pauseCallback(event):
         # clear the "paused" data so we build from scratch with the next pause
         tsDataPaused.clear()
         for pair in nodePhasePairDict:
-            vDataDict[pair].extend(vDataDictPaused[pair])
-            angDataDict[pair].extend(angDataDictPaused[pair])
-            vDataDictPaused[pair].clear()
-            angDataDictPaused[pair].clear()
+            vmagDataDict[pair].extend(vmagDataDictPaused[pair])
+            vangDataDict[pair].extend(vangDataDictPaused[pair])
+            vmagDataDictPaused[pair].clear()
+            vangDataDictPaused[pair].clear()
 
-            vDiffDataDict[pair].extend(vDiffDataDictPaused[pair])
-            angDiffDataDict[pair].extend(angDiffDataDictPaused[pair])
-            vDiffDataDictPaused[pair].clear()
-            angDiffDataDictPaused[pair].clear()
+            vmagDiffDataDict[pair].extend(vmagDiffDataDictPaused[pair])
+            vangDiffDataDict[pair].extend(vangDiffDataDictPaused[pair])
+            vmagDiffDataDictPaused[pair].clear()
+            vangDiffDataDictPaused[pair].clear()
 
     plotData(None)
 
@@ -828,17 +828,17 @@ def initPlot(configFlag, legendFlag):
         for pair in nodePhasePairDict:
             # create empty lists for the per pair data for each plot so we can
             # just do append calls when data to plot arrives
-            vDataDict[pair] = []
-            vDataDictPaused[pair] = []
-            angDataDict[pair] = []
-            angDataDictPaused[pair] = []
-            vDiffDataDict[pair] = []
-            vDiffDataDictPaused[pair] = []
-            angDiffDataDict[pair] = []
-            angDiffDataDictPaused[pair] = []
+            vmagDataDict[pair] = []
+            vmagDataDictPaused[pair] = []
+            vangDataDict[pair] = []
+            vangDataDictPaused[pair] = []
+            vmagDiffDataDict[pair] = []
+            vmagDiffDataDictPaused[pair] = []
+            vangDiffDataDict[pair] = []
+            vangDiffDataDictPaused[pair] = []
             # create a lines dictionary entry per node/phase pair for each plot
-            vLinesDict[pair], = vmagAx.plot([], [], label=nodePhasePairDict[pair])
-            angLinesDict[pair], = vangAx.plot([], [], label=nodePhasePairDict[pair])
+            vmagLinesDict[pair], = vmagAx.plot([], [], label=nodePhasePairDict[pair])
+            vangLinesDict[pair], = vangAx.plot([], [], label=nodePhasePairDict[pair])
 
         # need to wait on creating legend after other initialization until the
         #lines are defined
