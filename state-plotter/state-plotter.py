@@ -119,6 +119,7 @@ def mapSEPairToSimMRID():
                 SEPairToSimMRIDDict[semrid+',B'] = simmrid
             elif phase == '3':
                 SEPairToSimMRIDDict[semrid+',C'] = simmrid
+    pprint.pprint(SEPairToSimMRIDDict)
 
 
 def measurementConfigCallback(header, message):
@@ -219,14 +220,14 @@ def measurementConfigCallback(header, message):
                                 else:
                                     vmagdiff = 0.0
                                 vDiffDataDictPaused[sepair].append(vmagdiff)
-                                print(sys.argv[0] + ': paused semag: ' + str(vmag) + ', simmag: ' + str(simvmag) + ', % diff: ' + str(vmagdiff), flush=True)
+                                print(sys.argv[0] + ', ts: ' + str(ts) + ', sepair: ' + sepair + ', paused semag: ' + str(vmag) + ', simmag: ' + str(simvmag) + ', % diff: ' + str(vmagdiff), flush=True)
                                 simvangle = simmeas['angle']
                                 if simvangle != 0.0:
                                     vanglediff = 100.0*abs((abs(vangle)-abs(simvangle))/simvangle)
                                 else:
                                     vanglediff = 0.0
                                 angDiffDataDictPaused[sepair].append(vanglediff)
-                                print(sys.argv[0] + ': paused seangle: ' + str(vangle) + ', simvangle: ' + str(simvangle) + ', % diff: ' + str(vanglediff), flush=True)
+                                print(sys.argv[0] + ', ts: ' + str(ts) + ', sepair: ' + sepair + ', paused seangle: ' + str(vangle) + ', simvangle: ' + str(simvangle) + ', % diff: ' + str(vanglediff), flush=True)
             else:
                 vDataDict[sepair].append(vmag)
                 angDataDict[sepair].append(vangle)
@@ -242,14 +243,14 @@ def measurementConfigCallback(header, message):
                                 else:
                                     vmagdiff = 0.0
                                 vDiffDataDict[sepair].append(vmagdiff)
-                                print(sys.argv[0] + ': semag: ' + str(vmag) + ', simmag: ' + str(simvmag) + ', % diff: ' + str(vmagdiff), flush=True)
+                                print(sys.argv[0] + ', ts: ' + str(ts) + ', sepair: ' + sepair + ', semag: ' + str(vmag) + ', simmag: ' + str(simvmag) + ', % diff: ' + str(vmagdiff), flush=True)
                                 simvangle = simmeas['angle']
                                 if simvangle != 0.0:
                                     vanglediff = 100.0*abs((abs(vangle)-abs(simvangle))/simvangle)
                                 else:
                                     vanglediff = 0.0
                                 angDiffDataDict[sepair].append(vanglediff)
-                                print(sys.argv[0] + ': seangle: ' + str(vangle) + ', simvangle: ' + str(simvangle) + ', % diff: ' + str(vanglediff), flush=True)
+                                print(sys.argv[0] + ', ts: ' + str(ts) + ', sepair: ' + sepair + ', seangle: ' + str(vangle) + ', simvangle: ' + str(simvangle) + ', % diff: ' + str(vanglediff), flush=True)
 
             # no reason to keep checking more pairs if we've found all we
             # are looking for
@@ -366,14 +367,14 @@ def measurementNoConfigCallback(header, message):
                             else:
                                 vmagdiff = 0.0
                             vDiffDataDictPaused[sepair].append(vmagdiff)
-                            print(sys.argv[0] + ': paused semag: ' + str(vmag) + ', simmag: ' + str(simvmag) + ', % diff: ' + str(vmagdiff), flush=True)
+                            print(sys.argv[0] + ', ts: ' + str(ts) + ', sepair: ' + sepair + ', paused semag: ' + str(vmag) + ', simmag: ' + str(simvmag) + ', % diff: ' + str(vmagdiff), flush=True)
                             simvangle = simmeas['angle']
                             if simvangle != 0.0:
                                 vanglediff = 100.0*abs((abs(vangle)-abs(simvangle))/simvangle)
                             else:
                                 vanglediff = 0.0
                             angDiffDataDictPaused[sepair].append(vanglediff)
-                            print(sys.argv[0] + ': paused seangle: ' + str(vangle) + ', simvangle: ' + str(simvangle) + ', % diff: ' + str(vanglediff), flush=True)
+                            print(sys.argv[0] + ', ts: ' + str(ts) + ', sepair: ' + sepair + ', paused seangle: ' + str(vangle) + ', simvangle: ' + str(simvangle) + ', % diff: ' + str(vanglediff), flush=True)
 
         else:
             vDataDict[sepair].append(vmag)
@@ -390,14 +391,14 @@ def measurementNoConfigCallback(header, message):
                             else:
                                 vmagdiff = 0.0;
                             vDiffDataDict[sepair].append(vmagdiff)
-                            print(sys.argv[0] + ': semag: ' + str(vmag) + ', simmag: ' + str(simvmag) + ', % diff: ' + str(vmagdiff), flush=True)
+                            print(sys.argv[0] + ', ts: ' + str(ts) + ', sepair: ' + sepair + ', semag: ' + str(vmag) + ', simmag: ' + str(simvmag) + ', % diff: ' + str(vmagdiff), flush=True)
                             simvangle = simmeas['angle']
                             if simvangle != 0.0:
                                 vanglediff = 100.0*abs((abs(vangle)-abs(simvangle))/simvangle)
                             else:
                                 vanglediff = 0.0
                             angDiffDataDict[sepair].append(vanglediff)
-                            print(sys.argv[0] + ': seangle: ' + str(vangle) + ', simvangle: ' + str(simvangle) + ', % diff: ' + str(vanglediff), flush=True)
+                            print(sys.argv[0] + ', ts: ' + str(ts) + ', sepair: ' + sepair + ', seangle: ' + str(vangle) + ', simvangle: ' + str(simvangle) + ', % diff: ' + str(vanglediff), flush=True)
 
         # no reason to keep checking more pairs if we've found all we
         # are looking for
@@ -424,6 +425,32 @@ def simulationOutputCallback(header, message):
     # otherwise a list should be used, but then I have to make it a list
     # of tuples to store the timestamp as well
     simDataDict[ts] = msgdict['measurements']
+
+
+def sensorDefCallback(header, message):
+    print('START sensorDefCallback!!!!', flush=True)
+    for feeders in message['data']['feeders']:
+        for meas in feeders['measurements']:
+            if meas['measurementType'] == 'PNV':
+                busname = meas['ConnectivityNode']
+                phase = meas['phases']
+                if phase == 'A':
+                    busname += '.1'
+                elif phase == 'B':
+                    busname += '.2'
+                elif phase == 'C':
+                    busname += '.3'
+                elif phase == 's1':
+                    busname += '.1'
+                elif phase == 's2':
+                    busname += '.2'
+
+                busToSimMRIDDict[busname] = meas['mRID']
+
+    pprint.pprint(busToSimMRIDDict)
+
+    mapSEPairToSimMRID()
+    print('DONE sensorDefCallback!!!!', flush=True)
 
 
 def plotData(event):
@@ -676,7 +703,7 @@ def queryConnectivityPairs():
         cnname = node['cnname']['value']
         cnid = node['cnid']['value']
         cnPairDict[cnname.upper()] = cnid
-    #print(cnPairDict, flush=True)
+    #pprint.pprint(cnPairDict)
 
 
 def connectivityPairsToPlot():
@@ -833,25 +860,33 @@ def _main():
     # GridAPPS-D query to get connectivity node,phase pairs
     queryConnectivityPairs()
 
+    # subscribe to and then request CIM dictionary parameters for simulation
+    # so the conducting equipment MRIDs to connectivity nodes can be extracted
+    gapps.subscribe('/queue/goss.gridappsd.se.response.' + sim_id + '.cimdict',
+                    sensorDefCallback)
+
+    sensRequestText = '{"configurationType":"CIM Dictionary","parameters":{"simulation_id":"' + sim_id + '"}}';
+    gapps.send('/topic/goss.gridappsd.process.request.config', sensRequestText)
+
+    # create dictionaries to map between simulation and state-estimator output
+    #mapBusToSimMRID()
+    #mapSEPairToSimMRID()
+
     if plotConfigFlag:
         # Determine what to plot based on the state-plotter-config file
         connectivityPairsToPlot()
 
         # subscribe to state-estimator measurement output--with config file
-        gapps.subscribe('/topic/goss.gridappsd.state-estimator.out.'+
-                        sys.argv[1], measurementConfigCallback)
+        gapps.subscribe('/topic/goss.gridappsd.state-estimator.out.' +
+                        sim_id, measurementConfigCallback)
     else:
         # subscribe to state-estimator measurement output--without config file
-        gapps.subscribe('/topic/goss.gridappsd.state-estimator.out.'+
-                        sys.argv[1], measurementNoConfigCallback)
-
-    # create dictionaries to map between simulation and state-estimator output
-    mapBusToSimMRID()
-    mapSEPairToSimMRID()
+        gapps.subscribe('/topic/goss.gridappsd.state-estimator.out.' +
+                        sim_id, measurementNoConfigCallback)
 
     # subscribe to simulation output for comparison with measurements
-    gapps.subscribe('/topic/goss.gridappsd.simulation.output.'+
-                    sys.argv[1], simulationOutputCallback)
+    gapps.subscribe('/topic/goss.gridappsd.simulation.output.' +
+                    sim_id, simulationOutputCallback)
 
     # matplotlib setup
     initPlot(plotConfigFlag, plotLegendFlag)
