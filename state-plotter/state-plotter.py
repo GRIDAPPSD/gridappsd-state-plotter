@@ -862,15 +862,18 @@ def _main():
 
     # subscribe to and then request CIM dictionary parameters for simulation
     # so the conducting equipment MRIDs to connectivity nodes can be extracted
-    gapps.subscribe('/queue/goss.gridappsd.se.response.' + sim_id + '.cimdict',
-                    sensorDefCallback)
+    # TODO temporarily disable these because of the cannibalistic behavior
+    # with both state-estimator and state-plotter making this request
+    #gapps.subscribe('/queue/goss.gridappsd.se.response.' + sim_id + '.cimdict',
+    #                sensorDefCallback)
 
-    sensRequestText = '{"configurationType":"CIM Dictionary","parameters":{"simulation_id":"' + sim_id + '"}}';
-    gapps.send('/topic/goss.gridappsd.process.request.config', sensRequestText)
+    #sensRequestText = '{"configurationType":"CIM Dictionary","parameters":{"simulation_id":"' + sim_id + '"}}';
+    #gapps.send('/topic/goss.gridappsd.process.request.config', sensRequestText)
 
     # create dictionaries to map between simulation and state-estimator output
-    #mapBusToSimMRID()
-    #mapSEPairToSimMRID()
+    # TODO temporarily enable these to read busToSimMRID values from file
+    mapBusToSimMRID()
+    mapSEPairToSimMRID()
 
     if plotConfigFlag:
         # Determine what to plot based on the state-plotter-config file
