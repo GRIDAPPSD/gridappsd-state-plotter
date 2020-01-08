@@ -167,7 +167,7 @@ def measurementConfigCallback(header, message):
 
     # verify the first key is the current timestamp after tossing the ones
     # before the current timestamp
-    if next(iter(simDataDict)) == ts:
+    if simDataDict and next(iter(simDataDict)) == ts:
         simDataTS = simDataDict[ts]
         # now that we have a copy, won't need this timestamp any longer either
         del simDataDict[ts]
@@ -302,7 +302,7 @@ def measurementNoConfigCallback(header, message):
 
     # verify the first key is the current timestamp after tossing the ones
     # before the current timestamp
-    if next(iter(simDataDict)) == ts:
+    if simDataDict and next(iter(simDataDict)) == ts:
         simDataTS = simDataDict[ts]
         # now that we have a copy, won't need this timestamp any longer either
         del simDataDict[ts]
@@ -333,8 +333,8 @@ def measurementNoConfigCallback(header, message):
             angDiffDataDictPaused[sepair] = []
 
             # create a lines dictionary entry per node/phase pair for each plot
-            vLinesDict[sepair], = vAx.plot([], [], label=sepair)
-            angLinesDict[sepair], = angAx.plot([], [], label=sepair)
+            vLinesDict[sepair], = vmagAx.plot([], [], label=sepair)
+            angLinesDict[sepair], = vangAx.plot([], [], label=sepair)
 
         # a little trick to add to the timestamp list for every measurement,
         # not for every node/phase pair
@@ -459,7 +459,7 @@ def plotData(event):
         return
 
     if showFlag:
-        vAx.set_xlim((0, int(tsData[-1])))
+        vmagAx.set_xlim((0, int(tsData[-1])))
 
         vYmax = sys.float_info.min
         vYmin = sys.float_info.max
@@ -511,7 +511,7 @@ def plotData(event):
             #    xmin = 0
             #    xmax = tsZoom
 
-        vAx.set_xlim(xmin, xmax)
+        vmagAx.set_xlim(xmin, xmax)
         print(sys.argv[0] + ': xmin: ' + str(xmin), flush=True)
         print(sys.argv[0] + ': xmax: ' + str(xmax), flush=True)
 
@@ -567,13 +567,13 @@ def plotData(event):
             angYmax = max(angYmax, max(angDataDict[pair][startpt:endpt]))
 
     # voltage plot y-axis zoom and pan calculation
-    vZoom = int(vZoomSldr.val)
+    vZoom = int(vmagZoomSldr.val)
     if vZoom == 100:
         vHeight = vYmax - vYmin
     else:
         vHeight = (vYmax-vYmin)*vZoom/100.0
 
-    vPan = int(vPanSldr.val)
+    vPan = int(vmagPanSldr.val)
     vMid = vYmin + (vYmax-vYmin)*vPan/100.0
 
     newvYmin = vMid - vHeight/2.0
@@ -593,16 +593,16 @@ def plotData(event):
     # override auto-scaling with the calculated y-axis limits
     # apply a fixed margin to the axis limits
     vMargin = vHeight*0.03
-    vAx.set_ylim((newvYmin-vMargin, newvYmax+vMargin))
+    vmagAx.set_ylim((newvYmin-vMargin, newvYmax+vMargin))
 
     # angle plot y-axis zoom and pan calculation
-    angZoom = int(angZoomSldr.val)
+    angZoom = int(vangZoomSldr.val)
     if angZoom == 100:
         angHeight = angYmax - angYmin
     else:
         angHeight = (angYmax-angYmin)*angZoom/100.0
 
-    angPan = int(angPanSldr.val)
+    angPan = int(vangPanSldr.val)
     angMid = angYmin + (angYmax-angYmin)*angPan/100.0
 
     newangYmin = angMid - angHeight/2.0
@@ -622,7 +622,7 @@ def plotData(event):
     # override auto-scaling with the calculated y-axis limits
     # apply a fixed margin to the axis limits
     angMargin = angHeight*0.03
-    angAx.set_ylim((newangYmin-angMargin, newangYmax+angMargin))
+    vangAx.set_ylim((newangYmin-angMargin, newangYmax+angMargin))
 
     # flush all the plot changes
     plt.draw()
@@ -732,8 +732,8 @@ def connectivityPairsToPlot():
 def initPlot(configFlag, legendFlag):
     # plot attributes needed by plotData function
     global tsZoomSldr, tsPanSldr
-    global vAx, vZoomSldr, vPanSldr
-    global angAx, angZoomSldr, angPanSldr
+    global vmagAx, vmagZoomSldr, vmagPanSldr
+    global vangAx, vangZoomSldr, vangPanSldr
     global pauseBtn, pauseAx, pauseIcon, playIcon
     global tsShowBtn, tsShowAx, checkedIcon, uncheckedIcon
 
@@ -749,68 +749,80 @@ def initPlot(configFlag, legendFlag):
     #        ('Zoom', 'Zoom to Rectangle', 'zoom_to_rect', 'zoom'),
     #        )
 
-    figure = plt.figure(figsize=(10,6))
+    figure = plt.figure(figsize=(10,9))
     figure.canvas.set_window_title('Simulation ID: ' + sim_id)
 
-    vAx = figure.add_subplot(211)
-    vAx.xaxis.set_major_locator(MaxNLocator(integer=True))
-    vAx.grid()
+    vmagAx = figure.add_subplot(411)
+    vmagAx.xaxis.set_major_locator(MaxNLocator(integer=True))
+    vmagAx.grid()
     # shrink the margins, especially the top since we don't want a label
     plt.subplots_adjust(bottom=0.09, left=0.08, right=0.96, top=0.98, hspace=0.1)
     plt.ylabel('Voltage Magnitude (V)')
     # make time axis numbers invisible because the bottom plot will have them
-    plt.setp(vAx.get_xticklabels(), visible=False)
+    plt.setp(vmagAx.get_xticklabels(), visible=False)
 
-    angAx = figure.add_subplot(212, sharex=vAx)
-    angAx.grid()
-    plt.xlabel('Time (s)')
+    vmagDiffAx = figure.add_subplot(412, sharex=vmagAx)
+    vmagDiffAx.grid()
+    plt.ylabel('Voltage Magnitude % Diff.')
+    # make time axis numbers invisible because the bottom plot will have them
+    plt.setp(vmagDiffAx.get_xticklabels(), visible=False)
+
+    vangAx = figure.add_subplot(413, sharex=vmagAx)
+    vangAx.grid()
     plt.ylabel('Voltage Angle (deg.)')
+    # make time axis numbers invisible because the bottom plot will have them
+    plt.setp(vangAx.get_xticklabels(), visible=False)
+
+    vangDiffAx = figure.add_subplot(414, sharex=vmagAx)
+    vangDiffAx.grid()
+    plt.xlabel('Time (s)')
+    plt.ylabel('Voltage Angle % Diff.')
 
     # pause/play button
-    pauseAx = plt.axes([0.0, 0.01, 0.04, 0.04])
+    pauseAx = plt.axes([0.01, 0.01, 0.03, 0.03])
     pauseIcon = plt.imread('icons/pausebtn.png')
     playIcon = plt.imread('icons/playbtn.png')
     pauseBtn = Button(pauseAx, '', image=pauseIcon, color='1.0')
     pauseBtn.on_clicked(pauseCallback)
 
     # timestamp slice zoom slider
-    tsZoomAx = plt.axes([0.22, 0.01, 0.1, 0.03])
+    tsZoomAx = plt.axes([0.32, 0.01, 0.1, 0.02])
     # note this slider has the label for the show all button as well as the
     # slider that's because the show all button uses a checkbox image and you
     # can't use both an image and a label with a button so this is a clever way
     # to get that behavior since matplotlib doesn't have a simple label widget
-    tsZoomSldr = Slider(tsZoomAx, 'show all           zoom', 0, 1, valfmt='%d', valstep=1.0)
+    tsZoomSldr = Slider(tsZoomAx, 'show all              zoom', 0, 1, valfmt='%d', valstep=1.0)
     tsZoomSldr.on_changed(plotData)
 
     # show all button that's embedded in the middle of the slider above
-    tsShowAx = plt.axes([0.13, 0.01, 0.03, 0.03])
+    tsShowAx = plt.axes([0.14, 0.01, 0.02, 0.02])
     uncheckedIcon = plt.imread('icons/uncheckedbtn.png')
     checkedIcon = plt.imread('icons/checkedbtn.png')
     tsShowBtn = Button(tsShowAx, '', image=uncheckedIcon, color='1.0')
     tsShowBtn.on_clicked(showCallback)
 
     # timestamp slice pan slider
-    tsPanAx = plt.axes([0.83, 0.01, 0.1, 0.03])
+    tsPanAx = plt.axes([0.63, 0.01, 0.1, 0.02])
     tsPanSldr = Slider(tsPanAx, 'pan', 0, 100, valinit=100, valfmt='%d', valstep=1.0)
     tsPanSldr.on_changed(plotData)
 
     # angle slice zoom and pan sliders
-    angZoomAx = plt.axes([0.97, 0.33, 0.02, 0.15])
-    angZoomSldr = Slider(angZoomAx, 'zoom', 1, 100, valinit=100, valfmt='%d', valstep=1.0, orientation='vertical')
-    angZoomSldr.on_changed(plotData)
+    vangZoomAx = plt.axes([0.97, 0.34, 0.015, 0.15])
+    vangZoomSldr = Slider(vangZoomAx, 'zoom', 1, 100, valinit=100, valfmt='%d', valstep=1.0, orientation='vertical')
+    vangZoomSldr.on_changed(plotData)
 
-    angPanAx = plt.axes([0.97, 0.11, 0.02, 0.15])
-    angPanSldr = Slider(angPanAx, 'pan', 0, 100, valinit=50, valfmt='%d', valstep=1.0, orientation='vertical')
-    angPanSldr.on_changed(plotData)
+    vangPanAx = plt.axes([0.97, 0.12, 0.015, 0.15])
+    vangPanSldr = Slider(vangPanAx, 'pan', 0, 100, valinit=50, valfmt='%d', valstep=1.0, orientation='vertical')
+    vangPanSldr.on_changed(plotData)
 
     # voltage slice zoom and pan sliders
-    vZoomAx = plt.axes([0.97, 0.80, 0.02, 0.15])
-    vZoomSldr = Slider(vZoomAx, 'zoom', 1, 100, valinit=100, valfmt='%d', valstep=1.0, orientation='vertical')
-    vZoomSldr.on_changed(plotData)
+    vmagZoomAx = plt.axes([0.97, 0.80, 0.015, 0.15])
+    vmagZoomSldr = Slider(vmagZoomAx, 'zoom', 1, 100, valinit=100, valfmt='%d', valstep=1.0, orientation='vertical')
+    vmagZoomSldr.on_changed(plotData)
 
-    vPanAx = plt.axes([0.97, 0.58, 0.02, 0.15])
-    vPanSldr = Slider(vPanAx, 'pan', 0, 100, valinit=50, valfmt='%d', valstep=1.0, orientation='vertical')
-    vPanSldr.on_changed(plotData)
+    vmagPanAx = plt.axes([0.97, 0.58, 0.015, 0.15])
+    vmagPanSldr = Slider(vmagPanAx, 'pan', 0, 100, valinit=50, valfmt='%d', valstep=1.0, orientation='vertical')
+    vmagPanSldr.on_changed(plotData)
 
     if configFlag:
         for pair in nodePhasePairDict:
@@ -825,14 +837,14 @@ def initPlot(configFlag, legendFlag):
             angDiffDataDict[pair] = []
             angDiffDataDictPaused[pair] = []
             # create a lines dictionary entry per node/phase pair for each plot
-            vLinesDict[pair], = vAx.plot([], [], label=nodePhasePairDict[pair])
-            angLinesDict[pair], = angAx.plot([], [], label=nodePhasePairDict[pair])
+            vLinesDict[pair], = vmagAx.plot([], [], label=nodePhasePairDict[pair])
+            angLinesDict[pair], = vangAx.plot([], [], label=nodePhasePairDict[pair])
 
         # need to wait on creating legend after other initialization until the
         #lines are defined
         if legendFlag or len(nodePhasePairDict)<=10:
             cols = math.ceil(len(nodePhasePairDict)/12)
-            vAx.legend(ncol=cols)
+            vmagAx.legend(ncol=cols)
 
 
 def _main():
