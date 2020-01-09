@@ -72,11 +72,13 @@ vmagDataDictPaused = {}
 vmagDiffDataDict = {}
 vmagDiffDataDictPaused = {}
 vmagLinesDict = {}
+vmagDiffLinesDict = {}
 vangDataDict = {}
 vangDataDictPaused = {}
 vangDiffDataDict = {}
 vangDiffDataDictPaused = {}
 vangLinesDict = {}
+vangDiffLinesDict = {}
 simDataDict = {}
 busToSimMRIDDict = {}
 SEPairToSimMRIDDict = {}
@@ -334,7 +336,9 @@ def measurementNoConfigCallback(header, message):
 
             # create a lines dictionary entry per node/phase pair for each plot
             vmagLinesDict[sepair], = vmagAx.plot([], [], label=sepair)
+            vmagDiffLinesDict[sepair], = vmagDiffAx.plot([], [], label=sepair)
             vangLinesDict[sepair], = vangAx.plot([], [], label=sepair)
+            vangDiffLinesDict[sepair], = vangDiffAx.plot([], [], label=sepair)
 
         # a little trick to add to the timestamp list for every measurement,
         # not for every node/phase pair
@@ -459,7 +463,9 @@ def plotData(event):
         return
 
     if showFlag:
-        vmagAx.set_xlim((0, int(tsData[-1])))
+        xupper = int(tsData[-1])
+        if xupper > 0:
+            vmagAx.set_xlim(0, xupper)
 
         vmagYmax = sys.float_info.min
         vmagYmin = sys.float_info.max
@@ -469,6 +475,15 @@ def plotData(event):
             vmagYmin = min(vmagYmin, min(vmagDataDict[pair]))
             vmagYmax = max(vmagYmax, max(vmagDataDict[pair]))
 
+        vmagDiffYmax = sys.float_info.min
+        vmagDiffYmin = sys.float_info.max
+        for pair in vmagDiffDataDict:
+            if len(vmagDiffDataDict[pair]) > 0:
+                vmagDiffLinesDict[pair].set_xdata(tsData)
+                vmagDiffLinesDict[pair].set_ydata(vmagDiffDataDict[pair])
+                vmagDiffYmin = min(vmagDiffYmin, min(vmagDiffDataDict[pair]))
+                vmagDiffYmax = max(vmagDiffYmax, max(vmagDiffDataDict[pair]))
+
         vangYmax = sys.float_info.min
         vangYmin = sys.float_info.max
         for pair in vangDataDict:
@@ -476,6 +491,15 @@ def plotData(event):
             vangLinesDict[pair].set_ydata(vangDataDict[pair])
             vangYmin = min(vangYmin, min(vangDataDict[pair]))
             vangYmax = max(vangYmax, max(vangDataDict[pair]))
+
+        vangDiffYmax = sys.float_info.min
+        vangDiffYmin = sys.float_info.max
+        for pair in vangDiffDataDict:
+            if len(vangDiffDataDict[pair]) > 0:
+                vangDiffLinesDict[pair].set_xdata(tsData)
+                vangDiffLinesDict[pair].set_ydata(vangDiffDataDict[pair])
+                vangDiffYmin = min(vangDiffYmin, min(vangDiffDataDict[pair]))
+                vangDiffYmax = max(vangDiffYmax, max(vangDiffDataDict[pair]))
     else:
         tsZoom = int(tsZoomSldr.val)
         time = int(tsPanSldr.val)
@@ -558,6 +582,15 @@ def plotData(event):
             vmagYmin = min(vmagYmin, min(vmagDataDict[pair][startpt:endpt]))
             vmagYmax = max(vmagYmax, max(vmagDataDict[pair][startpt:endpt]))
 
+        vmagDiffYmax = sys.float_info.min
+        vmagDiffYmin = sys.float_info.max
+        for pair in vmagDiffDataDict:
+            if len(vmagDiffDataDict[pair]) > 0:
+                vmagDiffLinesDict[pair].set_xdata(tsData[startpt:endpt])
+                vmagDiffLinesDict[pair].set_ydata(vmagDiffDataDict[pair][startpt:endpt])
+                vmagDiffYmin = min(vmagDiffYmin, min(vmagDiffDataDict[pair][startpt:endpt]))
+                vmagDiffYmax = max(vmagDiffYmax, max(vmagDiffDataDict[pair][startpt:endpt]))
+
         vangYmax = sys.float_info.min
         vangYmin = sys.float_info.max
         for pair in vangDataDict:
@@ -565,6 +598,15 @@ def plotData(event):
             vangLinesDict[pair].set_ydata(vangDataDict[pair][startpt:endpt])
             vangYmin = min(vangYmin, min(vangDataDict[pair][startpt:endpt]))
             vangYmax = max(vangYmax, max(vangDataDict[pair][startpt:endpt]))
+
+        vangDiffYmax = sys.float_info.min
+        vangDiffYmin = sys.float_info.max
+        for pair in vangDiffDataDict:
+            if len(vangDiffDataDict[pair]) > 0:
+                vangDiffLinesDict[pair].set_xdata(tsData[startpt:endpt])
+                vangDiffLinesDict[pair].set_ydata(vangDiffDataDict[pair][startpt:endpt])
+                vangDiffYmin = min(vangDiffYmin, min(vangDiffDataDict[pair][startpt:endpt]))
+                vangDiffYmax = max(vangDiffYmax, max(vangDiffDataDict[pair][startpt:endpt]))
 
     # voltage plot y-axis zoom and pan calculation
     vmagZoom = int(vmagZoomSldr.val)
@@ -732,8 +774,8 @@ def connectivityPairsToPlot():
 def initPlot(configFlag, legendFlag):
     # plot attributes needed by plotData function
     global tsZoomSldr, tsPanSldr
-    global vmagAx, vmagZoomSldr, vmagPanSldr
-    global vangAx, vangZoomSldr, vangPanSldr
+    global vmagAx, vmagZoomSldr, vmagPanSldr, vmagDiffAx
+    global vangAx, vangZoomSldr, vangPanSldr, vangDiffAx
     global pauseBtn, pauseAx, pauseIcon, playIcon
     global tsShowBtn, tsShowAx, checkedIcon, uncheckedIcon
 
@@ -838,7 +880,9 @@ def initPlot(configFlag, legendFlag):
             vangDiffDataDictPaused[pair] = []
             # create a lines dictionary entry per node/phase pair for each plot
             vmagLinesDict[pair], = vmagAx.plot([], [], label=nodePhasePairDict[pair])
+            vmagLinesDiffDict[pair], = vmagDiffAx.plot([], [], label=nodePhasePairDict[pair])
             vangLinesDict[pair], = vangAx.plot([], [], label=nodePhasePairDict[pair])
+            vangDiffLinesDict[pair], = vangDiffAx.plot([], [], label=nodePhasePairDict[pair])
 
         # need to wait on creating legend after other initialization until the
         #lines are defined
