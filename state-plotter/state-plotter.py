@@ -608,17 +608,17 @@ def plotData(event):
                 vangDiffYmin = min(vangDiffYmin, min(vangDiffDataDict[pair][startpt:endpt]))
                 vangDiffYmax = max(vangDiffYmax, max(vangDiffDataDict[pair][startpt:endpt]))
 
-    # voltage plot y-axis zoom and pan calculation
+    # voltage magnitude plot y-axis zoom and pan calculation
     vmagZoom = int(vmagZoomSldr.val)
     if vmagZoom == 100:
         vmagHeight = vmagYmax - vmagYmin
     else:
         vmagHeight = (vmagYmax-vmagYmin)*vmagZoom/100.0
 
-    vPan = int(vmagPanSldr.val)
-    vMid = vmagYmin + (vmagYmax-vmagYmin)*vPan/100.0
+    vmagPan = int(vmagPanSldr.val)
+    vmagMid = vmagYmin + (vmagYmax-vmagYmin)*vmagPan/100.0
 
-    newvmagYmin = vMid - vmagHeight/2.0
+    newvmagYmin = vmagMid - vmagHeight/2.0
     newvmagYmax = newvmagYmin + vmagHeight
     #print(sys.argv[0] + ': calculated newvmagYmin: ' + str(newvmagYmin), flush=True)
     #print(sys.argv[0] + ': calculated newvmagYmax: ' + str(newvmagYmax), flush=True)
@@ -637,7 +637,37 @@ def plotData(event):
     vmagMargin = vmagHeight*0.03
     vmagAx.set_ylim((newvmagYmin-vmagMargin, newvmagYmax+vmagMargin))
 
-    # angle plot y-axis zoom and pan calculation
+    # voltage magnitude difference plot y-axis zoom and pan calculation
+    # TODO share the same zoom and pan sliders initially
+    vmagDiffZoom = int(vmagZoomSldr.val)
+    if vmagDiffZoom == 100:
+        vmagDiffHeight = vmagDiffYmax - vmagDiffYmin
+    else:
+        vmagDiffHeight = (vmagDiffYmax-vmagDiffYmin)*vmagDiffZoom/100.0
+
+    vmagDiffPan = int(vmagPanSldr.val)
+    vmagDiffMid = vmagDiffYmin + (vmagDiffYmax-vmagDiffYmin)*vmagDiffPan/100.0
+
+    newvmagDiffYmin = vmagDiffMid - vmagDiffHeight/2.0
+    newvmagDiffYmax = newvmagDiffYmin + vmagDiffHeight
+    #print(sys.argv[0] + ': calculated newvmagDiffYmin: ' + str(newvmagDiffYmin), flush=True)
+    #print(sys.argv[0] + ': calculated newvmagDiffYmax: ' + str(newvmagDiffYmax), flush=True)
+
+    if newvmagDiffYmin < vmagDiffYmin:
+        newvmagDiffYmin = vmagDiffYmin
+        newvmagDiffYmax = newvmagDiffYmin + vmagDiffHeight
+    elif newvmagDiffYmax > vmagDiffYmax:
+        newvmagDiffYmax = vmagDiffYmax
+        newvmagDiffYmin = newvmagDiffYmax - vmagDiffHeight
+    #print(sys.argv[0] + ': final newvmagDiffYmin: ' + str(newvmagDiffYmin), flush=True)
+    #print(sys.argv[0] + ': final newvmagDiffYmax: ' + str(newvmagDiffYmax) + '\n', flush=True)
+
+    # override auto-scaling with the calculated y-axis limits
+    # apply a fixed margin to the axis limits
+    vmagDiffMargin = vmagDiffHeight*0.03
+    vmagDiffAx.set_ylim((newvmagDiffYmin-vmagDiffMargin, newvmagDiffYmax+vmagDiffMargin))
+
+    # voltage angle plot y-axis zoom and pan calculation
     vangZoom = int(vangZoomSldr.val)
     if vangZoom == 100:
         vangHeight = vangYmax - vangYmin
@@ -665,6 +695,36 @@ def plotData(event):
     # apply a fixed margin to the axis limits
     vangMargin = vangHeight*0.03
     vangAx.set_ylim((newvangYmin-vangMargin, newvangYmax+vangMargin))
+
+    # voltage angle difference plot y-axis zoom and pan calculation
+    # TODO share the same zoom and pan sliders initially
+    vangDiffZoom = int(vangZoomSldr.val)
+    if vangDiffZoom == 100:
+        vangDiffHeight = vangDiffYmax - vangDiffYmin
+    else:
+        vangDiffHeight = (vangDiffYmax-vangDiffYmin)*vangDiffZoom/100.0
+
+    vangDiffPan = int(vangPanSldr.val)
+    vangDiffMid = vangDiffYmin + (vangDiffYmax-vangDiffYmin)*vangDiffPan/100.0
+
+    newvangDiffYmin = vangDiffMid - vangDiffHeight/2.0
+    newvangDiffYmax = newvangDiffYmin + vangDiffHeight
+    #print(sys.argv[0] + ': calculated newvangDiffYmin: ' + str(newvangDiffYmin), flush=True)
+    #print(sys.argv[0] + ': calculated newvangDiffYmax: ' + str(newvangDiffYmax), flush=True)
+
+    if newvangDiffYmin < vangDiffYmin:
+        newvangDiffYmin = vangDiffYmin
+        newvangDiffYmax = newvangDiffYmin + vangDiffHeight
+    elif newvangDiffYmax > vangDiffYmax:
+        newvangDiffYmax = vangDiffYmax
+        newvangDiffYmin = newvangDiffYmax - vangDiffHeight
+    #print(sys.argv[0] + ': final newvangDiffYmin: ' + str(newvangDiffYmin), flush=True)
+    #print(sys.argv[0] + ': final newvangDiffYmax: ' + str(newvangDiffYmax) + '\n', flush=True)
+
+    # override auto-scaling with the calculated y-axis limits
+    # apply a fixed margin to the axis limits
+    vangDiffMargin = vangDiffHeight*0.03
+    vangDiffAx.set_ylim((newvangDiffYmin-vangDiffMargin, newvangDiffYmax+vangDiffMargin))
 
     # flush all the plot changes
     plt.draw()
