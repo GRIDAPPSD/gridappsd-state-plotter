@@ -156,7 +156,7 @@ def measurementConfigCallback(header, message):
     estVolt = msgdict['Estimate']['SvEstVoltages']
     matchCount = 0
     sepairCount = 0
-    global tsZoomSldr, tsInit, pausedFlag, firstPassFlag
+    global tsInit, firstPassFlag
 
     # update the timestamp zoom slider upper limit and default value
     if firstPassFlag:
@@ -288,7 +288,7 @@ def measurementNoConfigCallback(header, message):
 
     estVolt = msgdict['Estimate']['SvEstVoltages']
     matchCount = 0
-    global tsZoomSldr, tsInit, pausedFlag, firstPassFlag, plotNumber
+    global tsInit, firstPassFlag
 
     # update the timestamp zoom slider upper limit and default value
     if firstPassFlag:
@@ -761,8 +761,8 @@ def initPlot(configFlag, legendFlag):
     global vmagDiffAx, vmagDiffZoomSldr, vmagDiffPanSldr
     global vangAx, vangZoomSldr, vangPanSldr
     global vangDiffAx, vangDiffZoomSldr, vangDiffPanSldr
-    global pauseBtn, pauseAx, pauseIcon, playIcon
-    global tsShowBtn, tsShowAx, checkedIcon, uncheckedIcon
+    global pauseAx, pauseIcon, playIcon
+    global tsShowAx, checkedIcon, uncheckedIcon
 
     # customize navigation toolbar
     # get rid of the toolbar buttons completely
@@ -895,7 +895,7 @@ def initPlot(configFlag, legendFlag):
 
 
 def _main():
-    global gapps, sim_id, plotNumber
+    global gapps, sim_id
 
     if len(sys.argv) < 2:
         print('Usage: ' + sys.argv[0] + ' sim_id sim_req\n', flush=True)
