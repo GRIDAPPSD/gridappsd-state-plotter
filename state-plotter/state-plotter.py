@@ -638,14 +638,13 @@ def plotData(event):
     vmagAx.set_ylim((newvmagYmin-vmagMargin, newvmagYmax+vmagMargin))
 
     # voltage magnitude difference plot y-axis zoom and pan calculation
-    # TODO share the same zoom and pan sliders initially
-    vmagDiffZoom = int(vmagZoomSldr.val)
+    vmagDiffZoom = int(vmagDiffZoomSldr.val)
     if vmagDiffZoom == 100:
         vmagDiffHeight = vmagDiffYmax - vmagDiffYmin
     else:
         vmagDiffHeight = (vmagDiffYmax-vmagDiffYmin)*vmagDiffZoom/100.0
 
-    vmagDiffPan = int(vmagPanSldr.val)
+    vmagDiffPan = int(vmagDiffPanSldr.val)
     vmagDiffMid = vmagDiffYmin + (vmagDiffYmax-vmagDiffYmin)*vmagDiffPan/100.0
 
     newvmagDiffYmin = vmagDiffMid - vmagDiffHeight/2.0
@@ -697,14 +696,13 @@ def plotData(event):
     vangAx.set_ylim((newvangYmin-vangMargin, newvangYmax+vangMargin))
 
     # voltage angle difference plot y-axis zoom and pan calculation
-    # TODO share the same zoom and pan sliders initially
-    vangDiffZoom = int(vangZoomSldr.val)
+    vangDiffZoom = int(vangDiffZoomSldr.val)
     if vangDiffZoom == 100:
         vangDiffHeight = vangDiffYmax - vangDiffYmin
     else:
         vangDiffHeight = (vangDiffYmax-vangDiffYmin)*vangDiffZoom/100.0
 
-    vangDiffPan = int(vangPanSldr.val)
+    vangDiffPan = int(vangDiffPanSldr.val)
     vangDiffMid = vangDiffYmin + (vangDiffYmax-vangDiffYmin)*vangDiffPan/100.0
 
     newvangDiffYmin = vangDiffMid - vangDiffHeight/2.0
@@ -834,8 +832,10 @@ def connectivityPairsToPlot():
 def initPlot(configFlag, legendFlag):
     # plot attributes needed by plotData function
     global tsZoomSldr, tsPanSldr
-    global vmagAx, vmagZoomSldr, vmagPanSldr, vmagDiffAx
-    global vangAx, vangZoomSldr, vangPanSldr, vangDiffAx
+    global vmagAx, vmagZoomSldr, vmagPanSldr
+    global vmagDiffAx, vmagDiffZoomSldr, vmagDiffPanSldr
+    global vangAx, vangZoomSldr, vangPanSldr
+    global vangDiffAx, vangDiffZoomSldr, vangDiffPanSldr
     global pauseBtn, pauseAx, pauseIcon, playIcon
     global tsShowBtn, tsShowAx, checkedIcon, uncheckedIcon
 
@@ -908,21 +908,39 @@ def initPlot(configFlag, legendFlag):
     tsPanSldr = Slider(tsPanAx, 'pan', 0, 100, valinit=100, valfmt='%d', valstep=1.0)
     tsPanSldr.on_changed(plotData)
 
-    # angle slice zoom and pan sliders
-    vangZoomAx = plt.axes([0.97, 0.34, 0.015, 0.15])
-    vangZoomSldr = Slider(vangZoomAx, 'zoom', 1, 100, valinit=100, valfmt='%d', valstep=1.0, orientation='vertical')
+    # voltage angle difference slice zoom and pan sliders
+    vangDiffZoomAx = plt.axes([0.97, 0.21, 0.015, 0.07])
+    vangDiffZoomSldr = Slider(vangDiffZoomAx, '  zoom', 1, 100, valinit=100, valfmt='%d', valstep=1.0, orientation='vertical')
+    vangDiffZoomSldr.on_changed(plotData)
+
+    vangDiffPanAx = plt.axes([0.97, 0.10, 0.015, 0.07])
+    vangDiffPanSldr = Slider(vangDiffPanAx, 'pan', 0, 100, valinit=50, valfmt='%d', valstep=1.0, orientation='vertical')
+    vangDiffPanSldr.on_changed(plotData)
+
+    # voltage angle slice zoom and pan sliders
+    vangZoomAx = plt.axes([0.97, 0.44, 0.015, 0.07])
+    vangZoomSldr = Slider(vangZoomAx, '  zoom', 1, 100, valinit=100, valfmt='%d', valstep=1.0, orientation='vertical')
     vangZoomSldr.on_changed(plotData)
 
-    vangPanAx = plt.axes([0.97, 0.12, 0.015, 0.15])
+    vangPanAx = plt.axes([0.97, 0.33, 0.015, 0.07])
     vangPanSldr = Slider(vangPanAx, 'pan', 0, 100, valinit=50, valfmt='%d', valstep=1.0, orientation='vertical')
     vangPanSldr.on_changed(plotData)
 
-    # voltage slice zoom and pan sliders
-    vmagZoomAx = plt.axes([0.97, 0.80, 0.015, 0.15])
-    vmagZoomSldr = Slider(vmagZoomAx, 'zoom', 1, 100, valinit=100, valfmt='%d', valstep=1.0, orientation='vertical')
+    # voltage magnitude difference slice zoom and pan sliders
+    vmagDiffZoomAx = plt.axes([0.97, 0.67, 0.015, 0.07])
+    vmagDiffZoomSldr = Slider(vmagDiffZoomAx, '  zoom', 1, 100, valinit=100, valfmt='%d', valstep=1.0, orientation='vertical')
+    vmagDiffZoomSldr.on_changed(plotData)
+
+    vmagDiffPanAx = plt.axes([0.97, 0.56, 0.015, 0.07])
+    vmagDiffPanSldr = Slider(vmagDiffPanAx, 'pan', 0, 100, valinit=50, valfmt='%d', valstep=1.0, orientation='vertical')
+    vmagDiffPanSldr.on_changed(plotData)
+
+    # voltage magnitude slice zoom and pan sliders
+    vmagZoomAx = plt.axes([0.97, 0.90, 0.015, 0.07])
+    vmagZoomSldr = Slider(vmagZoomAx, '  zoom', 1, 100, valinit=100, valfmt='%d', valstep=1.0, orientation='vertical')
     vmagZoomSldr.on_changed(plotData)
 
-    vmagPanAx = plt.axes([0.97, 0.58, 0.015, 0.15])
+    vmagPanAx = plt.axes([0.97, 0.79, 0.015, 0.07])
     vmagPanSldr = Slider(vmagPanAx, 'pan', 0, 100, valinit=50, valfmt='%d', valstep=1.0, orientation='vertical')
     vmagPanSldr.on_changed(plotData)
 
