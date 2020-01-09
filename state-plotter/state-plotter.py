@@ -87,6 +87,7 @@ pausedFlag = False
 showFlag = False
 firstPassFlag = True
 plotNumber = 0
+plotConfigFlag = True
 
 
 def mapBusToSimMRID():
@@ -431,6 +432,28 @@ def simulationOutputCallback(header, message):
     simDataDict[ts] = msgdict['measurements']
 
 
+def subscribeOutput():
+    global gapps, sim_id, plotConfigFlag
+
+    mapSEPairToSimMRID()
+
+    if plotConfigFlag:
+        # Determine what to plot based on the state-plotter-config file
+        connectivityPairsToPlot()
+
+        # subscribe to state-estimator measurement output--with config file
+        gapps.subscribe('/topic/goss.gridappsd.state-estimator.out.' +
+                        sim_id, measurementConfigCallback)
+    else:
+        # subscribe to state-estimator measurement output--without config file
+        gapps.subscribe('/topic/goss.gridappsd.state-estimator.out.' +
+                        sim_id, measurementNoConfigCallback)
+
+    # subscribe to simulation output for comparison with measurements
+    gapps.subscribe('/topic/goss.gridappsd.simulation.output.' +
+                    sim_id, simulationOutputCallback)
+
+
 def sensorDefCallback(header, message):
     print('START sensorDefCallback!!!!', flush=True)
     for feeders in message['data']['feeders']:
@@ -450,10 +473,9 @@ def sensorDefCallback(header, message):
                     busname += '.2'
 
                 busToSimMRIDDict[busname] = meas['mRID']
-
     pprint.pprint(busToSimMRIDDict)
 
-    mapSEPairToSimMRID()
+    subscribeOutput()
     print('DONE sensorDefCallback!!!!', flush=True)
 
 
@@ -731,7 +753,7 @@ def queryConnectivityPairs():
         cnname = node['cnname']['value']
         cnid = node['cnid']['value']
         cnPairDict[cnname.upper()] = cnid
-    #pprint.pprint(cnPairDict)
+    pprint.pprint(cnPairDict)
 
 
 def connectivityPairsToPlot():
@@ -898,7 +920,7 @@ def initPlot(configFlag, legendFlag):
 
 
 def _main():
-    global gapps, sim_id, plotNumber
+    global gapps, sim_id, plotNumber, plotConfigFlag
 
     if len(sys.argv) < 2:
         print('Usage: ' + sys.argv[0] + ' sim_id sim_req\n', flush=True)
@@ -907,7 +929,6 @@ def _main():
     sim_id = sys.argv[1]
 
     plotLegendFlag = False
-    plotConfigFlag = True
     for arg in sys.argv:
         if arg == '-legend':
             legendFlag = True
@@ -928,30 +949,18 @@ def _main():
     # with both state-estimator and state-plotter making this request
     #gapps.subscribe('/queue/goss.gridappsd.se.response.' + sim_id + '.cimdict',
     #                sensorDefCallback)
+    #gapps.subscribe('/topic/goss.gridappsd.se.response.' + sim_id + '.cimdict',
+    #                sensorDefCallback)
 
     #sensRequestText = '{"configurationType":"CIM Dictionary","parameters":{"simulation_id":"' + sim_id + '"}}';
+    #gapps.send('/queue/goss.gridappsd.process.request.config', sensRequestText)
     #gapps.send('/topic/goss.gridappsd.process.request.config', sensRequestText)
 
     # create dictionaries to map between simulation and state-estimator output
     # TODO temporarily enable these to read busToSimMRID values from file
     mapBusToSimMRID()
-    mapSEPairToSimMRID()
 
-    if plotConfigFlag:
-        # Determine what to plot based on the state-plotter-config file
-        connectivityPairsToPlot()
-
-        # subscribe to state-estimator measurement output--with config file
-        gapps.subscribe('/topic/goss.gridappsd.state-estimator.out.' +
-                        sim_id, measurementConfigCallback)
-    else:
-        # subscribe to state-estimator measurement output--without config file
-        gapps.subscribe('/topic/goss.gridappsd.state-estimator.out.' +
-                        sim_id, measurementNoConfigCallback)
-
-    # subscribe to simulation output for comparison with measurements
-    gapps.subscribe('/topic/goss.gridappsd.simulation.output.' +
-                    sim_id, simulationOutputCallback)
+    subscribeOutput()
 
     # matplotlib setup
     initPlot(plotConfigFlag, plotLegendFlag)
