@@ -87,7 +87,30 @@ pausedFlag = False
 showFlag = False
 firstPassFlag = True
 plotNumber = 0
-plotConfigFlag = True
+
+
+def queryBusToSimMRID():
+    sensRequestText = '{"configurationType":"CIM Dictionary","parameters":{"simulation_id":"' + sim_id + '"}}';
+    sensResponse = gapps.get_response('goss.gridappsd.process.request.config', sensRequestText, timeout=600)
+
+    for feeders in sensResponse['data']['feeders']:
+        for meas in feeders['measurements']:
+            if meas['measurementType'] == 'PNV':
+                busname = meas['ConnectivityNode']
+                phase = meas['phases']
+                if phase == 'A':
+                    busname += '.1'
+                elif phase == 'B':
+                    busname += '.2'
+                elif phase == 'C':
+                    busname += '.3'
+                elif phase == 's1':
+                    busname += '.1'
+                elif phase == 's2':
+                    busname += '.2'
+
+                busToSimMRIDDict[busname] = meas['mRID']
+    pprint.pprint(busToSimMRIDDict)
 
 
 def mapBusToSimMRID():
@@ -109,8 +132,6 @@ def mapBusToSimMRID():
             line = ''.join(line.split())
             bus, simmrid = line.split(',')
             busToSimMRIDDict[bus] = simmrid
-
-    subscribeOutput()
 
 
 def mapSEPairToSimMRID():
@@ -420,53 +441,6 @@ def simulationOutputCallback(header, message):
     # otherwise a list should be used, but then I have to make it a list
     # of tuples to store the timestamp as well
     simDataDict[ts] = msgdict['measurements']
-
-
-def subscribeOutput():
-    global gapps, sim_id, plotConfigFlag
-
-    mapSEPairToSimMRID()
-
-    if plotConfigFlag:
-        # Determine what to plot based on the state-plotter-config file
-        connectivityPairsToPlot()
-
-        # subscribe to state-estimator measurement output--with config file
-        gapps.subscribe('/topic/goss.gridappsd.state-estimator.out.' +
-                        sim_id, measurementConfigCallback)
-    else:
-        # subscribe to state-estimator measurement output--without config file
-        gapps.subscribe('/topic/goss.gridappsd.state-estimator.out.' +
-                        sim_id, measurementNoConfigCallback)
-
-    # subscribe to simulation output for comparison with measurements
-    gapps.subscribe('/topic/goss.gridappsd.simulation.output.' +
-                    sim_id, simulationOutputCallback)
-
-
-def sensorDefCallback(header, message):
-    print('START sensorDefCallback!!!!', flush=True)
-    for feeders in message['data']['feeders']:
-        for meas in feeders['measurements']:
-            if meas['measurementType'] == 'PNV':
-                busname = meas['ConnectivityNode']
-                phase = meas['phases']
-                if phase == 'A':
-                    busname += '.1'
-                elif phase == 'B':
-                    busname += '.2'
-                elif phase == 'C':
-                    busname += '.3'
-                elif phase == 's1':
-                    busname += '.1'
-                elif phase == 's2':
-                    busname += '.2'
-
-                busToSimMRIDDict[busname] = meas['mRID']
-    pprint.pprint(busToSimMRIDDict)
-
-    subscribeOutput()
-    print('DONE sensorDefCallback!!!!', flush=True)
 
 
 def yAxisLimits(yMin, yMax, zoomVal, panVal):
@@ -921,7 +895,7 @@ def initPlot(configFlag, legendFlag):
 
 
 def _main():
-    global gapps, sim_id, plotNumber, plotConfigFlag
+    global gapps, sim_id, plotNumber
 
     if len(sys.argv) < 2:
         print('Usage: ' + sys.argv[0] + ' sim_id sim_req\n', flush=True)
@@ -929,10 +903,11 @@ def _main():
 
     sim_id = sys.argv[1]
 
+    plotConfigFlag = True
     plotLegendFlag = False
     for arg in sys.argv:
         if arg == '-legend':
-            legendFlag = True
+            plotLegendFlag = True
         elif arg == '-all':
             plotConfigFlag = False
         elif arg[0]=='-' and arg[1:].isdigit():
@@ -941,25 +916,32 @@ def _main():
 
     gapps = GridAPPSD()
 
-    # GridAPPS-D query to get connectivity node,phase pairs
+    # query to get connectivity node,phase pairs
     queryConnectivityPairs()
 
-    # subscribe to and then request CIM dictionary parameters for simulation
-    # so the conducting equipment MRIDs to connectivity nodes can be extracted
-    # TODO temporarily disable these because of the cannibalistic behavior
-    # with both state-estimator and state-plotter making this request
-    #gapps.subscribe('/queue/goss.gridappsd.se.response.' + sim_id + '.cimdict',
-    #                sensorDefCallback)
-    #gapps.subscribe('/topic/goss.gridappsd.se.response.' + sim_id + '.cimdict',
-    #                sensorDefCallback)
+    # query to get bus to sensor mrid mapping
+    queryBusToSimMRID()
 
-    #sensRequestText = '{"configurationType":"CIM Dictionary","parameters":{"simulation_id":"' + sim_id + '"}}';
-    #gapps.send('/queue/goss.gridappsd.process.request.config', sensRequestText)
-    #gapps.send('/topic/goss.gridappsd.process.request.config', sensRequestText)
-
-    # create dictionaries to map between simulation and state-estimator output
     # TODO temporarily call this to read busToSimMRID values from file
-    mapBusToSimMRID()
+    #mapBusToSimMRID()
+
+    mapSEPairToSimMRID()
+
+    if plotConfigFlag:
+        # Determine what to plot based on the state-plotter-config file
+        connectivityPairsToPlot()
+
+        # subscribe to state-estimator measurement output--with config file
+        gapps.subscribe('/topic/goss.gridappsd.state-estimator.out.' +
+                        sim_id, measurementConfigCallback)
+    else:
+        # subscribe to state-estimator measurement output--without config file
+        gapps.subscribe('/topic/goss.gridappsd.state-estimator.out.' +
+                        sim_id, measurementNoConfigCallback)
+
+    # subscribe to simulation output for comparison with measurements
+    gapps.subscribe('/topic/goss.gridappsd.simulation.output.' +
+                    sim_id, simulationOutputCallback)
 
     # matplotlib setup
     initPlot(plotConfigFlag, plotLegendFlag)
