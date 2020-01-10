@@ -45,7 +45,7 @@ Created on Oct 1, 2019
 @author: Gary D. Black
 """
 
-__version__ = '0.0.1'
+__version__ = '0.2.0'
 
 import sys
 import json
@@ -488,7 +488,7 @@ def plotData(event):
             vmagLinesDict[pair].set_ydata(vmagDataDict[pair])
             vmagYmin = min(vmagYmin, min(vmagDataDict[pair]))
             vmagYmax = max(vmagYmax, max(vmagDataDict[pair]))
-        print(sys.argv[0] + ': vmagYmin: ' + str(vmagYmin) + ', vmagYmax: ' + str(vmagYmax), flush=True)
+        #print(sys.argv[0] + ': vmagYmin: ' + str(vmagYmin) + ', vmagYmax: ' + str(vmagYmax), flush=True)
 
         vmagDiffYmax = sys.float_info.min
         vmagDiffYmin = sys.float_info.max
@@ -498,7 +498,7 @@ def plotData(event):
                 vmagDiffLinesDict[pair].set_ydata(vmagDiffDataDict[pair])
                 vmagDiffYmin = min(vmagDiffYmin, min(vmagDiffDataDict[pair]))
                 vmagDiffYmax = max(vmagDiffYmax, max(vmagDiffDataDict[pair]))
-        print(sys.argv[0] + ': vmagDiffYmin: ' + str(vmagDiffYmin) + ', vmagDiffYmax: ' + str(vmagDiffYmax), flush=True)
+        #print(sys.argv[0] + ': vmagDiffYmin: ' + str(vmagDiffYmin) + ', vmagDiffYmax: ' + str(vmagDiffYmax), flush=True)
 
         vangYmax = sys.float_info.min
         vangYmin = sys.float_info.max
@@ -507,7 +507,7 @@ def plotData(event):
             vangLinesDict[pair].set_ydata(vangDataDict[pair])
             vangYmin = min(vangYmin, min(vangDataDict[pair]))
             vangYmax = max(vangYmax, max(vangDataDict[pair]))
-        print(sys.argv[0] + ': vangYmin: ' + str(vangYmin) + ', vangYmax: ' + str(vangYmax), flush=True)
+        #print(sys.argv[0] + ': vangYmin: ' + str(vangYmin) + ', vangYmax: ' + str(vangYmax), flush=True)
 
         vangDiffYmax = sys.float_info.min
         vangDiffYmin = sys.float_info.max
@@ -517,7 +517,7 @@ def plotData(event):
                 vangDiffLinesDict[pair].set_ydata(vangDiffDataDict[pair])
                 vangDiffYmin = min(vangDiffYmin, min(vangDiffDataDict[pair]))
                 vangDiffYmax = max(vangDiffYmax, max(vangDiffDataDict[pair]))
-        print(sys.argv[0] + ': vangDiffYmin: ' + str(vangDiffYmin) + ', vangDiffYmax: ' + str(vangDiffYmax), flush=True)
+        #print(sys.argv[0] + ': vangDiffYmin: ' + str(vangDiffYmin) + ', vangDiffYmax: ' + str(vangDiffYmax), flush=True)
 
     else:
         tsZoom = int(tsZoomSldr.val)
@@ -600,18 +600,17 @@ def plotData(event):
             vmagLinesDict[pair].set_ydata(vmagDataDict[pair][startpt:endpt])
             vmagYmin = min(vmagYmin, min(vmagDataDict[pair][startpt:endpt]))
             vmagYmax = max(vmagYmax, max(vmagDataDict[pair][startpt:endpt]))
-        print(sys.argv[0] + ': vmagYmin: ' + str(vmagYmin) + ', vmagYmax: ' + str(vmagYmax), flush=True)
+        #print(sys.argv[0] + ': vmagYmin: ' + str(vmagYmin) + ', vmagYmax: ' + str(vmagYmax), flush=True)
 
         vmagDiffYmax = sys.float_info.min
         vmagDiffYmin = sys.float_info.max
         for pair in vmagDiffDataDict:
             if len(vmagDiffDataDict[pair]) > 0:
-                #print('MAG DIFF PAIR FOUND', flush=True)
                 vmagDiffLinesDict[pair].set_xdata(tsData[startpt:endpt])
                 vmagDiffLinesDict[pair].set_ydata(vmagDiffDataDict[pair][startpt:endpt])
                 vmagDiffYmin = min(vmagDiffYmin, min(vmagDiffDataDict[pair][startpt:endpt]))
                 vmagDiffYmax = max(vmagDiffYmax, max(vmagDiffDataDict[pair][startpt:endpt]))
-        print(sys.argv[0] + ': vmagDiffYmin: ' + str(vmagDiffYmin) + ', vmagDiffYmax: ' + str(vmagDiffYmax), flush=True)
+        #print(sys.argv[0] + ': vmagDiffYmin: ' + str(vmagDiffYmin) + ', vmagDiffYmax: ' + str(vmagDiffYmax), flush=True)
 
         vangYmax = sys.float_info.min
         vangYmin = sys.float_info.max
@@ -620,18 +619,17 @@ def plotData(event):
             vangLinesDict[pair].set_ydata(vangDataDict[pair][startpt:endpt])
             vangYmin = min(vangYmin, min(vangDataDict[pair][startpt:endpt]))
             vangYmax = max(vangYmax, max(vangDataDict[pair][startpt:endpt]))
-        print(sys.argv[0] + ': vangYmin: ' + str(vangYmin) + ', vangYmax: ' + str(vangYmax), flush=True)
+        #print(sys.argv[0] + ': vangYmin: ' + str(vangYmin) + ', vangYmax: ' + str(vangYmax), flush=True)
 
         vangDiffYmax = sys.float_info.min
         vangDiffYmin = sys.float_info.max
         for pair in vangDiffDataDict:
             if len(vangDiffDataDict[pair]) > 0:
-                #print('ANG DIFF PAIR FOUND', flush=True)
                 vangDiffLinesDict[pair].set_xdata(tsData[startpt:endpt])
                 vangDiffLinesDict[pair].set_ydata(vangDiffDataDict[pair][startpt:endpt])
                 vangDiffYmin = min(vangDiffYmin, min(vangDiffDataDict[pair][startpt:endpt]))
                 vangDiffYmax = max(vangDiffYmax, max(vangDiffDataDict[pair][startpt:endpt]))
-        print(sys.argv[0] + ': vangDiffYmin: ' + str(vangDiffYmin) + ', vangDiffYmax: ' + str(vangDiffYmax), flush=True)
+        #print(sys.argv[0] + ': vangDiffYmin: ' + str(vangDiffYmin) + ', vangDiffYmax: ' + str(vangDiffYmax), flush=True)
 
     # voltage magnitude plot y-axis zoom and pan calculation
     newvmagYmin, newvmagYmax = yAxisLimits(vmagYmin, vmagYmax, vmagZoomSldr.val, vmagPanSldr.val)
@@ -654,7 +652,7 @@ def plotData(event):
 
 
 def pauseCallback(event):
-    global pausedFlag
+    global pausedFlag, playIcon, pauseIcon
     # toggle whether plot is paused
     pausedFlag = not pausedFlag
 
@@ -667,7 +665,9 @@ def pauseCallback(event):
         tsData.extend(tsDataPaused)
         # clear the "paused" data so we build from scratch with the next pause
         tsDataPaused.clear()
-        for pair in nodePhasePairDict:
+
+        # now do the same extend/clear for all the magnitude and angle data
+        for pair in vmagDataDict:
             vmagDataDict[pair].extend(vmagDataDictPaused[pair])
             vangDataDict[pair].extend(vangDataDictPaused[pair])
             vmagDataDictPaused[pair].clear()
@@ -682,7 +682,7 @@ def pauseCallback(event):
 
 
 def showCallback(event):
-    global showFlag
+    global showFlag, checkedIcon, uncheckedIcon
     # toggle whether to show all timestamps
     showFlag = not showFlag
 
@@ -761,8 +761,8 @@ def initPlot(configFlag, legendFlag):
     global vmagDiffAx, vmagDiffZoomSldr, vmagDiffPanSldr
     global vangAx, vangZoomSldr, vangPanSldr
     global vangDiffAx, vangDiffZoomSldr, vangDiffPanSldr
-    global pauseAx, pauseIcon, playIcon
-    global tsShowAx, checkedIcon, uncheckedIcon
+    global pauseBtn, pauseAx, pauseIcon, playIcon
+    global tsShowBtn, tsShowAx, checkedIcon, uncheckedIcon
 
     # customize navigation toolbar
     # get rid of the toolbar buttons completely
@@ -921,11 +921,13 @@ def _main():
 
     # query to get bus to sensor mrid mapping
     queryBusToSimMRID()
+    #mapBusToSimMRID():
 
-    # TODO temporarily call this to read busToSimMRID values from file
-    #mapBusToSimMRID()
-
+    # finally, create map between state-estimator and simulation output
     mapSEPairToSimMRID()
+
+    # matplotlib setup done before receiving any messages that reference it
+    initPlot(plotConfigFlag, plotLegendFlag)
 
     if plotConfigFlag:
         # Determine what to plot based on the state-plotter-config file
@@ -942,9 +944,6 @@ def _main():
     # subscribe to simulation output for comparison with measurements
     gapps.subscribe('/topic/goss.gridappsd.simulation.output.' +
                     sim_id, simulationOutputCallback)
-
-    # matplotlib setup
-    initPlot(plotConfigFlag, plotLegendFlag)
 
     # interactive plot event loop allows both the ActiveMQ messages to be
     # received and plot GUI events
