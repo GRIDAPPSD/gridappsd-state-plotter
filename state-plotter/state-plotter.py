@@ -288,7 +288,7 @@ def measurementConfigCallback(header, message):
                                 simvangle = simmeas['angle']
                                 vanglediff = vangle - simvangle
                                 vangDiffDataPausedDict[sepair].append(vanglediff)
-                                print(appName + ', ts: ' + str(ts) + ', sepair: ' + sepair + ', paused seangle: ' + str(vangle) + ', simvangle: ' + str(simvangle) + ', % diff: ' + str(vanglediff), flush=True)
+                                print(appName + ', ts: ' + str(ts) + ', sepair: ' + sepair + ', paused seangle: ' + str(vangle) + ', simvangle: ' + str(simvangle) + ', diff: ' + str(vanglediff), flush=True)
             else:
                 vmagDataDict[sepair].append(vmag)
                 vangDataDict[sepair].append(vangle)
@@ -309,7 +309,7 @@ def measurementConfigCallback(header, message):
                                 simvangle = simmeas['angle']
                                 vanglediff = vangle - simvangle
                                 vangDiffDataDict[sepair].append(vanglediff)
-                                print(appName + ', ts: ' + str(ts) + ', sepair: ' + sepair + ', seangle: ' + str(vangle) + ', simvangle: ' + str(simvangle) + ', % diff: ' + str(vanglediff), flush=True)
+                                print(appName + ', ts: ' + str(ts) + ', sepair: ' + sepair + ', seangle: ' + str(vangle) + ', simvangle: ' + str(simvangle) + ', diff: ' + str(vanglediff), flush=True)
 
             # no reason to keep checking more pairs if we've found all we
             # are looking for
@@ -436,7 +436,7 @@ def measurementNoConfigCallback(header, message):
                             simvangle = simmeas['angle']
                             vanglediff = vangle - simvangle
                             vangDiffDataPausedDict[sepair].append(vanglediff)
-                            print(appName + ', ts: ' + str(ts) + ', sepair: ' + sepair + ', paused seangle: ' + str(vangle) + ', simvangle: ' + str(simvangle) + ', % diff: ' + str(vanglediff), flush=True)
+                            print(appName + ', ts: ' + str(ts) + ', sepair: ' + sepair + ', paused seangle: ' + str(vangle) + ', simvangle: ' + str(simvangle) + ', diff: ' + str(vanglediff), flush=True)
 
         else:
             vmagDataDict[sepair].append(vmag)
@@ -458,7 +458,7 @@ def measurementNoConfigCallback(header, message):
                             simvangle = simmeas['angle']
                             vanglediff = vangle - simvangle
                             vangDiffDataDict[sepair].append(vanglediff)
-                            print(appName + ', ts: ' + str(ts) + ', sepair: ' + sepair + ', seangle: ' + str(vangle) + ', simvangle: ' + str(simvangle) + ', % diff: ' + str(vanglediff), flush=True)
+                            print(appName + ', ts: ' + str(ts) + ', sepair: ' + sepair + ', seangle: ' + str(vangle) + ', simvangle: ' + str(simvangle) + ', diff: ' + str(vanglediff), flush=True)
 
         # no reason to keep checking more pairs if we've found all we
         # are looking for
