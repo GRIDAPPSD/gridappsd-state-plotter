@@ -84,7 +84,6 @@ simDataDict = {}
 busToSimMRIDDict = {}
 SEPairToSimMRIDDict = {}
 
-#BOOT
 # global variables
 gapps = None
 appName = sys.argv[0]
@@ -138,8 +137,10 @@ def queryBusToSimMRID():
                     busname += '.1'
                 elif phase == 's2':
                     busname += '.2'
-                busToSimMRIDDict[busname] = meas['mRID']
+                busToSimMRIDDict[busname.upper()] = meas['mRID']
+    print(appName + ': start simulation bus to simmrid query results...', flush=True)
     pprint.pprint(busToSimMRIDDict)
+    print(appName + ': end simulation bus to simmrid query results', flush=True)
 
 
 def mapBusToSimMRID():
@@ -163,9 +164,12 @@ def mapBusToSimMRID():
 
 
 def mapSEPairToSimMRID():
+    seMatchCount = 0
+
     for busname, simmrid in busToSimMRIDDict.items():
         bus, phase = busname.split('.')
         if bus in cnPairDict:
+            seMatchCount += 1
             semrid = cnPairDict[bus]
             if phase == '1':
                 SEPairToSimMRIDDict[semrid+',A'] = simmrid
@@ -173,7 +177,12 @@ def mapSEPairToSimMRID():
                 SEPairToSimMRIDDict[semrid+',B'] = simmrid
             elif phase == '3':
                 SEPairToSimMRIDDict[semrid+',C'] = simmrid
+    print(appName + ': start state-estimator to simulation mrid mapping...', flush=True)
     pprint.pprint(SEPairToSimMRIDDict)
+    print(appName + ': end state-estimator to simulation mrid mapping', flush=True)
+
+    simMRIDCount = len(busToSimMRIDDict)
+    print(appName + ': ' + str(seMatchCount) + ' state-estimator node,phase pair matches out of ' + str(simMRIDCount) + ' total simulation mrids', flush=True)
 
 
 def measurementConfigCallback(header, message):
@@ -185,12 +194,11 @@ def measurementConfigCallback(header, message):
 
     estVolt = msgdict['Estimate']['SvEstVoltages']
     matchCount = 0
-    sepairCount = 0
+    diffMatchCount = 0
+    sepairCount = len(estVolt)
 
     # update the timestamp zoom slider upper limit and default value
     if firstPassFlag:
-        sepairCount = len(estVolt)
-
         # scale based on cube root of number of node/phase pairs
         # 18 is just a magic number that seems to produce reasonable values
         # for the 3 models used as test cases--20 is a bit too big, 15 too small
@@ -269,6 +277,7 @@ def measurementConfigCallback(header, message):
                         if simmrid in simDataTS:
                             simmeas = simDataTS[simmrid]
                             if 'magnitude' in simmeas:
+                                diffMatchCount += 1
                                 simvmag = simmeas['magnitude']
                                 if simvmag != 0.0:
                                     vmagdiff = 100.0*(vmag - simvmag)/simvmag
@@ -289,6 +298,7 @@ def measurementConfigCallback(header, message):
                         if simmrid in simDataTS:
                             simmeas = simDataTS[simmrid]
                             if 'magnitude' in simmeas:
+                                diffMatchCount += 1
                                 simvmag = simmeas['magnitude']
                                 if simvmag != 0.0:
                                     vmagdiff = 100.0*(vmag - simvmag)/simvmag
@@ -306,6 +316,8 @@ def measurementConfigCallback(header, message):
             if matchCount == len(nodePhasePairDict):
                 break
 
+    print(appName + ': ' + str(sepairCount) + ' state-estimator measurements, ' + str(matchCount) + ' configuration file node,phase pair matches, ' + str(diffMatchCount) + ' matches to simulation data', flush=True)
+
     # update plot with the new data
     plotData(None)
 
@@ -319,11 +331,11 @@ def measurementNoConfigCallback(header, message):
 
     estVolt = msgdict['Estimate']['SvEstVoltages']
     matchCount = 0
+    diffMatchCount = 0
+    sepairCount = len(estVolt)
 
     # update the timestamp zoom slider upper limit and default value
     if firstPassFlag:
-        sepairCount = len(estVolt)
-
         # scale based on cube root of number of node/phase pairs
         # 18 is just a magic number that seems to produce reasonable values
         # for the 3 models used as test cases--20 is a bit too big, 15 too small
@@ -365,7 +377,7 @@ def measurementNoConfigCallback(header, message):
         vmag = item['v']
         vangle = item['angle']
 
-        print(appName + ': node,phase pair: ' + sepair + ', matchCount: ' + str(matchCount), flush=True)
+        #print(appName + ': node,phase pair: ' + sepair + ', matchCount: ' + str(matchCount), flush=True)
         #print(appName + ': timestamp: ' + str(ts), flush=True)
         #print(appName + ': vmag: ' + str(vmag), flush=True)
         #print(appName + ': vangle: ' + str(vangle) + '\n', flush=True)
@@ -413,6 +425,7 @@ def measurementNoConfigCallback(header, message):
                     if simmrid in simDataTS:
                         simmeas = simDataTS[simmrid]
                         if 'magnitude' in simmeas:
+                            diffMatchCount += 1
                             simvmag = simmeas['magnitude']
                             if simvmag != 0.0:
                                 vmagdiff = 100.0*(vmag - simvmag)/simvmag
@@ -434,6 +447,7 @@ def measurementNoConfigCallback(header, message):
                     if simmrid in simDataTS:
                         simmeas = simDataTS[simmrid]
                         if 'magnitude' in simmeas:
+                            diffMatchCount += 1
                             simvmag = simmeas['magnitude']
                             if simvmag != 0.0:
                                 vmagdiff = 100.0*(vmag - simvmag)/simvmag
@@ -453,6 +467,11 @@ def measurementNoConfigCallback(header, message):
 
     # only do the dictionary initializtion code on the first call
     firstPassFlag = False
+
+    if plotNumber > 0:
+        print(appName + ': ' + str(sepairCount) + ' state-estimator measurements, ' + str(matchCount) + ' node,phase pair matches (matching first ' + str(plotNumber) + '), ' + str(diffMatchCount) + ' matches to simulation data', flush=True)
+    else:
+        print(appName + ': ' + str(sepairCount) + ' state-estimator measurements, ' + str(matchCount) + ' node,phase pair matches (matching all), ' + str(diffMatchCount) + ' matches to simulation data', flush=True)
 
     # update plot with the new data
     plotData(None)
@@ -474,6 +493,13 @@ def simulationOutputCallback(header, message):
 
 
 def yAxisLimits(yMin, yMax, zoomVal, panVal):
+    # check for yMin > yMax, which indicates there was no data to drive the
+    # min/max determination
+    if yMin > yMax:
+        print(appName + ': WARNING: y-axis minimum and maximum values were not set due to lack of data--defaulting to avoid Matplotlib error!\n', flush=True)
+        yMin = 0.0
+        yMax = 100.0
+
     if zoomVal == 100:
         height = yMax - yMin
     else:
@@ -506,6 +532,9 @@ def plotData(event):
     if len(tsDataList)==0:
         return
 
+    vmagDiffDataFlag = False
+    vangDiffDataFlag = False
+
     if showFlag:
         xupper = int(tsDataList[-1])
         if xupper > 0:
@@ -524,6 +553,7 @@ def plotData(event):
         vmagDiffYmin = sys.float_info.max
         for pair in vmagDiffDataDict:
             if len(vmagDiffDataDict[pair]) > 0:
+                vmagDiffDataFlag = True
                 vmagDiffLinesDict[pair].set_xdata(tsDataList)
                 vmagDiffLinesDict[pair].set_ydata(vmagDiffDataDict[pair])
                 vmagDiffYmin = min(vmagDiffYmin, min(vmagDiffDataDict[pair]))
@@ -543,6 +573,7 @@ def plotData(event):
         vangDiffYmin = sys.float_info.max
         for pair in vangDiffDataDict:
             if len(vangDiffDataDict[pair]) > 0:
+                vangDiffDataFlag = True
                 vangDiffLinesDict[pair].set_xdata(tsDataList)
                 vangDiffLinesDict[pair].set_ydata(vangDiffDataDict[pair])
                 vangDiffYmin = min(vangDiffYmin, min(vangDiffDataDict[pair]))
@@ -636,6 +667,7 @@ def plotData(event):
         vmagDiffYmin = sys.float_info.max
         for pair in vmagDiffDataDict:
             if len(vmagDiffDataDict[pair]) > 0:
+                vmagDiffDataFlag = True
                 vmagDiffLinesDict[pair].set_xdata(tsDataList[startpt:endpt])
                 vmagDiffLinesDict[pair].set_ydata(vmagDiffDataDict[pair][startpt:endpt])
                 vmagDiffYmin = min(vmagDiffYmin, min(vmagDiffDataDict[pair][startpt:endpt]))
@@ -655,6 +687,7 @@ def plotData(event):
         vangDiffYmin = sys.float_info.max
         for pair in vangDiffDataDict:
             if len(vangDiffDataDict[pair]) > 0:
+                vangDiffDataFlag = True
                 vangDiffLinesDict[pair].set_xdata(tsDataList[startpt:endpt])
                 vangDiffLinesDict[pair].set_ydata(vangDiffDataDict[pair][startpt:endpt])
                 vangDiffYmin = min(vangDiffYmin, min(vangDiffDataDict[pair][startpt:endpt]))
@@ -666,6 +699,8 @@ def plotData(event):
     vmagAx.set_ylim(newvmagYmin, newvmagYmax)
 
     # voltage magnitude difference plot y-axis zoom and pan calculation
+    if not vmagDiffDataFlag:
+        print(appName + ': WARNING: no voltage magnitude difference data to plot!\n', flush=True)
     newvmagDiffYmin, newvmagDiffYmax = yAxisLimits(vmagDiffYmin, vmagDiffYmax, vmagDiffZoomSldr.val, vmagDiffPanSldr.val)
     vmagDiffAx.set_ylim(newvmagDiffYmin, newvmagDiffYmax)
 
@@ -674,6 +709,8 @@ def plotData(event):
     vangAx.set_ylim(newvangYmin, newvangYmax)
 
     # voltage angle difference plot y-axis zoom and pan calculation
+    if not vangDiffDataFlag:
+        print(appName + ': WARNING: no voltage angle difference data to plot!\n', flush=True)
     newvangDiffYmin, newvangDiffYmax = yAxisLimits(vangDiffYmin, vangDiffYmax, vangDiffZoomSldr.val, vangDiffPanSldr.val)
     vangDiffAx.set_ylim(newvangDiffYmin, newvangDiffYmax)
 
@@ -757,7 +794,9 @@ def queryConnectivityPairs():
         cnname = node['cnname']['value']
         cnid = node['cnid']['value']
         cnPairDict[cnname.upper()] = cnid
+    print(appName + ': start state-estimator bus to semrid query results...', flush=True)
     pprint.pprint(cnPairDict)
+    print(appName + ': end state-estimator bus to semrid query results', flush=True)
 
 
 def connectivityPairsToPlot():
