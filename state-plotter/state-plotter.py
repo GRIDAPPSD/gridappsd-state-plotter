@@ -137,7 +137,16 @@ def queryBusToSimMRID():
                     busname += '.1'
                 elif phase == 's2':
                     busname += '.2'
-                busToSimMRIDDict[busname.upper()] = meas['mRID']
+
+                busup = busname.upper()
+                if busup in busToSimMRIDDict:
+                    simList = busToSimMRIDDict[busup]
+                    simList.append(meas['mRID'])
+                    busToSimMRIDDict[busup] = simList
+                else:
+                    simList = [meas['mRID']]
+                    busToSimMRIDDict[busup] = simList
+
     print(appName + ': start simulation bus to simmrid query results...', flush=True)
     pprint.pprint(busToSimMRIDDict)
     print(appName + ': end simulation bus to simmrid query results', flush=True)
@@ -160,23 +169,33 @@ def mapBusToSimMRID():
             # strip whitespace including trailing newline
             line = ''.join(line.split())
             bus, simmrid = line.split(',')
-            busToSimMRIDDict[bus] = simmrid
+            if bus in busToSimMRIDDict:
+                simList = busToSimMRIDDict[bus]
+                simList.append(simmrid)
+                busToSimMRIDDict[bus] = simList
+            else:
+                simList = [simmrid]
+                busToSimMRIDDict[bus] = simList
+
+    print(appName + ': start simulation bus to simmrid file results...', flush=True)
+    pprint.pprint(busToSimMRIDDict)
+    print(appName + ': end simulation bus to simmrid file results', flush=True)
 
 
 def mapSEPairToSimMRID():
     seMatchCount = 0
 
-    for busname, simmrid in busToSimMRIDDict.items():
+    for busname, simList in busToSimMRIDDict.items():
         bus, phase = busname.split('.')
         if bus in cnPairDict:
             seMatchCount += 1
             semrid = cnPairDict[bus]
             if phase == '1':
-                SEPairToSimMRIDDict[semrid+',A'] = simmrid
+                SEPairToSimMRIDDict[semrid+',A'] = simList
             elif phase == '2':
-                SEPairToSimMRIDDict[semrid+',B'] = simmrid
+                SEPairToSimMRIDDict[semrid+',B'] = simList
             elif phase == '3':
-                SEPairToSimMRIDDict[semrid+',C'] = simmrid
+                SEPairToSimMRIDDict[semrid+',C'] = simList
     print(appName + ': start state-estimator to simulation mrid mapping...', flush=True)
     pprint.pprint(SEPairToSimMRIDDict)
     print(appName + ': end state-estimator to simulation mrid mapping', flush=True)
@@ -273,43 +292,45 @@ def measurementConfigCallback(header, message):
                 vangDataPausedDict[sepair].append(vangle)
                 if simDataTS is not None:
                     if sepair in SEPairToSimMRIDDict:
-                        simmrid = SEPairToSimMRIDDict[sepair]
-                        if simmrid in simDataTS:
-                            simmeas = simDataTS[simmrid]
-                            if 'magnitude' in simmeas:
-                                diffMatchCount += 1
-                                simvmag = simmeas['magnitude']
-                                if simvmag != 0.0:
-                                    vmagdiff = 100.0*(vmag - simvmag)/simvmag
-                                else:
-                                    vmagdiff = 0.0
-                                vmagDiffDataPausedDict[sepair].append(vmagdiff)
-                                print(appName + ', ts: ' + str(ts) + ', sepair: ' + sepair + ', paused semag: ' + str(vmag) + ', simmag: ' + str(simvmag) + ', % diff: ' + str(vmagdiff), flush=True)
-                                simvangle = simmeas['angle']
-                                vanglediff = vangle - simvangle
-                                vangDiffDataPausedDict[sepair].append(vanglediff)
-                                print(appName + ', ts: ' + str(ts) + ', sepair: ' + sepair + ', paused seangle: ' + str(vangle) + ', simvangle: ' + str(simvangle) + ', diff: ' + str(vanglediff), flush=True)
+                        for simmrid in SEPairToSimMRIDDict[sepair]:
+                            if simmrid in simDataTS:
+                                simmeas = simDataTS[simmrid]
+                                if 'magnitude' in simmeas:
+                                    diffMatchCount += 1
+                                    simvmag = simmeas['magnitude']
+                                    if simvmag != 0.0:
+                                        vmagdiff = 100.0*(vmag - simvmag)/simvmag
+                                    else:
+                                        vmagdiff = 0.0
+                                    vmagDiffDataPausedDict[sepair].append(vmagdiff)
+                                    print(appName + ', ts: ' + str(ts) + ', sepair: ' + sepair + ', paused semag: ' + str(vmag) + ', simmag: ' + str(simvmag) + ', % diff: ' + str(vmagdiff), flush=True)
+                                    simvangle = simmeas['angle']
+                                    vanglediff = vangle - simvangle
+                                    vangDiffDataPausedDict[sepair].append(vanglediff)
+                                    print(appName + ', ts: ' + str(ts) + ', sepair: ' + sepair + ', paused seangle: ' + str(vangle) + ', simvangle: ' + str(simvangle) + ', diff: ' + str(vanglediff), flush=True)
+                                    break
             else:
                 vmagDataDict[sepair].append(vmag)
                 vangDataDict[sepair].append(vangle)
                 if simDataTS is not None:
                     if sepair in SEPairToSimMRIDDict:
-                        simmrid = SEPairToSimMRIDDict[sepair]
-                        if simmrid in simDataTS:
-                            simmeas = simDataTS[simmrid]
-                            if 'magnitude' in simmeas:
-                                diffMatchCount += 1
-                                simvmag = simmeas['magnitude']
-                                if simvmag != 0.0:
-                                    vmagdiff = 100.0*(vmag - simvmag)/simvmag
-                                else:
-                                    vmagdiff = 0.0
-                                vmagDiffDataDict[sepair].append(vmagdiff)
-                                print(appName + ', ts: ' + str(ts) + ', sepair: ' + sepair + ', semag: ' + str(vmag) + ', simmag: ' + str(simvmag) + ', % diff: ' + str(vmagdiff), flush=True)
-                                simvangle = simmeas['angle']
-                                vanglediff = vangle - simvangle
-                                vangDiffDataDict[sepair].append(vanglediff)
-                                print(appName + ', ts: ' + str(ts) + ', sepair: ' + sepair + ', seangle: ' + str(vangle) + ', simvangle: ' + str(simvangle) + ', diff: ' + str(vanglediff), flush=True)
+                        for simmrid in SEPairToSimMRIDDict[sepair]:
+                            if simmrid in simDataTS:
+                                simmeas = simDataTS[simmrid]
+                                if 'magnitude' in simmeas:
+                                    diffMatchCount += 1
+                                    simvmag = simmeas['magnitude']
+                                    if simvmag != 0.0:
+                                        vmagdiff = 100.0*(vmag - simvmag)/simvmag
+                                    else:
+                                        vmagdiff = 0.0
+                                    vmagDiffDataDict[sepair].append(vmagdiff)
+                                    print(appName + ', ts: ' + str(ts) + ', sepair: ' + sepair + ', semag: ' + str(vmag) + ', simmag: ' + str(simvmag) + ', % diff: ' + str(vmagdiff), flush=True)
+                                    simvangle = simmeas['angle']
+                                    vanglediff = vangle - simvangle
+                                    vangDiffDataDict[sepair].append(vanglediff)
+                                    print(appName + ', ts: ' + str(ts) + ', sepair: ' + sepair + ', seangle: ' + str(vangle) + ', simvangle: ' + str(simvangle) + ', diff: ' + str(vanglediff), flush=True)
+                                    break
 
             # no reason to keep checking more pairs if we've found all we
             # are looking for
@@ -421,44 +442,46 @@ def measurementNoConfigCallback(header, message):
             vangDataPausedDict[sepair].append(vangle)
             if simDataTS is not None:
                 if sepair in SEPairToSimMRIDDict:
-                    simmrid = SEPairToSimMRIDDict[sepair]
-                    if simmrid in simDataTS:
-                        simmeas = simDataTS[simmrid]
-                        if 'magnitude' in simmeas:
-                            diffMatchCount += 1
-                            simvmag = simmeas['magnitude']
-                            if simvmag != 0.0:
-                                vmagdiff = 100.0*(vmag - simvmag)/simvmag
-                            else:
-                                vmagdiff = 0.0
-                            vmagDiffDataPausedDict[sepair].append(vmagdiff)
-                            print(appName + ', ts: ' + str(ts) + ', sepair: ' + sepair + ', paused semag: ' + str(vmag) + ', simmag: ' + str(simvmag) + ', % diff: ' + str(vmagdiff), flush=True)
-                            simvangle = simmeas['angle']
-                            vanglediff = vangle - simvangle
-                            vangDiffDataPausedDict[sepair].append(vanglediff)
-                            print(appName + ', ts: ' + str(ts) + ', sepair: ' + sepair + ', paused seangle: ' + str(vangle) + ', simvangle: ' + str(simvangle) + ', diff: ' + str(vanglediff), flush=True)
+                    for simmrid in SEPairToSimMRIDDict[sepair]:
+                        if simmrid in simDataTS:
+                            simmeas = simDataTS[simmrid]
+                            if 'magnitude' in simmeas:
+                                diffMatchCount += 1
+                                simvmag = simmeas['magnitude']
+                                if simvmag != 0.0:
+                                    vmagdiff = 100.0*(vmag - simvmag)/simvmag
+                                else:
+                                    vmagdiff = 0.0
+                                vmagDiffDataPausedDict[sepair].append(vmagdiff)
+                                print(appName + ', ts: ' + str(ts) + ', sepair: ' + sepair + ', paused semag: ' + str(vmag) + ', simmag: ' + str(simvmag) + ', % diff: ' + str(vmagdiff), flush=True)
+                                simvangle = simmeas['angle']
+                                vanglediff = vangle - simvangle
+                                vangDiffDataPausedDict[sepair].append(vanglediff)
+                                print(appName + ', ts: ' + str(ts) + ', sepair: ' + sepair + ', paused seangle: ' + str(vangle) + ', simvangle: ' + str(simvangle) + ', diff: ' + str(vanglediff), flush=True)
+                                break
 
         else:
             vmagDataDict[sepair].append(vmag)
             vangDataDict[sepair].append(vangle)
             if simDataTS is not None:
                 if sepair in SEPairToSimMRIDDict:
-                    simmrid = SEPairToSimMRIDDict[sepair]
-                    if simmrid in simDataTS:
-                        simmeas = simDataTS[simmrid]
-                        if 'magnitude' in simmeas:
-                            diffMatchCount += 1
-                            simvmag = simmeas['magnitude']
-                            if simvmag != 0.0:
-                                vmagdiff = 100.0*(vmag - simvmag)/simvmag
-                            else:
-                                vmagdiff = 0.0;
-                            vmagDiffDataDict[sepair].append(vmagdiff)
-                            print(appName + ', ts: ' + str(ts) + ', sepair: ' + sepair + ', semag: ' + str(vmag) + ', simmag: ' + str(simvmag) + ', % diff: ' + str(vmagdiff), flush=True)
-                            simvangle = simmeas['angle']
-                            vanglediff = vangle - simvangle
-                            vangDiffDataDict[sepair].append(vanglediff)
-                            print(appName + ', ts: ' + str(ts) + ', sepair: ' + sepair + ', seangle: ' + str(vangle) + ', simvangle: ' + str(simvangle) + ', diff: ' + str(vanglediff), flush=True)
+                    for simmrid in SEPairToSimMRIDDict[sepair]:
+                        if simmrid in simDataTS:
+                            simmeas = simDataTS[simmrid]
+                            if 'magnitude' in simmeas:
+                                diffMatchCount += 1
+                                simvmag = simmeas['magnitude']
+                                if simvmag != 0.0:
+                                    vmagdiff = 100.0*(vmag - simvmag)/simvmag
+                                else:
+                                    vmagdiff = 0.0;
+                                vmagDiffDataDict[sepair].append(vmagdiff)
+                                print(appName + ', ts: ' + str(ts) + ', sepair: ' + sepair + ', semag: ' + str(vmag) + ', simmag: ' + str(simvmag) + ', % diff: ' + str(vmagdiff), flush=True)
+                                simvangle = simmeas['angle']
+                                vanglediff = vangle - simvangle
+                                vangDiffDataDict[sepair].append(vanglediff)
+                                print(appName + ', ts: ' + str(ts) + ', sepair: ' + sepair + ', seangle: ' + str(vangle) + ', simvangle: ' + str(simvangle) + ', diff: ' + str(vanglediff), flush=True)
+                                break
 
         # no reason to keep checking more pairs if we've found all we
         # are looking for
@@ -986,7 +1009,7 @@ def _main():
 
     # query to get bus to sensor mrid mapping
     queryBusToSimMRID()
-    #mapBusToSimMRID():
+    #mapBusToSimMRID()
 
     # finally, create map between state-estimator and simulation output
     mapSEPairToSimMRID()
