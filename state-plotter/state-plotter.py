@@ -152,36 +152,6 @@ def queryBusToSimMRID():
     print(appName + ': end simulation bus to simmrid query results', flush=True)
 
 
-def mapBusToSimMRID():
-    # TODO Hardwire busToSimMRIDDict entries until I can code the real query
-    # ieee13nodecktassets
-    if '_5B816B93-7A5F-B64C-8460-47C17D6E4B0F' in simReq:
-        busToSimFile = 'busToSim.13.csv'
-    # ieee123
-    elif '_C1C3E687-6FFD-C753-582B-632A27E28507' in simReq:
-        busToSimFile = 'busToSim.123.csv'
-    # test9500new
-    elif '_AAE94E4A-2465-6F5E-37B1-3E72183A4E44' in simReq:
-        busToSimFile = 'busToSim.9500.csv'
-
-    with open('../' + busToSimFile) as csvfp:
-        for line in csvfp:
-            # strip whitespace including trailing newline
-            line = ''.join(line.split())
-            bus, simmrid = line.split(',')
-            if bus in busToSimMRIDDict:
-                simList = busToSimMRIDDict[bus]
-                simList.append(simmrid)
-                busToSimMRIDDict[bus] = simList
-            else:
-                simList = [simmrid]
-                busToSimMRIDDict[bus] = simList
-
-    print(appName + ': start simulation bus to simmrid file results...', flush=True)
-    pprint.pprint(busToSimMRIDDict)
-    print(appName + ': end simulation bus to simmrid file results', flush=True)
-
-
 def mapSEPairToSimMRID():
     seMatchCount = 0
 
@@ -1009,7 +979,6 @@ def _main():
 
     # query to get bus to sensor mrid mapping
     queryBusToSimMRID()
-    #mapBusToSimMRID()
 
     # finally, create map between state-estimator and simulation output
     mapSEPairToSimMRID()
