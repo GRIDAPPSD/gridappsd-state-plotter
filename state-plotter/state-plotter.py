@@ -174,6 +174,33 @@ def mapSEPairToSimMRID():
     print(appName + ': ' + str(seMatchCount) + ' state-estimator node,phase pair matches out of ' + str(simMRIDCount) + ' total simulation mrids', flush=True)
 
 
+def printWithSim(ts, sepair, vmag, simvmag, vmagdiff, vangle, simvangle, vanglediff):
+    print(appName + ', ts: ' + str(ts) + ', sepair: ' + sepair + ', semag: ' + str(vmag) + ', simmag: ' + str(simvmag) + ', % mag diff: ' + str(vmagdiff) + ', seangle: ' + str(vangle) + ', simvangle: ' + str(simvangle) + ', diff: ' + str(vanglediff), flush=True)
+    # 13-node
+    if '_5B816B93-7A5F-B64C-8460-47C17D6E4B0F' in simReq:
+        if vmagdiff < -2.0:
+            print(appName + ': OUTLIER, 13-node, vmagdiff<-2.0%: ts: ' + str(ts) + ', sepair: ' + sepair + ', semag: ' + str(vmag) + ', simmag: ' + str(simvmag) + ', % diff: ' + str(vmagdiff), flush=True)
+        if vanglediff > 34.0:
+            print(appName + ': OUTLIER, 13-node, vanglediff>34.0: ts: ' + str(ts) + ', sepair: ' + sepair + ', seangle: ' + str(vangle) + ', simvangle: ' + str(simvangle) + ', diff: ' + str(vanglediff), flush=True)
+    # 123-node
+    elif '_C1C3E687-6FFD-C753-582B-632A27E28507' in simReq:
+        if vmagdiff > 3.0:
+            print(appName + ': OUTLIER, 123-node, vmagdiff>3.0%: ts: ' + str(ts) + ', sepair: ' + sepair + ', semag: ' + str(vmag) + ', simmag: ' + str(simvmag) + ', % diff: ' + str(vmagdiff), flush=True)
+        if vmagdiff < -2.0:
+            print(appName + ': OUTLIER, 123-node, vmagdiff<-2.0%: ts: ' + str(ts) + ', sepair: ' + sepair + ', semag: ' + str(vmag) + ', simmag: ' + str(simvmag) + ', % diff: ' + str(vmagdiff), flush=True)
+        if vanglediff < -100.0:
+            print(appName + ': OUTLIER, 123-node, vanglediff<-100.0: ts: ' + str(ts) + ', sepair: ' + sepair + ', seangle: ' + str(vangle) + ', simvangle: ' + str(simvangle) + ', diff: ' + str(vanglediff), flush=True)
+    # 9500-node
+    #elif '_AAE94E4A-2465-6F5E-37B1-3E72183A4E44' in simReq:
+
+
+def printWithoutSim(ts, sepair, vmag, vangle):
+    print(appName + ', NO SIM MATCH, ts: ' + str(ts) + ', sepair: ' + sepair + ', semag: ' + str(vmag) + ', seangle: ' + str(vangle), flush=True)
+    if '_5B816B93-7A5F-B64C-8460-47C17D6E4B0F' in simReq:
+        if vmag > 4000:
+            print(appName + ': OUTLIER, 13-node, vmag>4K: ts: ' + str(ts) + ', sepair: ' + sepair + ', semag > 4K: ' + str(vmag), flush=True)
+
+
 def measurementConfigCallback(header, message):
     global firstPassFlag, tsInit
 
@@ -257,6 +284,7 @@ def measurementConfigCallback(header, message):
                         tsInit = ts
                         tsDataList.append(0)
 
+            printFlag = False
             if pausedFlag:
                 vmagDataPausedDict[sepair].append(vmag)
                 vangDataPausedDict[sepair].append(vangle)
@@ -266,6 +294,7 @@ def measurementConfigCallback(header, message):
                             if simmrid in simDataTS:
                                 simmeas = simDataTS[simmrid]
                                 if 'magnitude' in simmeas:
+                                    printFlag = True
                                     diffMatchCount += 1
                                     simvmag = simmeas['magnitude']
                                     if simvmag != 0.0:
@@ -273,12 +302,14 @@ def measurementConfigCallback(header, message):
                                     else:
                                         vmagdiff = 0.0
                                     vmagDiffDataPausedDict[sepair].append(vmagdiff)
-                                    print(appName + ', ts: ' + str(ts) + ', sepair: ' + sepair + ', paused semag: ' + str(vmag) + ', simmag: ' + str(simvmag) + ', % diff: ' + str(vmagdiff), flush=True)
                                     simvangle = simmeas['angle']
                                     vanglediff = vangle - simvangle
                                     vangDiffDataPausedDict[sepair].append(vanglediff)
-                                    print(appName + ', ts: ' + str(ts) + ', sepair: ' + sepair + ', paused seangle: ' + str(vangle) + ', simvangle: ' + str(simvangle) + ', diff: ' + str(vanglediff), flush=True)
+                                    printWithSim(ts, sepair, vmag, simvmag, vmagdiff, vangle, simvangle, vanglediff)
                                     break
+                if not printFlag:
+                    printWithoutSim(ts, sepair, vmag, vangle)
+
             else:
                 vmagDataDict[sepair].append(vmag)
                 vangDataDict[sepair].append(vangle)
@@ -288,6 +319,7 @@ def measurementConfigCallback(header, message):
                             if simmrid in simDataTS:
                                 simmeas = simDataTS[simmrid]
                                 if 'magnitude' in simmeas:
+                                    printFlag = True
                                     diffMatchCount += 1
                                     simvmag = simmeas['magnitude']
                                     if simvmag != 0.0:
@@ -295,12 +327,13 @@ def measurementConfigCallback(header, message):
                                     else:
                                         vmagdiff = 0.0
                                     vmagDiffDataDict[sepair].append(vmagdiff)
-                                    print(appName + ', ts: ' + str(ts) + ', sepair: ' + sepair + ', semag: ' + str(vmag) + ', simmag: ' + str(simvmag) + ', % diff: ' + str(vmagdiff), flush=True)
                                     simvangle = simmeas['angle']
                                     vanglediff = vangle - simvangle
                                     vangDiffDataDict[sepair].append(vanglediff)
-                                    print(appName + ', ts: ' + str(ts) + ', sepair: ' + sepair + ', seangle: ' + str(vangle) + ', simvangle: ' + str(simvangle) + ', diff: ' + str(vanglediff), flush=True)
+                                    printWithSim(ts, sepair, vmag, simvmag, vmagdiff, vangle, simvangle, vanglediff)
                                     break
+                if not printFlag:
+                    printWithoutSim(ts, sepair, vmag, vangle)
 
             # no reason to keep checking more pairs if we've found all we
             # are looking for
@@ -407,6 +440,7 @@ def measurementNoConfigCallback(header, message):
                     tsInit = ts
                     tsDataList.append(0)
 
+        printFlag = False
         if pausedFlag:
             vmagDataPausedDict[sepair].append(vmag)
             vangDataPausedDict[sepair].append(vangle)
@@ -416,6 +450,7 @@ def measurementNoConfigCallback(header, message):
                         if simmrid in simDataTS:
                             simmeas = simDataTS[simmrid]
                             if 'magnitude' in simmeas:
+                                printFlag = True
                                 diffMatchCount += 1
                                 simvmag = simmeas['magnitude']
                                 if simvmag != 0.0:
@@ -423,12 +458,13 @@ def measurementNoConfigCallback(header, message):
                                 else:
                                     vmagdiff = 0.0
                                 vmagDiffDataPausedDict[sepair].append(vmagdiff)
-                                print(appName + ', ts: ' + str(ts) + ', sepair: ' + sepair + ', paused semag: ' + str(vmag) + ', simmag: ' + str(simvmag) + ', % diff: ' + str(vmagdiff), flush=True)
                                 simvangle = simmeas['angle']
                                 vanglediff = vangle - simvangle
                                 vangDiffDataPausedDict[sepair].append(vanglediff)
-                                print(appName + ', ts: ' + str(ts) + ', sepair: ' + sepair + ', paused seangle: ' + str(vangle) + ', simvangle: ' + str(simvangle) + ', diff: ' + str(vanglediff), flush=True)
+                                printWithSim(ts, sepair, vmag, simvmag, vmagdiff, vangle, simvangle, vanglediff)
                                 break
+            if not printFlag:
+                printWithoutSim(ts, sepair, vmag, vangle)
 
         else:
             vmagDataDict[sepair].append(vmag)
@@ -439,6 +475,7 @@ def measurementNoConfigCallback(header, message):
                         if simmrid in simDataTS:
                             simmeas = simDataTS[simmrid]
                             if 'magnitude' in simmeas:
+                                printFlag = True
                                 diffMatchCount += 1
                                 simvmag = simmeas['magnitude']
                                 if simvmag != 0.0:
@@ -446,12 +483,13 @@ def measurementNoConfigCallback(header, message):
                                 else:
                                     vmagdiff = 0.0;
                                 vmagDiffDataDict[sepair].append(vmagdiff)
-                                print(appName + ', ts: ' + str(ts) + ', sepair: ' + sepair + ', semag: ' + str(vmag) + ', simmag: ' + str(simvmag) + ', % diff: ' + str(vmagdiff), flush=True)
                                 simvangle = simmeas['angle']
                                 vanglediff = vangle - simvangle
                                 vangDiffDataDict[sepair].append(vanglediff)
-                                print(appName + ', ts: ' + str(ts) + ', sepair: ' + sepair + ', seangle: ' + str(vangle) + ', simvangle: ' + str(simvangle) + ', diff: ' + str(vanglediff), flush=True)
+                                printWithSim(ts, sepair, vmag, simvmag, vmagdiff, vangle, simvangle, vanglediff)
                                 break
+            if not printFlag:
+                printWithoutSim(ts, sepair, vmag, vangle)
 
         # no reason to keep checking more pairs if we've found all we
         # are looking for
