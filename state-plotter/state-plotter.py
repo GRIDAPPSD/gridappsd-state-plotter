@@ -175,30 +175,30 @@ def mapSEToSim():
 
 
 def printWithSim(ts, sepair, vmag, simvmag, vmagdiff, vangle, simvangle, vanglediff):
-    print(appName + ', ts: ' + str(ts) + ', sepair: ' + sepair + ', semag: ' + str(vmag) + ', simmag: ' + str(simvmag) + ', % mag diff: ' + str(vmagdiff) + ', seangle: ' + str(vangle) + ', simvangle: ' + str(simvangle) + ', diff: ' + str(vanglediff), flush=True)
+    print(appName + ', ts: ' + str(ts) + ', sepair: ' + sepair + ', busname: ' + SEToBusDict[sepair] + ', semag: ' + str(vmag) + ', simmag: ' + str(simvmag) + ', % mag diff: ' + str(vmagdiff) + ', seangle: ' + str(vangle) + ', simvangle: ' + str(simvangle) + ', diff: ' + str(vanglediff), flush=True)
     # 13-node
     if '_5B816B93-7A5F-B64C-8460-47C17D6E4B0F' in simReq:
         if vmagdiff < -2.0:
-            print(appName + ': OUTLIER, 13-node, vmagdiff<-2.0%: ts: ' + str(ts) + ', sepair: ' + sepair + ', semag: ' + str(vmag) + ', simmag: ' + str(simvmag) + ', % diff: ' + str(vmagdiff), flush=True)
+            print(appName + ': OUTLIER, 13-node, vmagdiff<-2.0%: ts: ' + str(ts) + ', sepair: ' + sepair + ', busname: ' + SEToBusDict[sepair] + ', semag: ' + str(vmag) + ', simmag: ' + str(simvmag) + ', % diff: ' + str(vmagdiff), flush=True)
         if vanglediff > 34.0:
-            print(appName + ': OUTLIER, 13-node, vanglediff>34.0: ts: ' + str(ts) + ', sepair: ' + sepair + ', seangle: ' + str(vangle) + ', simvangle: ' + str(simvangle) + ', diff: ' + str(vanglediff), flush=True)
+            print(appName + ': OUTLIER, 13-node, vanglediff>34.0: ts: ' + str(ts) + ', sepair: ' + sepair + ', busname: ' + SEToBusDict[sepair] + ', seangle: ' + str(vangle) + ', simvangle: ' + str(simvangle) + ', diff: ' + str(vanglediff), flush=True)
     # 123-node
     elif '_C1C3E687-6FFD-C753-582B-632A27E28507' in simReq:
         if vmagdiff > 3.0:
-            print(appName + ': OUTLIER, 123-node, vmagdiff>3.0%: ts: ' + str(ts) + ', sepair: ' + sepair + ', semag: ' + str(vmag) + ', simmag: ' + str(simvmag) + ', % diff: ' + str(vmagdiff), flush=True)
+            print(appName + ': OUTLIER, 123-node, vmagdiff>3.0%: ts: ' + str(ts) + ', sepair: ' + sepair + ', busname: ' + SEToBusDict[sepair] + ', semag: ' + str(vmag) + ', simmag: ' + str(simvmag) + ', % diff: ' + str(vmagdiff), flush=True)
         if vmagdiff < -2.0:
-            print(appName + ': OUTLIER, 123-node, vmagdiff<-2.0%: ts: ' + str(ts) + ', sepair: ' + sepair + ', semag: ' + str(vmag) + ', simmag: ' + str(simvmag) + ', % diff: ' + str(vmagdiff), flush=True)
+            print(appName + ': OUTLIER, 123-node, vmagdiff<-2.0%: ts: ' + str(ts) + ', sepair: ' + sepair + ', busname: ' + SEToBusDict[sepair] + ', semag: ' + str(vmag) + ', simmag: ' + str(simvmag) + ', % diff: ' + str(vmagdiff), flush=True)
         if vanglediff < -100.0:
-            print(appName + ': OUTLIER, 123-node, vanglediff<-100.0: ts: ' + str(ts) + ', sepair: ' + sepair + ', seangle: ' + str(vangle) + ', simvangle: ' + str(simvangle) + ', diff: ' + str(vanglediff), flush=True)
+            print(appName + ': OUTLIER, 123-node, vanglediff<-100.0: ts: ' + str(ts) + ', sepair: ' + sepair + ', busname: ' + SEToBusDict[sepair] + ', seangle: ' + str(vangle) + ', simvangle: ' + str(simvangle) + ', diff: ' + str(vanglediff), flush=True)
     # 9500-node
     #elif '_AAE94E4A-2465-6F5E-37B1-3E72183A4E44' in simReq:
 
 
 def printWithoutSim(ts, sepair, vmag, vangle):
-    print(appName + ', NO SIM MATCH, ts: ' + str(ts) + ', sepair: ' + sepair + ', semag: ' + str(vmag) + ', seangle: ' + str(vangle), flush=True)
+    print(appName + ', NO SIM MATCH, ts: ' + str(ts) + ', sepair: ' + sepair + ', busname: ' + SEToBusDict[sepair] + ', semag: ' + str(vmag) + ', seangle: ' + str(vangle), flush=True)
     if '_5B816B93-7A5F-B64C-8460-47C17D6E4B0F' in simReq:
         if vmag > 4000:
-            print(appName + ': OUTLIER, 13-node, vmag>4K: ts: ' + str(ts) + ', sepair: ' + sepair + ', semag > 4K: ' + str(vmag), flush=True)
+            print(appName + ': OUTLIER, 13-node, vmag>4K: ts: ' + str(ts) + ', sepair: ' + sepair + ', busname: ' + SEToBusDict[sepair] + ', semag > 4K: ' + str(vmag), flush=True)
 
 
 def measurementConfigCallback(header, message):
@@ -419,10 +419,10 @@ def measurementNoConfigCallback(header, message):
             vangDiffDataPausedDict[sepair] = []
 
             # create a lines dictionary entry per node/phase pair for each plot
-            vmagLinesDict[sepair], = vmagAx.plot([], [], label=sepair)
-            vmagDiffLinesDict[sepair], = vmagDiffAx.plot([], [], label=sepair)
-            vangLinesDict[sepair], = vangAx.plot([], [], label=sepair)
-            vangDiffLinesDict[sepair], = vangDiffAx.plot([], [], label=sepair)
+            vmagLinesDict[sepair], = vmagAx.plot([], [], label=SEToBusDict[sepair])
+            vmagDiffLinesDict[sepair], = vmagDiffAx.plot([], [], label=SEToBusDict[sepair])
+            vangLinesDict[sepair], = vangAx.plot([], [], label=SEToBusDict[sepair])
+            vangDiffLinesDict[sepair], = vangDiffAx.plot([], [], label=SEToBusDict[sepair])
 
         # a little trick to add to the timestamp list for every measurement,
         # not for every node/phase pair
@@ -826,7 +826,10 @@ def queryBusToSE():
         cnname = cnname.upper()
         cnid = node['cnid']['value']
         busToSEDict[cnname] = cnid
-        SEToBusDict[cnid] = cnname
+        # add all possible pairs to speed lookup when printing diagnostics
+        SEToBusDict[cnid+',A'] = cnname+'.1'
+        SEToBusDict[cnid+',B'] = cnname+'.2'
+        SEToBusDict[cnid+',C'] = cnname+'.3'
     print(appName + ': start state-estimator bus to semrid query results...', flush=True)
     pprint.pprint(busToSEDict)
     print(appName + ': end state-estimator bus to semrid query results', flush=True)
