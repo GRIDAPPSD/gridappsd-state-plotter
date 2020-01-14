@@ -64,7 +64,8 @@ from matplotlib.ticker import MaxNLocator
 from matplotlib import backend_bases
 
 # global dictionaries and lists
-cnPairDict = {}
+busToSEDict = {}
+SEToBusDict = {}
 nodePhasePairDict = {}
 tsDataList = []
 tsDataPausedList = []
@@ -81,8 +82,8 @@ vangDiffDataPausedDict = {}
 vangLinesDict = {}
 vangDiffLinesDict = {}
 simDataDict = {}
-busToSimMRIDDict = {}
-SEPairToSimMRIDDict = {}
+busToSimDict = {}
+SEToSimDict = {}
 
 # global variables
 gapps = None
@@ -118,7 +119,7 @@ tsShowBtn = None
 tsShowAx = None
 
 
-def queryBusToSimMRID():
+def queryBusToSim():
     sensRequestText = '{"configurationType":"CIM Dictionary","parameters":{"simulation_id":"' + simID + '"}}';
     sensResponse = gapps.get_response('goss.gridappsd.process.request.config', sensRequestText, timeout=600)
 
@@ -139,39 +140,38 @@ def queryBusToSimMRID():
                     busname += '.2'
 
                 busup = busname.upper()
-                if busup in busToSimMRIDDict:
-                    simList = busToSimMRIDDict[busup]
+                if busup in busToSimDict:
+                    simList = busToSimDict[busup]
                     simList.append(meas['mRID'])
-                    busToSimMRIDDict[busup] = simList
+                    busToSimDict[busup] = simList
                 else:
                     simList = [meas['mRID']]
-                    busToSimMRIDDict[busup] = simList
+                    busToSimDict[busup] = simList
 
     print(appName + ': start simulation bus to simmrid query results...', flush=True)
-    pprint.pprint(busToSimMRIDDict)
+    pprint.pprint(busToSimDict)
     print(appName + ': end simulation bus to simmrid query results', flush=True)
 
 
-def mapSEPairToSimMRID():
+def mapSEToSim():
     seMatchCount = 0
 
-    for busname, simList in busToSimMRIDDict.items():
+    for busname, simList in busToSimDict.items():
         bus, phase = busname.split('.')
-        if bus in cnPairDict:
+        if bus in busToSEDict:
             seMatchCount += 1
-            semrid = cnPairDict[bus]
+            semrid = busToSEDict[bus]
             if phase == '1':
-                SEPairToSimMRIDDict[semrid+',A'] = simList
+                SEToSimDict[semrid+',A'] = simList
             elif phase == '2':
-                SEPairToSimMRIDDict[semrid+',B'] = simList
+                SEToSimDict[semrid+',B'] = simList
             elif phase == '3':
-                SEPairToSimMRIDDict[semrid+',C'] = simList
+                SEToSimDict[semrid+',C'] = simList
     print(appName + ': start state-estimator to simulation mrid mapping...', flush=True)
-    pprint.pprint(SEPairToSimMRIDDict)
+    pprint.pprint(SEToSimDict)
     print(appName + ': end state-estimator to simulation mrid mapping', flush=True)
 
-    simMRIDCount = len(busToSimMRIDDict)
-    print(appName + ': ' + str(seMatchCount) + ' state-estimator node,phase pair matches out of ' + str(simMRIDCount) + ' total simulation mrids', flush=True)
+    print(appName + ': ' + str(seMatchCount) + ' state-estimator node,phase pair matches out of ' + str(len(busToSimDict)) + ' total simulation mrids', flush=True)
 
 
 def printWithSim(ts, sepair, vmag, simvmag, vmagdiff, vangle, simvangle, vanglediff):
@@ -289,8 +289,8 @@ def measurementConfigCallback(header, message):
                 vmagDataPausedDict[sepair].append(vmag)
                 vangDataPausedDict[sepair].append(vangle)
                 if simDataTS is not None:
-                    if sepair in SEPairToSimMRIDDict:
-                        for simmrid in SEPairToSimMRIDDict[sepair]:
+                    if sepair in SEToSimDict:
+                        for simmrid in SEToSimDict[sepair]:
                             if simmrid in simDataTS:
                                 simmeas = simDataTS[simmrid]
                                 if 'magnitude' in simmeas:
@@ -314,8 +314,8 @@ def measurementConfigCallback(header, message):
                 vmagDataDict[sepair].append(vmag)
                 vangDataDict[sepair].append(vangle)
                 if simDataTS is not None:
-                    if sepair in SEPairToSimMRIDDict:
-                        for simmrid in SEPairToSimMRIDDict[sepair]:
+                    if sepair in SEToSimDict:
+                        for simmrid in SEToSimDict[sepair]:
                             if simmrid in simDataTS:
                                 simmeas = simDataTS[simmrid]
                                 if 'magnitude' in simmeas:
@@ -445,8 +445,8 @@ def measurementNoConfigCallback(header, message):
             vmagDataPausedDict[sepair].append(vmag)
             vangDataPausedDict[sepair].append(vangle)
             if simDataTS is not None:
-                if sepair in SEPairToSimMRIDDict:
-                    for simmrid in SEPairToSimMRIDDict[sepair]:
+                if sepair in SEToSimDict:
+                    for simmrid in SEToSimDict[sepair]:
                         if simmrid in simDataTS:
                             simmeas = simDataTS[simmrid]
                             if 'magnitude' in simmeas:
@@ -470,8 +470,8 @@ def measurementNoConfigCallback(header, message):
             vmagDataDict[sepair].append(vmag)
             vangDataDict[sepair].append(vangle)
             if simDataTS is not None:
-                if sepair in SEPairToSimMRIDDict:
-                    for simmrid in SEPairToSimMRIDDict[sepair]:
+                if sepair in SEToSimDict:
+                    for simmrid in SEToSimDict[sepair]:
                         if simmrid in simDataTS:
                             simmeas = simDataTS[simmrid]
                             if 'magnitude' in simmeas:
@@ -791,7 +791,7 @@ def showCallback(event):
     plotData(None)
 
 
-def queryConnectivityPairs():
+def queryBusToSE():
     # extract the model ID from JSON argument
     modelDict = json.loads(simReq)
     model_mrid = modelDict['power_system_config']['Line_name']
@@ -823,10 +823,12 @@ def queryConnectivityPairs():
 
     for node in results:
         cnname = node['cnname']['value']
+        cnname = cnname.upper()
         cnid = node['cnid']['value']
-        cnPairDict[cnname.upper()] = cnid
+        busToSEDict[cnname] = cnid
+        SEToBusDict[cnid] = cnname
     print(appName + ': start state-estimator bus to semrid query results...', flush=True)
-    pprint.pprint(cnPairDict)
+    pprint.pprint(busToSEDict)
     print(appName + ': end state-estimator bus to semrid query results', flush=True)
 
 
@@ -844,8 +846,8 @@ def connectivityPairsToPlot():
                  
                 bus, phase = line.split(',')
                 bus = node.upper()
-                if bus in cnPairDict:
-                    nodePhasePairDict[cnPairDict[bus] + ',' + phase] = line
+                if bus in busToSEDict:
+                    nodePhasePairDict[busToSEDict[bus] + ',' + phase] = line
     except:
         print(appName + ': Node/Phase pair configuration file state-plotter-config.csv does not exist.\n', flush=True)
         exit()
@@ -1013,13 +1015,13 @@ def _main():
     gapps = GridAPPSD()
 
     # query to get connectivity node,phase pairs
-    queryConnectivityPairs()
+    queryBusToSE()
 
     # query to get bus to sensor mrid mapping
-    queryBusToSimMRID()
+    queryBusToSim()
 
     # finally, create map between state-estimator and simulation output
-    mapSEPairToSimMRID()
+    mapSEToSim()
 
     # matplotlib setup done before receiving any messages that reference it
     initPlot(plotConfigFlag, plotLegendFlag)
