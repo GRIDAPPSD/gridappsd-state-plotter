@@ -108,8 +108,8 @@ playIcon = None
 pauseIcon = None
 checkedIcon = None
 uncheckedIcon = None
-tsZoomSldr = None
-tsPanSldr = None
+vmagTSZoomSldr = None
+vmagTSPanSldr = None
 vmagPauseAx = None
 vmagSEAx = None
 vmagSEZoomSldr = None
@@ -118,6 +118,8 @@ vmagSimAx = None
 vmagDiffAx = None
 vmagDiffZoomSldr = None
 vmagDiffPanSldr = None
+vangTSZoomSldr = None
+vangTSPanSldr = None
 vangSEAx = None
 vangSEZoomSldr = None
 vangSEPanSldr = None
@@ -252,11 +254,16 @@ def measurementConfigCallback(header, message):
         # // is integer floor division operator
         default = upper // 2;
         #print('setting slider upper limit: ' + str(upper) + ', default value: ' + str(default) + ', matchCount: ' + str(matchCount), flush=True)
-        tsZoomSldr.valmin = 1
-        tsZoomSldr.valmax = upper
-        tsZoomSldr.val = default
-        tsZoomSldr.ax.set_xlim(tsZoomSldr.valmin, tsZoomSldr.valmax)
-        tsZoomSldr.set_val(tsZoomSldr.val)
+        vmagTSZoomSldr.valmin = 1
+        vmagTSZoomSldr.valmax = upper
+        vmagTSZoomSldr.val = default
+        vmagTSZoomSldr.ax.set_xlim(vmagTSZoomSldr.valmin, vmagTSZoomSldr.valmax)
+        vmagTSZoomSldr.set_val(vmagTSZoomSldr.val)
+        vangTSZoomSldr.valmin = 1
+        vangTSZoomSldr.valmax = upper
+        vangTSZoomSldr.val = default
+        vangTSZoomSldr.ax.set_xlim(vangTSZoomSldr.valmin, vangTSZoomSldr.valmax)
+        vangTSZoomSldr.set_val(vangTSZoomSldr.val)
 
         # save first timestamp so what we plot is an offset from this
         tsInit = ts
@@ -419,11 +426,16 @@ def measurementNoConfigCallback(header, message):
         # // is integer floor division operator
         default = upper // 2;
         #print('setting slider upper limit: ' + str(upper) + ', default value: ' + str(default) + ', matchCount: ' + str(matchCount), flush=True)
-        tsZoomSldr.valmin = 1
-        tsZoomSldr.valmax = upper
-        tsZoomSldr.val = default
-        tsZoomSldr.ax.set_xlim(tsZoomSldr.valmin, tsZoomSldr.valmax)
-        tsZoomSldr.set_val(tsZoomSldr.val)
+        vmagTSZoomSldr.valmin = 1
+        vmagTSZoomSldr.valmax = upper
+        vmagTSZoomSldr.val = default
+        vmagTSZoomSldr.ax.set_xlim(vmagTSZoomSldr.valmin, vmagTSZoomSldr.valmax)
+        vmagTSZoomSldr.set_val(vmagTSZoomSldr.val)
+        vangTSZoomSldr.valmin = 1
+        vangTSZoomSldr.valmax = upper
+        vangTSZoomSldr.val = default
+        vangTSZoomSldr.ax.set_xlim(vangTSZoomSldr.valmin, vangTSZoomSldr.valmax)
+        vangTSZoomSldr.set_val(vangTSZoomSldr.val)
 
     # simulation data processing setup
     # to account for state estimator work queue draining design, iterate over
@@ -716,78 +728,77 @@ def plotData(event):
         #print(appName + ': vangDiffYmin: ' + str(vangDiffYmin) + ', vangDiffYmax: ' + str(vangDiffYmax), flush=True)
 
     else:
-        tsZoom = int(tsZoomSldr.val)
-        time = int(tsPanSldr.val)
-        if time == 100:
+        vmagTSZoom = int(vmagTSZoomSldr.val)
+        vmagTime = int(vmagTSPanSldr.val)
+        if vmagTime == 100:
             # this fills data from the right
             vmagXmax = vmagTSDataList[-1]
-            vmagXmin = vmagXmax - tsZoom
+            vmagXmin = vmagXmax - vmagTSZoom
 
             # uncomment this code if filling from the left is preferred
             #if vmagXmin < 0:
             #    vmagXmin = 0
-            #    vmagXmax = tsZoom
-        elif time == 0:
+            #    vmagXmax = vmagTSZoom
+        elif vmagTime == 0:
             vmagXmin = 0
-            vmagXmax = tsZoom
+            vmagXmax = vmagTSZoom
         else:
-            vmagMid = int(vmagTSDataList[-1]*time/100.0)
-            vmagXmin = int(vmagMid - tsZoom/2.0)
-            vmagXmax = vmagXmin + tsZoom
+            vmagMid = int(vmagTSDataList[-1]*vmagTime/100.0)
+            vmagXmin = int(vmagMid - vmagTSZoom/2.0)
+            vmagXmax = vmagXmin + vmagTSZoom
             # this fills data from the right
             if vmagXmax > vmagTSDataList[-1]:
                 vmagXmax = vmagTSDataList[-1]
-                vmagXmin = vmagXmax - tsZoom
+                vmagXmin = vmagXmax - vmagTSZoom
             elif vmagXmin < 0:
                 vmagXmin = 0
-                vmagXmax = tsZoom
+                vmagXmax = vmagTSZoom
             # if filling from the left is preferred uncomment the lines
             # below and comment out the block if/elif block above
             #if vmagXmin < 0:
             #    vmagXmax = vmagTSDataList[-1]
-            #    vmagXmin = vmagXmax - tsZoom
+            #    vmagXmin = vmagXmax - vmagTSZoom
             #elif vmagXmax > vmagTSDataList[-1]:
             #    vmagXmin = 0
-            #    vmagXmax = tsZoom
+            #    vmagXmax = vmagTSZoom
 
         vmagSEAx.set_xlim(vmagXmin, vmagXmax)
         print(appName + ': vmagXmin: ' + str(vmagXmin), flush=True)
         print(appName + ': vmagXmax: ' + str(vmagXmax), flush=True)
 
-        # TODO switch to the zoom/pan sliders specific to the angle plots
-        tsZoom = int(tsZoomSldr.val)
-        time = int(tsPanSldr.val)
-        if time == 100:
+        vangTSZoom = int(vangTSZoomSldr.val)
+        vangTime = int(vangTSPanSldr.val)
+        if vangTime == 100:
             # this fills data from the right
             vangXmax = vangTSDataList[-1]
-            vangXmin = vangXmax - tsZoom
+            vangXmin = vangXmax - vangTSZoom
 
             # uncomment this code if filling from the left is preferred
             #if vangXmin < 0:
             #    vangXmin = 0
-            #    vangXmax = tsZoom
-        elif time == 0:
+            #    vangXmax = vangTSZoom
+        elif vangTime == 0:
             vangXmin = 0
-            vangXmax = tsZoom
+            vangXmax = vangTSZoom
         else:
-            vangMid = int(vangTSDataList[-1]*time/100.0)
-            vangXmin = int(vangMid - tsZoom/2.0)
-            vangXmax = vangXmin + tsZoom
+            vangMid = int(vangTSDataList[-1]*vangTime/100.0)
+            vangXmin = int(vangMid - vangTSZoom/2.0)
+            vangXmax = vangXmin + vangTSZoom
             # this fills data from the right
             if vangXmax > vangTSDataList[-1]:
                 vangXmax = vangTSDataList[-1]
-                vangXmin = vangXmax - tsZoom
+                vangXmin = vangXmax - vangTSZoom
             elif vangXmin < 0:
                 vangXmin = 0
-                vangXmax = tsZoom
+                vangXmax = vangTSZoom
             # if filling from the left is preferred uncomment the lines
             # below and comment out the block if/elif block above
             #if vangXmin < 0:
             #    vangXmax = vangTSDataList[-1]
-            #    vangXmin = vangXmax - tsZoom
+            #    vangXmin = vangXmax - vangTSZoom
             #elif vangXmax > vangTSDataList[-1]:
             #    vangXmin = 0
-            #    vangXmax = tsZoom
+            #    vangXmax = vangTSZoom
 
         vangSEAx.set_xlim(vangXmin, vangXmax)
         print(appName + ': vangXmin: ' + str(vangXmin), flush=True)
@@ -1097,11 +1108,12 @@ def connectivityPairsToPlot():
 
 def initPlot(configFlag, legendFlag):
     # plot attributes needed by plotData function
-    global tsZoomSldr, tsPanSldr
+    global vmagTSZoomSldr, vmagTSPanSldr
     global vmagSEAx, vmagSEZoomSldr, vmagSEPanSldr
     global vmagSimAx, vmagSimZoomSldr, vmagSimPanSldr
     global vmagDiffAx, vmagDiffZoomSldr, vmagDiffPanSldr
     global vmagPauseBtn, vmagPauseAx, pauseIcon, playIcon
+    global vangTSZoomSldr, vangTSPanSldr
     global vangSEAx, vangSEZoomSldr, vangSEPanSldr
     global vangSimAx, vangSimZoomSldr, vangSimPanSldr
     global vangDiffAx, vangDiffZoomSldr, vangDiffPanSldr
@@ -1149,6 +1161,20 @@ def initPlot(configFlag, legendFlag):
     playIcon = plt.imread('icons/playbtn.png')
     vmagPauseBtn = Button(vmagPauseAx, '', image=pauseIcon, color='1.0')
     vmagPauseBtn.on_clicked(vmagPauseCallback)
+
+    # timestamp slice zoom slider
+    vmagTSZoomAx = plt.axes([0.32, 0.01, 0.1, 0.02])
+    # note this slider has the label for the show all button as well as the
+    # slider that's because the show all button uses a checkbox image and you
+    # can't use both an image and a label with a button so this is a clever way
+    # to get that behavior since matplotlib doesn't have a simple label widget
+    vmagTSZoomSldr = Slider(vmagTSZoomAx, 'show all              zoom', 0, 1, valfmt='%d', valstep=1.0)
+    vmagTSZoomSldr.on_changed(plotData)
+
+    # timestamp slice pan slider
+    vmagTSPanAx = plt.axes([0.63, 0.01, 0.1, 0.02])
+    vmagTSPanSldr = Slider(vmagTSPanAx, 'pan', 0, 100, valinit=100, valfmt='%d', valstep=1.0)
+    vmagTSPanSldr.on_changed(plotData)
 
     # state-estimator voltage magnitude slice zoom and pan sliders
     vmagSEZoomAx = plt.axes([0.97, 0.87, 0.012, 0.09])
@@ -1207,13 +1233,13 @@ def initPlot(configFlag, legendFlag):
     vangPauseBtn.on_clicked(vangPauseCallback)
 
     # timestamp slice zoom slider
-    tsZoomAx = plt.axes([0.32, 0.01, 0.1, 0.02])
+    vangTSZoomAx = plt.axes([0.32, 0.01, 0.1, 0.02])
     # note this slider has the label for the show all button as well as the
     # slider that's because the show all button uses a checkbox image and you
     # can't use both an image and a label with a button so this is a clever way
     # to get that behavior since matplotlib doesn't have a simple label widget
-    tsZoomSldr = Slider(tsZoomAx, 'show all              zoom', 0, 1, valfmt='%d', valstep=1.0)
-    tsZoomSldr.on_changed(plotData)
+    vangTSZoomSldr = Slider(vangTSZoomAx, 'show all              zoom', 0, 1, valfmt='%d', valstep=1.0)
+    vangTSZoomSldr.on_changed(plotData)
 
     # show all button that's embedded in the middle of the slider above
     tsShowAx = plt.axes([0.14, 0.01, 0.02, 0.02])
@@ -1223,9 +1249,9 @@ def initPlot(configFlag, legendFlag):
     tsShowBtn.on_clicked(showCallback)
 
     # timestamp slice pan slider
-    tsPanAx = plt.axes([0.63, 0.01, 0.1, 0.02])
-    tsPanSldr = Slider(tsPanAx, 'pan', 0, 100, valinit=100, valfmt='%d', valstep=1.0)
-    tsPanSldr.on_changed(plotData)
+    vangTSPanAx = plt.axes([0.63, 0.01, 0.1, 0.02])
+    vangTSPanSldr = Slider(vangTSPanAx, 'pan', 0, 100, valinit=100, valfmt='%d', valstep=1.0)
+    vangTSPanSldr.on_changed(plotData)
 
     # state-estimator voltage angle slice zoom and pan sliders
     vangSEZoomAx = plt.axes([0.97, 0.87, 0.012, 0.09])
