@@ -66,11 +66,13 @@ from matplotlib import backend_bases
 # global dictionaries and lists
 busToSEDict = {}
 SEToBusDict = {}
-nodePhasePairDict = {}
+plotPairDict = {}
+busToSimDict = {}
+SEToSimDict = {}
+simDataDict = {}
+
 vmagTSDataList = []
-vangTSDataList = []
 vmagTSDataPausedList = []
-vangTSDataPausedList = []
 vmagSEDataDict = {}
 vmagSEDataPausedDict = {}
 vmagSimDataDict = {}
@@ -80,6 +82,9 @@ vmagDiffDataPausedDict = {}
 vmagSELinesDict = {}
 vmagSimLinesDict = {}
 vmagDiffLinesDict = {}
+
+vangTSDataList = []
+vangTSDataPausedList = []
 vangSEDataDict = {}
 vangSEDataPausedDict = {}
 vangSimDataDict = {}
@@ -89,9 +94,6 @@ vangDiffDataPausedDict = {}
 vangSELinesDict = {}
 vangSimLinesDict = {}
 vangDiffLinesDict = {}
-simDataDict = {}
-busToSimDict = {}
-SEToSimDict = {}
 
 # global variables
 gapps = None
@@ -301,15 +303,15 @@ def measurementConfigCallback(header, message):
     for item in estVolt:
         sepair = item['ConnectivityNode'] + ',' + item['phase']
 
-        if sepair in nodePhasePairDict:
+        if sepair in plotPairDict:
             matchCount += 1
             sevmag = item['v']
             sevang = item['angle']
 
-            #print(appName + ': node,phase pair: ' + sepair, flush=True)
-            #print(appName + ': timestamp: ' + str(ts), flush=True)
-            #print(appName + ': sevmag: ' + str(sevmag), flush=True)
-            #print(appName + ': sevang: ' + str(sevang) + '\n', flush=True)
+            print(appName + ': node,phase pair: ' + sepair, flush=True)
+            print(appName + ': timestamp: ' + str(ts), flush=True)
+            print(appName + ': sevmag: ' + str(sevmag), flush=True)
+            print(appName + ': sevang: ' + str(sevang) + '\n', flush=True)
 
             # a little trick to add to the timestamp list for every measurement,
             # not for every node/phase pair match, but only add when a match
@@ -337,7 +339,7 @@ def measurementConfigCallback(header, message):
                                 simvmag = simmeas['magnitude']
                                 vmagSimDataPausedDict[sepair].append(simvmag)
                                 if simvmag != 0.0:
-                                    vmagdiff = 100.0*(vmag - simvmag)/simvmag
+                                    vmagdiff = 100.0*(sevmag - simvmag)/simvmag
                                 else:
                                     vmagdiff = 0.0
                                 vmagDiffDataPausedDict[sepair].append(vmagdiff)
@@ -357,7 +359,7 @@ def measurementConfigCallback(header, message):
                                 simvmag = simmeas['magnitude']
                                 vmagSimDataDict[sepair].append(simvmag)
                                 if simvmag != 0.0:
-                                    vmagdiff = 100.0*(vmag - simvmag)/simvmag
+                                    vmagdiff = 100.0*(sevmag - simvmag)/simvmag
                                 else:
                                     vmagdiff = 0.0
                                 vmagDiffDataDict[sepair].append(vmagdiff)
@@ -376,7 +378,7 @@ def measurementConfigCallback(header, message):
                             if 'angle' in simmeas:
                                 simvang = simmeas['angle']
                                 vangSimDataPausedDict[sepair].append(simvang)
-                                vangdiff = vang - simvang
+                                vangdiff = sevang - simvang
                                 vangDiffDataPausedDict[sepair].append(vangdiff)
                                 vangPrintWithSim(ts, sepair, sevang, simvang, vangdiff)
                                 break
@@ -400,7 +402,7 @@ def measurementConfigCallback(header, message):
 
             # no reason to keep checking more pairs if we've found all we
             # are looking for
-            if matchCount == len(nodePhasePairDict):
+            if matchCount == len(plotPairDict):
                 break
 
     print(appName + ': ' + str(sepairCount) + ' state-estimator measurements, ' + str(matchCount) + ' configuration file node,phase pair matches, ' + str(diffMatchCount) + ' matches to simulation data', flush=True)
@@ -1120,30 +1122,7 @@ def queryBusToSE():
     print(appName + ': end state-estimator bus to semrid query results', flush=True)
 
 
-def connectivityPairsToPlot():
-    # match connectivity node,phase pairs with the config file for determining
-    # what data to plot
-    try:
-        with open('../state-plotter-config.csv') as pairfile:
-            for line in pairfile:
-                # strip all whitespace from line whether at beginning, middle, or end
-                line = ''.join(line.split())
-                # skip empty and commented out lines
-                if line=='' or line.startswith('#'):
-                    next
-                 
-                bus, phase = line.split(',')
-                bus = node.upper()
-                if bus in busToSEDict:
-                    nodePhasePairDict[busToSEDict[bus] + ',' + phase] = line
-    except:
-        print(appName + ': Node/Phase pair configuration file state-plotter-config.csv does not exist.\n', flush=True)
-        exit()
-
-    #print(appName + ': ' + str(nodePhasePairDict), flush=True)
-
-
-def initPlot(configFlag, legendFlag):
+def initPlot(configFlag, legendFlag, overlayFlag):
     global vmagTSZoomSldr, vmagTSPanSldr
     global vmagSEAx, vmagSEZoomSldr, vmagSEPanSldr
     global vmagSimAx, vmagSimZoomSldr, vmagSimPanSldr
@@ -1189,7 +1168,10 @@ def initPlot(configFlag, legendFlag):
     vmagDiffAx = vmagFig.add_subplot(313, sharex=vmagSEAx)
     vmagDiffAx.grid()
     plt.xlabel('Time (s)')
-    plt.ylabel('Volt. Magnitude % Diff.')
+    if overlayFlag:
+        plt.ylabel('Actual & Est. Magnitude')
+    else:
+        plt.ylabel('Volt. Magnitude % Diff.')
 
     # pause/play button
     vmagPauseAx = plt.axes([0.01, 0.01, 0.03, 0.03])
@@ -1268,7 +1250,10 @@ def initPlot(configFlag, legendFlag):
     vangDiffAx = vangFig.add_subplot(313, sharex=vangSEAx)
     vangDiffAx.grid()
     plt.xlabel('Time (s)')
-    plt.ylabel('Voltage Angle Diff.')
+    if overlayFlag:
+        plt.ylabel('Actual & Est. Angle')
+    else:
+        plt.ylabel('Voltage Angle Diff.')
 
     # pause/play button
     vangPauseAx = plt.axes([0.01, 0.01, 0.03, 0.03])
@@ -1321,31 +1306,58 @@ def initPlot(configFlag, legendFlag):
     vangDiffPanSldr = Slider(vangDiffPanAx, 'pan', 0, 100, valinit=50, valfmt='%d', valstep=1.0, orientation='vertical')
     vangDiffPanSldr.on_changed(vangPlotData)
 
-    if configFlag:
-        for pair in nodePhasePairDict:
-            # create empty lists for the per pair data for each plot so we can
-            # just do append calls when data to plot arrives
-            vmagSEDataDict[pair] = []
-            vmagSEDataPausedDict[pair] = []
-            vangSEDataDict[pair] = []
-            vangSEDataPausedDict[pair] = []
-            vmagDiffDataDict[pair] = []
-            vmagDiffDataPausedDict[pair] = []
-            vangDiffDataDict[pair] = []
-            vangDiffDataPausedDict[pair] = []
-            # create a lines dictionary entry per node/phase pair for each plot
-            vmagSELinesDict[pair], = vmagSEAx.plot([], [], label=nodePhasePairDict[pair])
-            vmagSELinesSimDict[pair], = vmagSimAx.plot([], [], label=nodePhasePairDict[pair])
-            vmagSELinesDiffDict[pair], = vmagDiffAx.plot([], [], label=nodePhasePairDict[pair])
-            vangSELinesDict[pair], = vangSEAx.plot([], [], label=nodePhasePairDict[pair])
-            vangDiffLinesDict[pair], = vangDiffAx.plot([], [], label=nodePhasePairDict[pair])
 
-        # need to wait on creating legend after other initialization until the
-        #lines are defined
-        if legendFlag or len(nodePhasePairDict)<=10:
-            cols = math.ceil(len(nodePhasePairDict)/12)
-            vmagSEAx.legend(ncol=cols)
-            vangSEAx.legend(ncol=cols)
+def configPlot(legendFlag):
+    # match connectivity node,phase pairs with the config file for determining
+    # what data to plot
+    try:
+        with open('../state-plotter-config.csv') as pairfile:
+            for line in pairfile:
+                # strip all whitespace from line whether at beginning, middle, or end
+                line = ''.join(line.split())
+                # skip empty and commented out lines
+                if line=='' or line.startswith('#'):
+                    next
+
+                line = line.upper()
+                bus, phase = line.split(',')
+                if bus in busToSEDict:
+                    plotPairDict[busToSEDict[bus] + ',' + phase] = line
+        #print(appName + ': ' + str(plotPairDict), flush=True)
+    except:
+        print(appName + ': ERROR: node/phase pair configuration file state-plotter-config.csv does not exist.\n', flush=True)
+        exit()
+
+    for pair in plotPairDict:
+        # create empty lists for the per pair data for each plot so we can
+        # just do append calls when data to plot arrives
+        vmagSEDataDict[pair] = []
+        vmagSEDataPausedDict[pair] = []
+        vmagSimDataDict[pair] = []
+        vmagSimDataPausedDict[pair] = []
+        vmagDiffDataDict[pair] = []
+        vmagDiffDataPausedDict[pair] = []
+        vangSEDataDict[pair] = []
+        vangSEDataPausedDict[pair] = []
+        vangSimDataDict[pair] = []
+        vangSimDataPausedDict[pair] = []
+        vangDiffDataDict[pair] = []
+        vangDiffDataPausedDict[pair] = []
+
+        # create a lines dictionary entry per node/phase pair for each plot
+        vmagSELinesDict[pair], = vmagSEAx.plot([], [], label=plotPairDict[pair])
+        vmagSimLinesDict[pair], = vmagSimAx.plot([], [], label=plotPairDict[pair])
+        vmagDiffLinesDict[pair], = vmagDiffAx.plot([], [], label=plotPairDict[pair])
+        vangSELinesDict[pair], = vangSEAx.plot([], [], label=plotPairDict[pair])
+        vangSimLinesDict[pair], = vangSimAx.plot([], [], label=plotPairDict[pair])
+        vangDiffLinesDict[pair], = vangDiffAx.plot([], [], label=plotPairDict[pair])
+
+    # need to wait on creating legend after other initialization until the
+    # lines are defined
+    if legendFlag or len(plotPairDict)<=10:
+        cols = math.ceil(len(plotPairDict)/12)
+        vmagSEAx.legend(ncol=cols)
+        vangSEAx.legend(ncol=cols)
 
 
 def _main():
@@ -1357,11 +1369,14 @@ def _main():
 
     plotConfigFlag = True
     plotLegendFlag = False
+    plotOverlayFlag = False
     for arg in sys.argv:
         if arg == '-legend':
             plotLegendFlag = True
         elif arg == '-all':
             plotConfigFlag = False
+        elif arg == '-overlay':
+            plotOverlayFlag = True
         elif arg[0]=='-' and arg[1:].isdigit():
             plotConfigFlag = False
             plotNumber = int(arg[1:])
@@ -1377,11 +1392,12 @@ def _main():
     mapSEToSim()
 
     # matplotlib setup done before receiving any messages that reference it
-    initPlot(plotConfigFlag, plotLegendFlag)
+    initPlot(plotConfigFlag, plotLegendFlag, plotOverlayFlag)
 
     if plotConfigFlag:
-        # Determine what to plot based on the state-plotter-config file
-        connectivityPairsToPlot()
+        # determine what to plot based on the state-plotter-config file
+        # and finish plot initialization
+        configPlot(plotLegendFlag)
 
         # subscribe to state-estimator measurement output--with config file
         gapps.subscribe('/topic/goss.gridappsd.state-estimator.out.' +
