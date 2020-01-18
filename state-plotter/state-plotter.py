@@ -1307,26 +1307,49 @@ def initPlot(configFlag, legendFlag, overlayFlag):
     vangDiffPanSldr.on_changed(vangPlotData)
 
 
-def configPlot(legendFlag):
-    # match connectivity node,phase pairs with the config file for determining
-    # what data to plot
-    try:
-        with open('../state-plotter-config.csv') as pairfile:
-            for line in pairfile:
-                # strip all whitespace from line whether at beginning, middle, or end
-                line = ''.join(line.split())
-                # skip empty and commented out lines
-                if line=='' or line.startswith('#'):
-                    next
-
-                line = line.upper()
-                bus, phase = line.split(',')
+def configPlot(busList, legendFlag):
+    if len(busList) > 0:
+        for buspair in busList:
+            buspair = buspair.upper()
+            if ',' in buspair:
+                bus, phase = buspair.split(',')
                 if bus in busToSEDict:
-                    plotPairDict[busToSEDict[bus] + ',' + phase] = line
-        #print(appName + ': ' + str(plotPairDict), flush=True)
-    except:
-        print(appName + ': ERROR: node/phase pair configuration file state-plotter-config.csv does not exist.\n', flush=True)
-        exit()
+                    plotPairDict[busToSEDict[bus] + ',' + phase] = buspair
+            else:
+                if buspair+'.1' in busToSimDict:
+                    plotPairDict[busToSEDict[buspair]+',A'] = buspair+',A'
+                if buspair+'.2' in busToSimDict:
+                    plotPairDict[busToSEDict[buspair]+',B'] = buspair+',B'
+                if buspair+'.3' in busToSimDict:
+                    plotPairDict[busToSEDict[buspair]+',C'] = buspair+',C'
+    else:
+        # match connectivity node,phase pairs with the config file for determining
+        # what data to plot
+        try:
+            with open('../state-plotter-config.csv') as pairfile:
+                for buspair in pairfile:
+                    # strip all whitespace from line whether at beginning, middle, or end
+                    buspair = ''.join(buspair.split())
+                    # skip empty and commented out lines
+                    if buspair=='' or buspair.startswith('#'):
+                        next
+
+                    buspair = buspair.upper()
+                    if ',' in buspair:
+                        bus, phase = buspair.split(',')
+                        if bus in busToSEDict:
+                            plotPairDict[busToSEDict[bus] + ',' + phase] = buspair
+                    else:
+                        if buspair+'.1' in busToSimDict:
+                            plotPairDict[busToSEDict[buspair]+',A'] = buspair+',A'
+                        if buspair+'.2' in busToSimDict:
+                            plotPairDict[busToSEDict[buspair]+',B'] = buspair+',B'
+                        if buspair+'.3' in busToSimDict:
+                            plotPairDict[busToSEDict[buspair]+',C'] = buspair+',C'
+            #print(appName + ': ' + str(plotPairDict), flush=True)
+        except:
+            print(appName + ': ERROR: node/phase pair configuration file state-plotter-config.csv does not exist.\n', flush=True)
+            exit()
 
     for pair in plotPairDict:
         # create empty lists for the per pair data for each plot so we can
@@ -1370,16 +1393,24 @@ def _main():
     plotConfigFlag = True
     plotLegendFlag = False
     plotOverlayFlag = False
+    plotBusFlag = False
+    plotBusList = []
     for arg in sys.argv:
-        if arg == '-legend':
+        if plotBusFlag:
+            plotBusList.append(arg)
+            plotBusFlag = False
+        elif arg == '-legend':
             plotLegendFlag = True
         elif arg == '-all':
             plotConfigFlag = False
-        elif arg == '-overlay':
+        elif arg.startswith('-over'):
             plotOverlayFlag = True
         elif arg[0]=='-' and arg[1:].isdigit():
             plotConfigFlag = False
             plotNumber = int(arg[1:])
+        elif arg == '-bus':
+            plotBusFlag = True
+
     gapps = GridAPPSD()
 
     # query to get connectivity node,phase pairs
@@ -1394,10 +1425,10 @@ def _main():
     # matplotlib setup done before receiving any messages that reference it
     initPlot(plotConfigFlag, plotLegendFlag, plotOverlayFlag)
 
-    if plotConfigFlag:
+    if plotConfigFlag or len(plotBusList)>0:
         # determine what to plot based on the state-plotter-config file
         # and finish plot initialization
-        configPlot(plotLegendFlag)
+        configPlot(plotBusList, plotLegendFlag)
 
         # subscribe to state-estimator measurement output--with config file
         gapps.subscribe('/topic/goss.gridappsd.state-estimator.out.' +
