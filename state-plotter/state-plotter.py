@@ -1451,9 +1451,11 @@ def configPlot(busList, overlayFlag, legendFlag):
 
         if overlayFlag:
             vmagDiffLinesDict[pair+' Actual'], = vmagDiffAx.plot([], [], label=plotPairDict[pair]+' Actual')
-            vmagDiffLinesDict[pair+' Est.'], = vmagDiffAx.plot([], [], label=plotPairDict[pair]+' Est.')
+            color = vmagDiffLinesDict[pair+' Actual'].get_color()
+            vmagDiffLinesDict[pair+' Est.'], = vmagDiffAx.plot([], [], label=plotPairDict[pair]+' Est.', linestyle='--', color=color)
             vangDiffLinesDict[pair+' Actual'], = vangDiffAx.plot([], [], label=plotPairDict[pair]+' Actual')
-            vangDiffLinesDict[pair+' Est.'], = vangDiffAx.plot([], [], label=plotPairDict[pair]+' Est.')
+            color = vangDiffLinesDict[pair+' Actual'].get_color()
+            vangDiffLinesDict[pair+' Est.'], = vangDiffAx.plot([], [], label=plotPairDict[pair]+' Est.', linestyle='--', color=color)
         else:
             vmagDiffLinesDict[pair], = vmagDiffAx.plot([], [], label=plotPairDict[pair])
             vangDiffLinesDict[pair], = vangDiffAx.plot([], [], label=plotPairDict[pair])
