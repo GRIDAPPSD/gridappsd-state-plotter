@@ -629,19 +629,28 @@ def simulationOutputCallback(header, message):
 
 
 def yAxisLimits(yMin, yMax, zoomVal, panVal):
+    #print(appName + ': starting yMin: ' + str(yMin), flush=True)
+    #print(appName + ': starting yMax: ' + str(yMax), flush=True)
+
     # check for yMin > yMax, which indicates there was no data to drive the
     # min/max determination
     if yMin > yMax:
         print(appName + ': WARNING: y-axis minimum and maximum values were not set due to lack of data--defaulting to avoid Matplotlib error!\n', flush=True)
         yMin = 0.0
         yMax = 100.0
+    elif yMin!=0.0 and abs((yMax-yMin)/yMin)<0.05:
+        # scale values for near-constant data to avoid overly tight axis limits
+        yMin -= abs(yMin)*0.025
+        yMax += abs(yMax)*0.025
+
+    yDiff = yMax - yMin
 
     if zoomVal == 100:
-        height = yMax - yMin
+        height = yDiff
     else:
-        height = (yMax-yMin)*zoomVal/100.0
+        height = yDiff*zoomVal/100.0
 
-    middle = yMin + (yMax-yMin)*panVal/100.0
+    middle = yMin + yDiff*panVal/100.0
 
     newYmin = middle - height/2.0
     newYmax = newYmin + height
@@ -659,8 +668,13 @@ def yAxisLimits(yMin, yMax, zoomVal, panVal):
 
     # override auto-scaling with the calculated y-axis limits
     # apply a fixed margin to the axis limits
-    margin = height*0.03
-    return newYmin-margin, newYmax+margin
+    margin = height*0.10
+    newYmin -= margin
+    newYmax += margin
+    #print(appName + ': margin newYmin: ' + str(newYmin), flush=True)
+    #print(appName + ': margin newYmax: ' + str(newYmax) + '\n', flush=True)
+
+    return newYmin, newYmax
 
 
 def vmagPlotData(event):
@@ -676,7 +690,7 @@ def vmagPlotData(event):
         if xupper > 0:
             vmagSEAx.set_xlim(0, xupper)
 
-        vmagSEYmax = sys.float_info.min
+        vmagSEYmax = -sys.float_info.max
         vmagSEYmin = sys.float_info.max
         for pair in vmagSEDataDict:
             vmagSELinesDict[pair].set_xdata(vmagTSDataList)
@@ -685,7 +699,7 @@ def vmagPlotData(event):
             vmagSEYmax = max(vmagSEYmax, max(vmagSEDataDict[pair]))
         #print(appName + ': vmagSEYmin: ' + str(vmagSEYmin) + ', vmagSEYmax: ' + str(vmagSEYmax), flush=True)
 
-        vmagSimYmax = sys.float_info.min
+        vmagSimYmax = -sys.float_info.max
         vmagSimYmin = sys.float_info.max
         for pair in vmagSimDataDict:
             if len(vmagSimDataDict[pair]) > 0:
@@ -696,7 +710,7 @@ def vmagPlotData(event):
                 vmagSimYmax = max(vmagSimYmax, max(vmagSimDataDict[pair]))
         #print(appName + ': vmagSimYmin: ' + str(vmagSimYmin) + ', vmagSimYmax: ' + str(vmagSimYmax), flush=True)
 
-        vmagDiffYmax = sys.float_info.min
+        vmagDiffYmax = -sys.float_info.max
         vmagDiffYmin = sys.float_info.max
         if plotOverlayFlag:
             for pair in vmagSEDataDict:
@@ -792,7 +806,7 @@ def vmagPlotData(event):
         print(appName + ': vmagStartpt: ' + str(vmagStartpt), flush=True)
         print(appName + ': vmagEndpt: ' + str(vmagEndpt) + '\n', flush=True)
 
-        vmagSEYmax = sys.float_info.min
+        vmagSEYmax = -sys.float_info.max
         vmagSEYmin = sys.float_info.max
         for pair in vmagSEDataDict:
             vmagSELinesDict[pair].set_xdata(vmagTSDataList[vmagStartpt:vmagEndpt])
@@ -801,7 +815,7 @@ def vmagPlotData(event):
             vmagSEYmax = max(vmagSEYmax, max(vmagSEDataDict[pair][vmagStartpt:vmagEndpt]))
         #print(appName + ': vmagSEYmin: ' + str(vmagSEYmin) + ', vmagSEYmax: ' + str(vmagSEYmax), flush=True)
 
-        vmagSimYmax = sys.float_info.min
+        vmagSimYmax = -sys.float_info.max
         vmagSimYmin = sys.float_info.max
         for pair in vmagSimDataDict:
             if len(vmagSimDataDict[pair]) > 0:
@@ -812,7 +826,7 @@ def vmagPlotData(event):
                 vmagSimYmax = max(vmagSimYmax, max(vmagSimDataDict[pair][vmagStartpt:vmagEndpt]))
         #print(appName + ': vmagSimYmin: ' + str(vmagSimYmin) + ', vmagSimYmax: ' + str(vmagSimYmax), flush=True)
 
-        vmagDiffYmax = sys.float_info.min
+        vmagDiffYmax = -sys.float_info.max
         vmagDiffYmin = sys.float_info.max
         if plotOverlayFlag:
             for pair in vmagSEDataDict:
@@ -836,18 +850,21 @@ def vmagPlotData(event):
         #print(appName + ': vmagDiffYmin: ' + str(vmagDiffYmin) + ', vmagDiffYmax: ' + str(vmagDiffYmax), flush=True)
 
     # state-estimator voltage magnitude plot y-axis zoom and pan calculation
+    #print(appName + ': state-estimator voltage magnitude y-axis limits...', flush=True)
     newvmagSEYmin, newvmagSEYmax = yAxisLimits(vmagSEYmin, vmagSEYmax, vmagSEZoomSldr.val, vmagSEPanSldr.val)
     vmagSEAx.set_ylim(newvmagSEYmin, newvmagSEYmax)
 
     # simulation voltage magnitude plot y-axis zoom and pan calculation
     if not vmagSimDataFlag:
         print(appName + ': WARNING: no simulation voltage magnitude data to plot!\n', flush=True)
+    #print(appName + ': simulator voltage magnitude y-axis limits...', flush=True)
     newvmagSimYmin, newvmagSimYmax = yAxisLimits(vmagSimYmin, vmagSimYmax, vmagSimZoomSldr.val, vmagSimPanSldr.val)
     vmagSimAx.set_ylim(newvmagSimYmin, newvmagSimYmax)
 
     # voltage magnitude difference plot y-axis zoom and pan calculation
     if not plotOverlayFlag and not vmagDiffDataFlag:
         print(appName + ': WARNING: no voltage magnitude difference data to plot!\n', flush=True)
+    #print(appName + ': voltage magnitude difference y-axis limits...', flush=True)
     newvmagDiffYmin, newvmagDiffYmax = yAxisLimits(vmagDiffYmin, vmagDiffYmax, vmagDiffZoomSldr.val, vmagDiffPanSldr.val)
     vmagDiffAx.set_ylim(newvmagDiffYmin, newvmagDiffYmax)
 
@@ -869,7 +886,7 @@ def vangPlotData(event):
         if xupper > 0:
             vangSEAx.set_xlim(0, xupper)
 
-        vangSEYmax = sys.float_info.min
+        vangSEYmax = -sys.float_info.max
         vangSEYmin = sys.float_info.max
         for pair in vangSEDataDict:
             vangSELinesDict[pair].set_xdata(vangTSDataList)
@@ -878,7 +895,7 @@ def vangPlotData(event):
             vangSEYmax = max(vangSEYmax, max(vangSEDataDict[pair]))
         #print(appName + ': vangSEYmin: ' + str(vangSEYmin) + ', vangSEYmax: ' + str(vangSEYmax), flush=True)
 
-        vangSimYmax = sys.float_info.min
+        vangSimYmax = -sys.float_info.max
         vangSimYmin = sys.float_info.max
         for pair in vangSimDataDict:
             if len(vangSimDataDict[pair]) > 0:
@@ -889,7 +906,7 @@ def vangPlotData(event):
                 vangSimYmax = max(vangSimYmax, max(vangSimDataDict[pair]))
         #print(appName + ': vangSimYmin: ' + str(vangSimYmin) + ', vangSimYmax: ' + str(vangSimYmax), flush=True)
 
-        vangDiffYmax = sys.float_info.min
+        vangDiffYmax = -sys.float_info.max
         vangDiffYmin = sys.float_info.max
         if plotOverlayFlag:
             for pair in vangSEDataDict:
@@ -910,7 +927,7 @@ def vangPlotData(event):
                     vangDiffLinesDict[pair].set_ydata(vangDiffDataDict[pair])
                     vangDiffYmin = min(vangDiffYmin, min(vangDiffDataDict[pair]))
                     vangDiffYmax = max(vangDiffYmax, max(vangDiffDataDict[pair]))
-        #print(appName + ': vangDiffYmin: ' + str(vangDiffYmin) + ', vangDiffYmax: ' + str(vangDiffYmax), flush=True)
+        print(appName + ': vangDiffYmin: ' + str(vangDiffYmin) + ', vangDiffYmax: ' + str(vangDiffYmax), flush=True)
 
     else:
         vangTSZoom = int(vangTSZoomSldr.val)
@@ -985,7 +1002,7 @@ def vangPlotData(event):
         print(appName + ': vangStartpt: ' + str(vangStartpt), flush=True)
         print(appName + ': vangEndpt: ' + str(vangEndpt) + '\n', flush=True)
 
-        vangSEYmax = sys.float_info.min
+        vangSEYmax = -sys.float_info.max
         vangSEYmin = sys.float_info.max
         for pair in vangSEDataDict:
             vangSELinesDict[pair].set_xdata(vangTSDataList[vangStartpt:vangEndpt])
@@ -994,7 +1011,7 @@ def vangPlotData(event):
             vangSEYmax = max(vangSEYmax, max(vangSEDataDict[pair][vangStartpt:vangEndpt]))
         #print(appName + ': vangSEYmin: ' + str(vangSEYmin) + ', vangSEYmax: ' + str(vangSEYmax), flush=True)
 
-        vangSimYmax = sys.float_info.min
+        vangSimYmax = -sys.float_info.max
         vangSimYmin = sys.float_info.max
         for pair in vangSimDataDict:
             if len(vangSimDataDict[pair]) > 0:
@@ -1005,7 +1022,7 @@ def vangPlotData(event):
                 vangSimYmax = max(vangSimYmax, max(vangSimDataDict[pair][vangStartpt:vangEndpt]))
         #print(appName + ': vangSimYmin: ' + str(vangSimYmin) + ', vangSimYmax: ' + str(vangSimYmax), flush=True)
 
-        vangDiffYmax = sys.float_info.min
+        vangDiffYmax = -sys.float_info.max
         vangDiffYmin = sys.float_info.max
         if plotOverlayFlag:
             for pair in vangSEDataDict:
@@ -1026,21 +1043,24 @@ def vangPlotData(event):
                     vangDiffLinesDict[pair].set_ydata(vangDiffDataDict[pair][vangStartpt:vangEndpt])
                     vangDiffYmin = min(vangDiffYmin, min(vangDiffDataDict[pair][vangStartpt:vangEndpt]))
                     vangDiffYmax = max(vangDiffYmax, max(vangDiffDataDict[pair][vangStartpt:vangEndpt]))
-        #print(appName + ': vangDiffYmin: ' + str(vangDiffYmin) + ', vangDiffYmax: ' + str(vangDiffYmax), flush=True)
+        print(appName + ': vangDiffYmin: ' + str(vangDiffYmin) + ', vangDiffYmax: ' + str(vangDiffYmax), flush=True)
 
     # state-estimator voltage angle plot y-axis zoom and pan calculation
+    #print(appName + ': state-estimator voltage angle y-axis limits...', flush=True)
     newvangSEYmin, newvangSEYmax = yAxisLimits(vangSEYmin, vangSEYmax, vangSEZoomSldr.val, vangSEPanSldr.val)
     vangSEAx.set_ylim(newvangSEYmin, newvangSEYmax)
 
     # simulation voltage angle plot y-axis zoom and pan calculation
     if not vangSimDataFlag:
         print(appName + ': WARNING: no simulation voltage angle data to plot!\n', flush=True)
+    #print(appName + ': simulator voltage angle y-axis limits...', flush=True)
     newvangSimYmin, newvangSimYmax = yAxisLimits(vangSimYmin, vangSimYmax, vangSimZoomSldr.val, vangSimPanSldr.val)
     vangSimAx.set_ylim(newvangSimYmin, newvangSimYmax)
 
     # voltage angle difference plot y-axis zoom and pan calculation
     if not plotOverlayFlag and not vangDiffDataFlag:
         print(appName + ': WARNING: no voltage angle difference data to plot!\n', flush=True)
+    #print(appName + ': voltage angle difference y-axis limits...', flush=True)
     newvangDiffYmin, newvangDiffYmax = yAxisLimits(vangDiffYmin, vangDiffYmax, vangDiffZoomSldr.val, vangDiffPanSldr.val)
     vangDiffAx.set_ylim(newvangDiffYmin, newvangDiffYmax)
 
