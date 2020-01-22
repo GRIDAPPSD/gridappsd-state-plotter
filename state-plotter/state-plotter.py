@@ -107,6 +107,7 @@ vmagShowFlag = False
 vangShowFlag = False
 firstPassFlag = True
 plotOverlayFlag = False
+plotMatchesFlag = False
 plotNumber = 0
 playIcon = None
 pauseIcon = None
@@ -302,41 +303,40 @@ def measurementConfigCallback(header, message):
     # end simulation data processing setup
 
     for item in estVolt:
-        sepair = item['ConnectivityNode'] + ',' + item['phase']
+        # only consider phases A, B, C
+        phase = item['phase']
+        if phase!='A' and phase!='B' and phase!='C':
+            continue
+
+        sepair = item['ConnectivityNode'] + ',' + phase
 
         if sepair in plotPairDict:
-            matchCount += 1
             sevmag = item['v']
             sevang = item['angle']
 
-            print(appName + ': node,phase pair: ' + sepair, flush=True)
-            print(appName + ': timestamp: ' + str(ts), flush=True)
-            print(appName + ': sevmag: ' + str(sevmag), flush=True)
-            print(appName + ': sevang: ' + str(sevang) + '\n', flush=True)
+            #print(appName + ': node,phase pair: ' + sepair, flush=True)
+            #print(appName + ': timestamp: ' + str(ts), flush=True)
+            #print(appName + ': sevmag: ' + str(sevmag), flush=True)
+            #print(appName + ': sevang: ' + str(sevang) + '\n', flush=True)
 
-            # a little trick to add to the timestamp list for every measurement,
-            # not for every node/phase pair match, but only add when a match
-            # is confirmed for one of the node/phase pairs
-            if matchCount == 1:
-                if vmagPausedFlag:
-                    vmagTSDataPausedList.append(ts - tsInit)
-                else:
-                    vmagTSDataList.append(ts - tsInit)
-
-                if vangPausedFlag:
-                    vangTSDataPausedList.append(ts - tsInit)
-                else:
-                    vangTSDataList.append(ts - tsInit)
+            matchCount += 1
 
             simvmag = None
             if vmagPausedFlag:
-                vmagSEDataPausedDict[sepair].append(sevmag)
+                if not plotMatchesFlag:
+                    if matchCount == 1:
+                        vmagTSDataPausedList.append(ts - tsInit)
+                    vmagSEDataPausedDict[sepair].append(sevmag)
                 if simDataTS is not None and sepair in SEToSimDict:
                     for simmrid in SEToSimDict[sepair]:
                         if simmrid in simDataTS:
                             simmeas = simDataTS[simmrid]
                             if 'magnitude' in simmeas:
                                 diffMatchCount += 1
+                                if plotMatchesFlag:
+                                    if diffMatchCount == 1:
+                                        vmagTSDataPausedList.append(ts - tsInit)
+                                    vmagSEDataPausedDict[sepair].append(sevmag)
                                 simvmag = simmeas['magnitude']
                                 vmagSimDataPausedDict[sepair].append(simvmag)
                                 if simvmag != 0.0:
@@ -349,15 +349,22 @@ def measurementConfigCallback(header, message):
                                 break
                 if not simvmag:
                     vmagPrintWithoutSim(ts, sepair, sevmag)
+
             else:
-                vmagSEDataDict[sepair].append(sevmag)
+                if not plotMatchesFlag:
+                    if matchCount == 1:
+                        vmagTSDataList.append(ts - tsInit)
+                    vmagSEDataDict[sepair].append(sevmag)
                 if simDataTS is not None and sepair in SEToSimDict:
                     for simmrid in SEToSimDict[sepair]:
                         if simmrid in simDataTS:
                             simmeas = simDataTS[simmrid]
                             if 'magnitude' in simmeas:
-                                printFlag = True
                                 diffMatchCount += 1
+                                if plotMatchesFlag:
+                                    if diffMatchCount == 1:
+                                        vmagTSDataList.append(ts - tsInit)
+                                    vmagSEDataDict[sepair].append(sevmag)
                                 simvmag = simmeas['magnitude']
                                 vmagSimDataDict[sepair].append(simvmag)
                                 if simvmag != 0.0:
@@ -373,12 +380,19 @@ def measurementConfigCallback(header, message):
 
             simvang = None
             if vangPausedFlag:
-                vangSEDataPausedDict[sepair].append(sevang)
+                if not plotMatchesFlag:
+                    if matchCount == 1:
+                        vangTSDataPausedList.append(ts - tsInit)
+                    vangSEDataPausedDict[sepair].append(sevang)
                 if simDataTS is not None and sepair in SEToSimDict:
                     for simmrid in SEToSimDict[sepair]:
                         if simmrid in simDataTS:
                             simmeas = simDataTS[simmrid]
                             if 'angle' in simmeas:
+                                if plotMatchesFlag:
+                                    if diffMatchCount == 1:
+                                        vangTSDataPausedList.append(ts - tsInit)
+                                    vangSEDataPausedDict[sepair].append(sevang)
                                 simvang = simmeas['angle']
                                 vangSimDataPausedDict[sepair].append(simvang)
                                 vangdiff = sevang - simvang
@@ -388,13 +402,21 @@ def measurementConfigCallback(header, message):
                                 break
                 if not simvang:
                     vangPrintWithoutSim(ts, sepair, sevang)
+
             else:
-                vangSEDataDict[sepair].append(sevang)
+                if not plotMatchesFlag:
+                    if matchCount == 1:
+                        vangTSDataList.append(ts - tsInit)
+                    vangSEDataDict[sepair].append(sevang)
                 if simDataTS is not None and sepair in SEToSimDict:
                     for simmrid in SEToSimDict[sepair]:
                         if simmrid in simDataTS:
                             simmeas = simDataTS[simmrid]
                             if 'angle' in simmeas:
+                                if plotMatchesFlag:
+                                    if diffMatchCount == 1:
+                                        vangTSDataList.append(ts - tsInit)
+                                    vangSEDataDict[sepair].append(sevang)
                                 simvang = simmeas['angle']
                                 vangSimDataDict[sepair].append(simvang)
                                 vangdiff = sevang - simvang
@@ -407,7 +429,9 @@ def measurementConfigCallback(header, message):
 
             # no reason to keep checking more pairs if we've found all we
             # are looking for
-            if matchCount == len(plotPairDict):
+            if not plotMatchesFlag and matchCount==len(plotPairDict):
+                break
+            elif plotMatchesFlag and diffMatchCount==len(plotPairDict):
                 break
 
     print(appName + ': ' + str(sepairCount) + ' state-estimator measurements, ' + str(matchCount) + ' configuration file node,phase pair matches, ' + str(diffMatchCount) + ' matches to simulation data', flush=True)
@@ -477,7 +501,12 @@ def measurementNoConfigCallback(header, message):
         tsInit = ts
 
     for item in estVolt:
-        sepair = item['ConnectivityNode'] + ',' + item['phase']
+        # only consider phases A, B, C
+        phase = item['phase']
+        if phase!='A' and phase!='B' and phase!='C':
+            continue
+
+        sepair = item['ConnectivityNode'] + ',' + phase
         sevmag = item['v']
         sevang = item['angle']
 
@@ -485,8 +514,6 @@ def measurementNoConfigCallback(header, message):
         #print(appName + ': timestamp: ' + str(ts), flush=True)
         #print(appName + ': sevmag: ' + str(sevmag), flush=True)
         #print(appName + ': sevang: ' + str(sevang) + '\n', flush=True)
-
-        matchCount += 1
 
         if firstPassFlag:
             vmagSEDataDict[sepair] = []
@@ -510,28 +537,25 @@ def measurementNoConfigCallback(header, message):
             vangSimLinesDict[sepair], = vangSimAx.plot([], [], label=SEToBusDict[sepair])
             vangDiffLinesDict[sepair], = vangDiffAx.plot([], [], label=SEToBusDict[sepair])
 
-        # a little trick to add to the timestamp list for every measurement,
-        # not for every node/phase pair
-        if matchCount == 1:
-            if vmagPausedFlag:
-                vmagTSDataPausedList.append(ts - tsInit)
-            else:
-                vmagTSDataList.append(ts - tsInit)
-
-            if vangPausedFlag:
-                vangTSDataPausedList.append(ts - tsInit)
-            else:
-                vangTSDataList.append(ts - tsInit)
+        matchCount += 1
 
         simvmag = None
         if vmagPausedFlag:
-            vmagSEDataPausedDict[sepair].append(sevmag)
+            if not plotMatchesFlag:
+                if matchCount == 1:
+                    vmagTSDataPausedList.append(ts - tsInit)
+                vmagSEDataPausedDict[sepair].append(sevmag)
             if simDataTS is not None and sepair in SEToSimDict:
                 for simmrid in SEToSimDict[sepair]:
                     if simmrid in simDataTS:
                         simmeas = simDataTS[simmrid]
                         if 'magnitude' in simmeas:
                             diffMatchCount += 1
+                            if plotMatchesFlag:
+                                if diffMatchCount == 1:
+                                    vmagTSDataPausedList.append(ts - tsInit)
+                                vmagSEDataPausedDict[sepair].append(sevmag)
+
                             simvmag = simmeas['magnitude']
                             vmagSimDataPausedDict[sepair].append(simvmag)
                             if simvmag != 0.0:
@@ -543,14 +567,23 @@ def measurementNoConfigCallback(header, message):
                             break
             if not simvmag:
                 vmagPrintWithoutSim(ts, sepair, sevmag)
+
         else:
-            vmagSEDataDict[sepair].append(sevmag)
+            if not plotMatchesFlag:
+                if matchCount == 1:
+                    vmagTSDataList.append(ts - tsInit)
+                vmagSEDataDict[sepair].append(sevmag)
             if simDataTS is not None and sepair in SEToSimDict:
                 for simmrid in SEToSimDict[sepair]:
                     if simmrid in simDataTS:
                         simmeas = simDataTS[simmrid]
                         if 'magnitude' in simmeas:
                             diffMatchCount += 1
+                            if plotMatchesFlag:
+                                if diffMatchCount == 1:
+                                    vmagTSDataList.append(ts - tsInit)
+                                vmagSEDataDict[sepair].append(sevmag)
+
                             simvmag = simmeas['magnitude']
                             vmagSimDataDict[sepair].append(simvmag)
                             if simvmag != 0.0:
@@ -565,12 +598,19 @@ def measurementNoConfigCallback(header, message):
 
         simvang = None
         if vangPausedFlag:
-            vangSEDataPausedDict[sepair].append(sevang)
+            if not plotMatchesFlag:
+                if matchCount == 1:
+                    vangTSDataPausedList.append(ts - tsInit)
+                vangSEDataPausedDict[sepair].append(sevang)
             if simDataTS is not None and sepair in SEToSimDict:
                 for simmrid in SEToSimDict[sepair]:
                     if simmrid in simDataTS:
                         simmeas = simDataTS[simmrid]
                         if 'angle' in simmeas:
+                            if plotMatchesFlag:
+                                if diffMatchCount == 1:
+                                    vangTSDataPausedList.append(ts - tsInit)
+                                vangSEDataPausedDict[sepair].append(sevang)
                             simvang = simmeas['angle']
                             vangSimDataPausedDict[sepair].append(simvang)
                             vangdiff = sevang - simvang
@@ -579,13 +619,21 @@ def measurementNoConfigCallback(header, message):
                             break
             if not simvang:
                 vangPrintWithoutSim(ts, sepair, sevang)
+
         else:
-            vangSEDataDict[sepair].append(sevang)
+            if not plotMatchesFlag:
+                if matchCount == 1:
+                    vangTSDataList.append(ts - tsInit)
+                vangSEDataDict[sepair].append(sevang)
             if simDataTS is not None and sepair in SEToSimDict:
                 for simmrid in SEToSimDict[sepair]:
                     if simmrid in simDataTS:
                         simmeas = simDataTS[simmrid]
                         if 'angle' in simmeas:
+                            if plotMatchesFlag:
+                                if diffMatchCount == 1:
+                                    vangTSDataList.append(ts - tsInit)
+                                vangSEDataDict[sepair].append(sevang)
                             simvang = simmeas['angle']
                             vangSimDataDict[sepair].append(simvang)
                             vangdiff = sevang - simvang
@@ -597,7 +645,9 @@ def measurementNoConfigCallback(header, message):
 
         # no reason to keep checking more pairs if we've found all we
         # are looking for
-        if plotNumber>0 and matchCount==plotNumber:
+        if not plotMatchesFlag and plotNumber>0 and matchCount==plotNumber:
+            break
+        elif plotMatchesFlag and plotNumber>0 and diffMatchCount==plotNumber:
             break
 
     # only do the dictionary initializtion code on the first call
@@ -693,10 +743,11 @@ def vmagPlotData(event):
         vmagSEYmax = -sys.float_info.max
         vmagSEYmin = sys.float_info.max
         for pair in vmagSEDataDict:
-            vmagSELinesDict[pair].set_xdata(vmagTSDataList)
-            vmagSELinesDict[pair].set_ydata(vmagSEDataDict[pair])
-            vmagSEYmin = min(vmagSEYmin, min(vmagSEDataDict[pair]))
-            vmagSEYmax = max(vmagSEYmax, max(vmagSEDataDict[pair]))
+            if len(vmagSEDataDict[pair]) > 0:
+                vmagSELinesDict[pair].set_xdata(vmagTSDataList)
+                vmagSELinesDict[pair].set_ydata(vmagSEDataDict[pair])
+                vmagSEYmin = min(vmagSEYmin, min(vmagSEDataDict[pair]))
+                vmagSEYmax = max(vmagSEYmax, max(vmagSEDataDict[pair]))
         #print(appName + ': vmagSEYmin: ' + str(vmagSEYmin) + ', vmagSEYmax: ' + str(vmagSEYmax), flush=True)
 
         vmagSimYmax = -sys.float_info.max
@@ -714,10 +765,11 @@ def vmagPlotData(event):
         vmagDiffYmin = sys.float_info.max
         if plotOverlayFlag:
             for pair in vmagSEDataDict:
-                vmagDiffLinesDict[pair+' Est.'].set_xdata(vmagTSDataList)
-                vmagDiffLinesDict[pair+' Est.'].set_ydata(vmagSEDataDict[pair])
-                vmagDiffYmin = min(vmagDiffYmin, min(vmagSEDataDict[pair]))
-                vmagDiffYmax = max(vmagDiffYmax, max(vmagSEDataDict[pair]))
+                if len(vmagSEDataDict[pair]) > 0:
+                    vmagDiffLinesDict[pair+' Est.'].set_xdata(vmagTSDataList)
+                    vmagDiffLinesDict[pair+' Est.'].set_ydata(vmagSEDataDict[pair])
+                    vmagDiffYmin = min(vmagDiffYmin, min(vmagSEDataDict[pair]))
+                    vmagDiffYmax = max(vmagDiffYmax, max(vmagSEDataDict[pair]))
                 if len(vmagSimDataDict[pair]) > 0:
                     vmagDiffLinesDict[pair+' Actual'].set_xdata(vmagTSDataList)
                     vmagDiffLinesDict[pair+' Actual'].set_ydata(vmagSimDataDict[pair])
@@ -809,16 +861,17 @@ def vmagPlotData(event):
         vmagSEYmax = -sys.float_info.max
         vmagSEYmin = sys.float_info.max
         for pair in vmagSEDataDict:
-            vmagSELinesDict[pair].set_xdata(vmagTSDataList[vmagStartpt:vmagEndpt])
-            vmagSELinesDict[pair].set_ydata(vmagSEDataDict[pair][vmagStartpt:vmagEndpt])
-            vmagSEYmin = min(vmagSEYmin, min(vmagSEDataDict[pair][vmagStartpt:vmagEndpt]))
-            vmagSEYmax = max(vmagSEYmax, max(vmagSEDataDict[pair][vmagStartpt:vmagEndpt]))
+            if len(vmagSEDataDict[pair][vmagStartpt:vmagEndpt]) > 0:
+                vmagSELinesDict[pair].set_xdata(vmagTSDataList[vmagStartpt:vmagEndpt])
+                vmagSELinesDict[pair].set_ydata(vmagSEDataDict[pair][vmagStartpt:vmagEndpt])
+                vmagSEYmin = min(vmagSEYmin, min(vmagSEDataDict[pair][vmagStartpt:vmagEndpt]))
+                vmagSEYmax = max(vmagSEYmax, max(vmagSEDataDict[pair][vmagStartpt:vmagEndpt]))
         #print(appName + ': vmagSEYmin: ' + str(vmagSEYmin) + ', vmagSEYmax: ' + str(vmagSEYmax), flush=True)
 
         vmagSimYmax = -sys.float_info.max
         vmagSimYmin = sys.float_info.max
         for pair in vmagSimDataDict:
-            if len(vmagSimDataDict[pair]) > 0:
+            if len(vmagSimDataDict[pair][vmagStartpt:vmagEndpt]) > 0:
                 vmagSimDataFlag = True
                 vmagSimLinesDict[pair].set_xdata(vmagTSDataList[vmagStartpt:vmagEndpt])
                 vmagSimLinesDict[pair].set_ydata(vmagSimDataDict[pair][vmagStartpt:vmagEndpt])
@@ -830,18 +883,19 @@ def vmagPlotData(event):
         vmagDiffYmin = sys.float_info.max
         if plotOverlayFlag:
             for pair in vmagSEDataDict:
-                vmagDiffLinesDict[pair+' Est.'].set_xdata(vmagTSDataList[vmagStartpt:vmagEndpt])
-                vmagDiffLinesDict[pair+' Est.'].set_ydata(vmagSEDataDict[pair][vmagStartpt:vmagEndpt])
-                vmagDiffYmin = min(vmagDiffYmin, min(vmagSEDataDict[pair][vmagStartpt:vmagEndpt]))
-                vmagDiffYmax = max(vmagDiffYmax, max(vmagSEDataDict[pair][vmagStartpt:vmagEndpt]))
-                if len(vmagSimDataDict[pair]) > 0:
+                if len(vmagSEDataDict[pair][vmagStartpt:vmagEndpt]) > 0:
+                    vmagDiffLinesDict[pair+' Est.'].set_xdata(vmagTSDataList[vmagStartpt:vmagEndpt])
+                    vmagDiffLinesDict[pair+' Est.'].set_ydata(vmagSEDataDict[pair][vmagStartpt:vmagEndpt])
+                    vmagDiffYmin = min(vmagDiffYmin, min(vmagSEDataDict[pair][vmagStartpt:vmagEndpt]))
+                    vmagDiffYmax = max(vmagDiffYmax, max(vmagSEDataDict[pair][vmagStartpt:vmagEndpt]))
+                if len(vmagSimDataDict[pair][vmagStartpt:vmagEndpt]) > 0:
                     vmagDiffLinesDict[pair+' Actual'].set_xdata(vmagTSDataList[vmagStartpt:vmagEndpt])
                     vmagDiffLinesDict[pair+' Actual'].set_ydata(vmagSimDataDict[pair][vmagStartpt:vmagEndpt])
                     vmagDiffYmin = min(vmagDiffYmin, min(vmagSimDataDict[pair][vmagStartpt:vmagEndpt]))
                     vmagDiffYmax = max(vmagDiffYmax, max(vmagSimDataDict[pair][vmagStartpt:vmagEndpt]))
         else:
             for pair in vmagDiffDataDict:
-                if len(vmagDiffDataDict[pair]) > 0:
+                if len(vmagDiffDataDict[pair][vmagStartpt:vmagEndpt]) > 0:
                     vmagDiffDataFlag = True
                     vmagDiffLinesDict[pair].set_xdata(vmagTSDataList[vmagStartpt:vmagEndpt])
                     vmagDiffLinesDict[pair].set_ydata(vmagDiffDataDict[pair][vmagStartpt:vmagEndpt])
@@ -889,10 +943,11 @@ def vangPlotData(event):
         vangSEYmax = -sys.float_info.max
         vangSEYmin = sys.float_info.max
         for pair in vangSEDataDict:
-            vangSELinesDict[pair].set_xdata(vangTSDataList)
-            vangSELinesDict[pair].set_ydata(vangSEDataDict[pair])
-            vangSEYmin = min(vangSEYmin, min(vangSEDataDict[pair]))
-            vangSEYmax = max(vangSEYmax, max(vangSEDataDict[pair]))
+            if len(vangSEDataDict[pair]) > 0:
+                vangSELinesDict[pair].set_xdata(vangTSDataList)
+                vangSELinesDict[pair].set_ydata(vangSEDataDict[pair])
+                vangSEYmin = min(vangSEYmin, min(vangSEDataDict[pair]))
+                vangSEYmax = max(vangSEYmax, max(vangSEDataDict[pair]))
         #print(appName + ': vangSEYmin: ' + str(vangSEYmin) + ', vangSEYmax: ' + str(vangSEYmax), flush=True)
 
         vangSimYmax = -sys.float_info.max
@@ -910,10 +965,11 @@ def vangPlotData(event):
         vangDiffYmin = sys.float_info.max
         if plotOverlayFlag:
             for pair in vangSEDataDict:
-                vangDiffLinesDict[pair+' Est.'].set_xdata(vangTSDataList)
-                vangDiffLinesDict[pair+' Est.'].set_ydata(vangSEDataDict[pair])
-                vangDiffYmin = min(vangDiffYmin, min(vangSEDataDict[pair]))
-                vangDiffYmax = max(vangDiffYmax, max(vangSEDataDict[pair]))
+                if len(vangSEDataDict[pair]) > 0:
+                    vangDiffLinesDict[pair+' Est.'].set_xdata(vangTSDataList)
+                    vangDiffLinesDict[pair+' Est.'].set_ydata(vangSEDataDict[pair])
+                    vangDiffYmin = min(vangDiffYmin, min(vangSEDataDict[pair]))
+                    vangDiffYmax = max(vangDiffYmax, max(vangSEDataDict[pair]))
                 if len(vangSimDataDict[pair]) > 0:
                     vangDiffLinesDict[pair+' Actual'].set_xdata(vangTSDataList)
                     vangDiffLinesDict[pair+' Actual'].set_ydata(vangSimDataDict[pair])
@@ -1005,16 +1061,17 @@ def vangPlotData(event):
         vangSEYmax = -sys.float_info.max
         vangSEYmin = sys.float_info.max
         for pair in vangSEDataDict:
-            vangSELinesDict[pair].set_xdata(vangTSDataList[vangStartpt:vangEndpt])
-            vangSELinesDict[pair].set_ydata(vangSEDataDict[pair][vangStartpt:vangEndpt])
-            vangSEYmin = min(vangSEYmin, min(vangSEDataDict[pair][vangStartpt:vangEndpt]))
-            vangSEYmax = max(vangSEYmax, max(vangSEDataDict[pair][vangStartpt:vangEndpt]))
+            if len(vangSEDataDict[pair][vangStartpt:vangEndpt]) > 0:
+                vangSELinesDict[pair].set_xdata(vangTSDataList[vangStartpt:vangEndpt])
+                vangSELinesDict[pair].set_ydata(vangSEDataDict[pair][vangStartpt:vangEndpt])
+                vangSEYmin = min(vangSEYmin, min(vangSEDataDict[pair][vangStartpt:vangEndpt]))
+                vangSEYmax = max(vangSEYmax, max(vangSEDataDict[pair][vangStartpt:vangEndpt]))
         #print(appName + ': vangSEYmin: ' + str(vangSEYmin) + ', vangSEYmax: ' + str(vangSEYmax), flush=True)
 
         vangSimYmax = -sys.float_info.max
         vangSimYmin = sys.float_info.max
         for pair in vangSimDataDict:
-            if len(vangSimDataDict[pair]) > 0:
+            if len(vangSimDataDict[pair][vangStartpt:vangEndpt]) > 0:
                 vangSimDataFlag = True
                 vangSimLinesDict[pair].set_xdata(vangTSDataList[vangStartpt:vangEndpt])
                 vangSimLinesDict[pair].set_ydata(vangSimDataDict[pair][vangStartpt:vangEndpt])
@@ -1026,18 +1083,19 @@ def vangPlotData(event):
         vangDiffYmin = sys.float_info.max
         if plotOverlayFlag:
             for pair in vangSEDataDict:
-                vangDiffLinesDict[pair+' Est.'].set_xdata(vangTSDataList[vangStartpt:vangEndpt])
-                vangDiffLinesDict[pair+' Est.'].set_ydata(vangSEDataDict[pair][vangStartpt:vangEndpt])
-                vangDiffYmin = min(vangDiffYmin, min(vangSEDataDict[pair][vangStartpt:vangEndpt]))
-                vangDiffYmax = max(vangDiffYmax, max(vangSEDataDict[pair][vangStartpt:vangEndpt]))
-                if len(vangSimDataDict[pair]) > 0:
+                if len(vangSEDataDict[pair][vangStartpt:vangEndpt]) > 0:
+                    vangDiffLinesDict[pair+' Est.'].set_xdata(vangTSDataList[vangStartpt:vangEndpt])
+                    vangDiffLinesDict[pair+' Est.'].set_ydata(vangSEDataDict[pair][vangStartpt:vangEndpt])
+                    vangDiffYmin = min(vangDiffYmin, min(vangSEDataDict[pair][vangStartpt:vangEndpt]))
+                    vangDiffYmax = max(vangDiffYmax, max(vangSEDataDict[pair][vangStartpt:vangEndpt]))
+                if len(vangSimDataDict[pair][vangStartpt:vangEndpt]) > 0:
                     vangDiffLinesDict[pair+' Actual'].set_xdata(vangTSDataList[vangStartpt:vangEndpt])
                     vangDiffLinesDict[pair+' Actual'].set_ydata(vangSimDataDict[pair][vangStartpt:vangEndpt])
                     vangDiffYmin = min(vangDiffYmin, min(vangSimDataDict[pair][vangStartpt:vangEndpt]))
                     vangDiffYmax = max(vangDiffYmax, max(vangSimDataDict[pair][vangStartpt:vangEndpt]))
         else:
             for pair in vangDiffDataDict:
-                if len(vangDiffDataDict[pair]) > 0:
+                if len(vangDiffDataDict[pair][vangStartpt:vangEndpt]) > 0:
                     vangDiffDataFlag = True
                     vangDiffLinesDict[pair].set_xdata(vangTSDataList[vangStartpt:vangEndpt])
                     vangDiffLinesDict[pair].set_ydata(vangDiffDataDict[pair][vangStartpt:vangEndpt])
@@ -1444,8 +1502,13 @@ def configPlot(busList, overlayFlag, legendFlag):
             vangDiffDataPausedDict[pair] = []
 
         # create a lines dictionary entry per node/phase pair for each plot
-        vmagSELinesDict[pair], = vmagSEAx.plot([], [], label=plotPairDict[pair])
-        vangSELinesDict[pair], = vangSEAx.plot([], [], label=plotPairDict[pair])
+        if overlayFlag:
+            vmagSELinesDict[pair], = vmagSEAx.plot([], [], label=plotPairDict[pair], linestyle='--')
+            vangSELinesDict[pair], = vangSEAx.plot([], [], label=plotPairDict[pair], linestyle='--')
+        else:
+            vmagSELinesDict[pair], = vmagSEAx.plot([], [], label=plotPairDict[pair])
+            vangSELinesDict[pair], = vangSEAx.plot([], [], label=plotPairDict[pair])
+
         vmagSimLinesDict[pair], = vmagSimAx.plot([], [], label=plotPairDict[pair])
         vangSimLinesDict[pair], = vangSimAx.plot([], [], label=plotPairDict[pair])
 
@@ -1468,12 +1531,12 @@ def configPlot(busList, overlayFlag, legendFlag):
         vangSEAx.legend(ncol=cols)
 
         if overlayFlag:
-            vmagDiffAx.legend(ncol=cols)
-            vangDiffAx.legend(ncol=cols)
+            vmagSimAx.legend(ncol=cols)
+            vangSimAx.legend(ncol=cols)
 
 
 def _main():
-    global gapps, plotNumber, plotOverlayFlag
+    global gapps, plotNumber, plotOverlayFlag, plotMatchesFlag
 
     if len(sys.argv) < 2:
         print('Usage: ' + appName + ' simID simReq\n', flush=True)
@@ -1493,6 +1556,8 @@ def _main():
             plotConfigFlag = False
         elif arg.startswith('-over'):
             plotOverlayFlag = True
+        elif arg.startswith('-match'):
+            plotMatchesFlag = True
         elif arg[0]=='-' and arg[1:].isdigit():
             plotConfigFlag = False
             plotNumber = int(arg[1:])
