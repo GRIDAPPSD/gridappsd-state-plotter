@@ -63,6 +63,7 @@ from matplotlib.widgets import CheckButtons
 from matplotlib.ticker import MaxNLocator
 from matplotlib import backend_bases
 
+
 # global dictionaries and lists
 busToSEDict = {}
 SEToBusDict = {}
@@ -108,6 +109,7 @@ vangShowFlag = False
 firstPassFlag = True
 plotOverlayFlag = False
 plotMatchesFlag = False
+closedWindowFlag = False
 plotNumber = 0
 playIcon = None
 pauseIcon = None
@@ -465,7 +467,8 @@ def measurementNoConfigCallback(header, message):
         upper = max(upper, 60)
         # // is integer floor division operator
         default = upper // 2;
-        #print('setting slider upper limit: ' + str(upper) + ', default value: ' + str(default) + ', matchCount: ' + str(matchCount), flush=True)
+        # Feb 5 Debug
+        print('setting slider upper limit: ' + str(upper) + ', default value: ' + str(default) + ', matchCount: ' + str(matchCount), flush=True)
         vmagTSZoomSldr.valmin = 1
         vmagTSZoomSldr.valmax = upper
         vmagTSZoomSldr.val = default
@@ -510,10 +513,11 @@ def measurementNoConfigCallback(header, message):
         sevmag = item['v']
         sevang = item['angle']
 
-        #print(appName + ': node,phase pair: ' + sepair + ', matchCount: ' + str(matchCount), flush=True)
-        #print(appName + ': timestamp: ' + str(ts), flush=True)
-        #print(appName + ': sevmag: ' + str(sevmag), flush=True)
-        #print(appName + ': sevang: ' + str(sevang) + '\n', flush=True)
+        # Feb 5 Debug
+        print(appName + ': node,phase pair: ' + sepair + ', matchCount: ' + str(matchCount), flush=True)
+        print(appName + ': timestamp: ' + str(ts), flush=True)
+        print(appName + ': sevmag: ' + str(sevmag), flush=True)
+        print(appName + ': sevang: ' + str(sevang) + '\n', flush=True)
 
         if firstPassFlag:
             vmagSEDataDict[sepair] = []
@@ -679,8 +683,9 @@ def simulationOutputCallback(header, message):
 
 
 def yAxisLimits(yMin, yMax, zoomVal, panVal):
-    #print(appName + ': starting yMin: ' + str(yMin), flush=True)
-    #print(appName + ': starting yMax: ' + str(yMax), flush=True)
+    # Feb 5 Debug
+    print(appName + ': starting yMin: ' + str(yMin), flush=True)
+    print(appName + ': starting yMax: ' + str(yMax), flush=True)
 
     # check for yMin > yMax, which indicates there was no data to drive the
     # min/max determination
@@ -704,8 +709,9 @@ def yAxisLimits(yMin, yMax, zoomVal, panVal):
 
     newYmin = middle - height/2.0
     newYmax = newYmin + height
-    #print(appName + ': calculated newYmin: ' + str(newYmin), flush=True)
-    #print(appName + ': calculated newYmax: ' + str(newYmax), flush=True)
+    # Feb 5 Debug
+    print(appName + ': calculated newYmin: ' + str(newYmin), flush=True)
+    print(appName + ': calculated newYmax: ' + str(newYmax), flush=True)
 
     if newYmin < yMin:
         newYmin = yMin
@@ -713,16 +719,18 @@ def yAxisLimits(yMin, yMax, zoomVal, panVal):
     elif newYmax > yMax:
         newYmax = yMax
         newYmin = newYmax - height
-    #print(appName + ': final newYmin: ' + str(newYmin), flush=True)
-    #print(appName + ': final newYmax: ' + str(newYmax) + '\n', flush=True)
+    # Feb 5 Debug
+    print(appName + ': final newYmin: ' + str(newYmin), flush=True)
+    print(appName + ': final newYmax: ' + str(newYmax) + '\n', flush=True)
 
     # override auto-scaling with the calculated y-axis limits
     # apply a fixed margin to the axis limits
     margin = height*0.10
     newYmin -= margin
     newYmax += margin
-    #print(appName + ': margin newYmin: ' + str(newYmin), flush=True)
-    #print(appName + ': margin newYmax: ' + str(newYmax) + '\n', flush=True)
+    # Feb 5 Debug
+    print(appName + ': margin newYmin: ' + str(newYmin), flush=True)
+    print(appName + ': margin newYmax: ' + str(newYmax) + '\n', flush=True)
 
     return newYmin, newYmax
 
@@ -948,7 +956,8 @@ def vangPlotData(event):
                 vangSELinesDict[pair].set_ydata(vangSEDataDict[pair])
                 vangSEYmin = min(vangSEYmin, min(vangSEDataDict[pair]))
                 vangSEYmax = max(vangSEYmax, max(vangSEDataDict[pair]))
-        #print(appName + ': vangSEYmin: ' + str(vangSEYmin) + ', vangSEYmax: ' + str(vangSEYmax), flush=True)
+        # Feb 5 Debug
+        print(appName + ': vangSEYmin: ' + str(vangSEYmin) + ', vangSEYmax: ' + str(vangSEYmax), flush=True)
 
         vangSimYmax = -sys.float_info.max
         vangSimYmin = sys.float_info.max
@@ -959,7 +968,8 @@ def vangPlotData(event):
                 vangSimLinesDict[pair].set_ydata(vangSimDataDict[pair])
                 vangSimYmin = min(vangSimYmin, min(vangSimDataDict[pair]))
                 vangSimYmax = max(vangSimYmax, max(vangSimDataDict[pair]))
-        #print(appName + ': vangSimYmin: ' + str(vangSimYmin) + ', vangSimYmax: ' + str(vangSimYmax), flush=True)
+        # Feb 5 Debug
+        print(appName + ': vangSimYmin: ' + str(vangSimYmin) + ', vangSimYmax: ' + str(vangSimYmax), flush=True)
 
         vangDiffYmax = -sys.float_info.max
         vangDiffYmin = sys.float_info.max
@@ -1029,13 +1039,15 @@ def vangPlotData(event):
             # don't assume 3 timesteps between points, calculate startpt instead
             #vangStartpt = int(vangXmin/3.0)
             for ix in range(len(vangTSDataList)):
-                #print(appName + ': vangStartpt ix: ' + str(ix) + ', vangTSDataList: ' + str(vangTSDataList[ix]), flush=True)
+                # Feb 5 Debug
+                print(appName + ': vangStartpt ix: ' + str(ix) + ', vangTSDataList: ' + str(vangTSDataList[ix]), flush=True)
                 if vangTSDataList[ix] >= vangXmin:
                     # if it's feasible, set starting point to 1 before the
                     # calculated point so there is no data gap at the left edge
                     if ix > 1:
                         vangStartpt = ix - 1
-                    #print(appName + ': vangStartpt break ix: ' + str(ix) + ', vangTSDataList: ' + str(vangTSDataList[ix]), flush=True)
+                    # Feb 5 Debug
+                    print(appName + ': vangStartpt break ix: ' + str(ix) + ', vangTSDataList: ' + str(vangTSDataList[ix]), flush=True)
                     break
 
         # don't assume 3 timesteps between points, calculate endpt instead
@@ -1044,13 +1056,15 @@ def vangPlotData(event):
         if vangXmax > 0:
             vangEndpt = len(vangTSDataList)-1
             for ix in range(vangEndpt,-1,-1):
-                #print(appName + ': vangEndpt ix: ' + str(ix) + ', vangTSDataList: ' + str(vangTSDataList[ix]), flush=True)
+                # Feb 5 Debug
+                print(appName + ': vangEndpt ix: ' + str(ix) + ', vangTSDataList: ' + str(vangTSDataList[ix]), flush=True)
                 if vangTSDataList[ix] <= vangXmax:
                     # if it's feasible, set ending point to 1 after the
                     # calculated point so there is no data gap at the right edge
                     if ix < vangEndpt:
                         vangEndpt = ix + 1
-                    #print(appName + ': vangEndpt break ix: ' + str(ix) + ', vangTSDataList: ' + str(vangTSDataList[ix]), flush=True)
+                    # Feb 5 Debug
+                    print(appName + ': vangEndpt break ix: ' + str(ix) + ', vangTSDataList: ' + str(vangTSDataList[ix]), flush=True)
                     break
 
         # always add 1 to endpt because array slice uses -1 for upper bound
@@ -1066,7 +1080,8 @@ def vangPlotData(event):
                 vangSELinesDict[pair].set_ydata(vangSEDataDict[pair][vangStartpt:vangEndpt])
                 vangSEYmin = min(vangSEYmin, min(vangSEDataDict[pair][vangStartpt:vangEndpt]))
                 vangSEYmax = max(vangSEYmax, max(vangSEDataDict[pair][vangStartpt:vangEndpt]))
-        #print(appName + ': vangSEYmin: ' + str(vangSEYmin) + ', vangSEYmax: ' + str(vangSEYmax), flush=True)
+        # Feb 5 Debug
+        print(appName + ': vangSEYmin: ' + str(vangSEYmin) + ', vangSEYmax: ' + str(vangSEYmax), flush=True)
 
         vangSimYmax = -sys.float_info.max
         vangSimYmin = sys.float_info.max
@@ -1077,7 +1092,8 @@ def vangPlotData(event):
                 vangSimLinesDict[pair].set_ydata(vangSimDataDict[pair][vangStartpt:vangEndpt])
                 vangSimYmin = min(vangSimYmin, min(vangSimDataDict[pair][vangStartpt:vangEndpt]))
                 vangSimYmax = max(vangSimYmax, max(vangSimDataDict[pair][vangStartpt:vangEndpt]))
-        #print(appName + ': vangSimYmin: ' + str(vangSimYmin) + ', vangSimYmax: ' + str(vangSimYmax), flush=True)
+        # Feb 5 Debug
+        print(appName + ': vangSimYmin: ' + str(vangSimYmin) + ', vangSimYmax: ' + str(vangSimYmax), flush=True)
 
         vangDiffYmax = -sys.float_info.max
         vangDiffYmin = sys.float_info.max
@@ -1111,20 +1127,25 @@ def vangPlotData(event):
     # simulation voltage angle plot y-axis zoom and pan calculation
     if not vangSimDataFlag:
         print(appName + ': WARNING: no simulation voltage angle data to plot!\n', flush=True)
-    #print(appName + ': simulator voltage angle y-axis limits...', flush=True)
+    # Feb 5 Debug
+    print(appName + ': simulator voltage angle y-axis limits...', flush=True)
     newvangSimYmin, newvangSimYmax = yAxisLimits(vangSimYmin, vangSimYmax, vangSimZoomSldr.val, vangSimPanSldr.val)
     vangSimAx.set_ylim(newvangSimYmin, newvangSimYmax)
 
     # voltage angle difference plot y-axis zoom and pan calculation
     if not plotOverlayFlag and not vangDiffDataFlag:
         print(appName + ': WARNING: no voltage angle difference data to plot!\n', flush=True)
-    #print(appName + ': voltage angle difference y-axis limits...', flush=True)
+    # Feb 5 Debug
+    print(appName + ': voltage angle difference y-axis limits...', flush=True)
     newvangDiffYmin, newvangDiffYmax = yAxisLimits(vangDiffYmin, vangDiffYmax, vangDiffZoomSldr.val, vangDiffPanSldr.val)
     vangDiffAx.set_ylim(newvangDiffYmin, newvangDiffYmax)
 
     # flush all the plot changes
     plt.figure(2)
     plt.draw()
+
+    # Feb 5 Debug
+    print(appName + ': vangPlotData plt.draw() call finished!!\n\n', flush=True)
 
 
 def vmagPauseCallback(event):
@@ -1209,6 +1230,19 @@ def vangShowCallback(event):
     vangPlotData(None)
 
 
+def closeWindowCallback(event):
+    global closedWindowFlag
+
+    # this code is dependent upon having two plot windows since it forces
+    # an exit the second time this function is called
+    if closedWindowFlag:
+        gapps.disconnect()
+        exit()
+
+    # if not called before, set the flag so the next time forces an exit
+    closedWindowFlag = True
+
+
 def queryBusToSE():
     # extract the model ID from JSON argument
     modelDict = json.loads(simReq)
@@ -1281,6 +1315,7 @@ def initPlot(configFlag, legendFlag, overlayFlag):
     # magnitude plots
     vmagFig = plt.figure(1, figsize=(10,6))
     vmagFig.canvas.set_window_title('Voltage Magnitude, Simulation ID: ' + simID)
+    vmagFig.canvas.mpl_connect('close_event', closeWindowCallback)
 
     vmagSEAx = vmagFig.add_subplot(311)
     vmagSEAx.xaxis.set_major_locator(MaxNLocator(integer=True))
@@ -1363,6 +1398,7 @@ def initPlot(configFlag, legendFlag, overlayFlag):
     # angle plots
     vangFig = plt.figure(2, figsize=(10,6))
     vangFig.canvas.set_window_title('Voltage Angle, Simulation ID: ' + simID)
+    vangFig.canvas.mpl_connect('close_event', closeWindowCallback)
 
     vangSEAx = vangFig.add_subplot(311)
     vangSEAx.xaxis.set_major_locator(MaxNLocator(integer=True))
