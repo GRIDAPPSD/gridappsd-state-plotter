@@ -70,6 +70,8 @@ plotPairDict = {}
 busToSimDict = {}
 SEToSimDict = {}
 simDataDict = {}
+SEToVnomMagDict = {}
+SEToVnomAngDict = {}
 
 vvalTSDataList = []
 vvalTSDataPausedList = []
@@ -172,6 +174,41 @@ def mapSEToSim():
     print(appName + ': ' + str(seMatchCount) + ' state-estimator node,phase pair matches out of ' + str(len(busToSimDict)) + ' total simulation mrids', flush=True)
 
 
+def mapSEToVnom(semrid, phase, magnitude, angle):
+    if phase == 1:
+        SEToVnomMagDict[semrid+',A'] = magnitude
+        SEToVnomAngDict[semrid+',A'] = angle
+    elif phase == 2:
+        SEToVnomMagDict[semrid+',B'] = magnitude
+        SEToVnomAngDict[semrid+',B'] = angle
+    elif phase == 3:
+        SEToVnomMagDict[semrid+',C'] = magnitude
+        SEToVnomAngDict[semrid+',C'] = angle
+
+
+def queryVnom():
+    vnomRequestText = '{"configurationType":"Vnom Export","parameters":{"simulation_id":"' + simID + '"}}';
+    vnomResponse = gapps.get_response('goss.gridappsd.process.request.config', vnomRequestText, timeout=600)
+    # use busToSEDict dictionary to map to sepair (node,phase)
+
+    for line in vnomResponse['data']['vnom']:
+        vnom = line.split(',')
+        bus = vnom[0].strip('"')
+        if bus in busToSEDict:
+            semrid = busToSEDict[bus]
+            mapSEToVnom(semrid, int(vnom[2]), float(vnom[3]), float(vnom[4]))
+            mapSEToVnom(semrid, int(vnom[6]), float(vnom[7]), float(vnom[8]))
+            mapSEToVnom(semrid, int(vnom[10]), float(vnom[11]), float(vnom[12]))
+
+    print(appName + ': start state-estimator to vnom magnitude mapping...', flush=True)
+    pprint.pprint(SEToVnomMagDict)
+    print(appName + ': end state-estimator to vnom magnitude mapping', flush=True)
+
+    print(appName + ': start state-estimator to vnom angle mapping...', flush=True)
+    pprint.pprint(SEToVnomAngDict)
+    print(appName + ': end state-estimator to vnom angle mapping', flush=True)
+
+
 def vmagPrintWithSim(ts, sepair, sevmag, simvmag, vmagdiff):
     print(appName + ', ts: ' + str(ts) + ', sepair: ' + sepair + ', busname: ' + SEToBusDict[sepair] + ', sevmag: ' + str(sevmag) + ', simvmag: ' + str(simvmag) + ', % mag diff: ' + str(vmagdiff), flush=True)
     # 13-node
@@ -211,6 +248,15 @@ def vmagPrintWithoutSim(ts, sepair, sevmag):
 
 def vangPrintWithoutSim(ts, sepair, sevang):
     print(appName + ', NO SIM MATCH, ts: ' + str(ts) + ', sepair: ' + sepair + ', busname: ' + SEToBusDict[sepair] + ', sevang: ' + str(sevang), flush=True)
+
+
+def calcVNom(vval, sepair):
+    if magFlag and sepair in SEToVnomMagDict:
+        return vval / SEToVnomMagDict[sepair]
+    elif not magFlag and sepair in SEToVnomAngDict:
+        return vval - SEToVnomAngDict[sepair]
+
+    return vval
 
 
 def measurementConfigCallback(header, message):
@@ -287,6 +333,7 @@ def measurementConfigCallback(header, message):
 
         if sepair in plotPairDict:
             sevval = item[sekey]
+            sevval = calcVNom(sevval, sepair)
 
             #print(appName + ': node,phase pair: ' + sepair, flush=True)
             #print(appName + ': timestamp: ' + str(ts), flush=True)
@@ -311,6 +358,7 @@ def measurementConfigCallback(header, message):
                                         vvalTSDataPausedList.append(ts - tsInit)
                                     vvalSEDataPausedDict[sepair].append(sevval)
                                 simvval = simmeas[simkey]
+                                simvval = calcVNom(simvval, sepair)
                                 vvalSimDataPausedDict[sepair].append(simvval)
 
                                 if not magFlag:
@@ -348,6 +396,7 @@ def measurementConfigCallback(header, message):
                                         vvalTSDataList.append(ts - tsInit)
                                     vvalSEDataDict[sepair].append(sevval)
                                 simvval = simmeas[simkey]
+                                simvval = calcVNom(simvval, sepair)
                                 vvalSimDataDict[sepair].append(simvval)
                                 if not magFlag:
                                     vvaldiff = sevval - simvval
@@ -452,6 +501,7 @@ def measurementNoConfigCallback(header, message):
 
         sepair = item['ConnectivityNode'] + ',' + phase
         sevval = item[sekey]
+        sevval = calcVNom(sevval, sepair)
 
         #print(appName + ': node,phase pair: ' + sepair + ', matchCount: ' + str(matchCount), flush=True)
         #print(appName + ': timestamp: ' + str(ts), flush=True)
@@ -490,6 +540,7 @@ def measurementNoConfigCallback(header, message):
                                 vvalSEDataPausedDict[sepair].append(sevval)
 
                             simvval = simmeas[simkey]
+                            simvval = calcVNom(simvval, sepair)
                             vvalSimDataPausedDict[sepair].append(simvval)
                             if not magFlag:
                                 vvaldiff = sevval - simvval
@@ -526,6 +577,7 @@ def measurementNoConfigCallback(header, message):
                                 vvalSEDataDict[sepair].append(sevval)
 
                             simvval = simmeas[simkey]
+                            simvval = calcVNom(simvval, sepair)
                             vvalSimDataDict[sepair].append(simvval)
                             if not magFlag:
                                 vvaldiff = sevval - simvval
@@ -1160,6 +1212,9 @@ def _main():
 
     # finally, create map between state-estimator and simulation output
     mapSEToSim()
+
+    # query to get the nominimal voltage mapping
+    queryVnom()
 
     # matplotlib setup done before receiving any messages that reference it
     initPlot(plotConfigFlag, plotLegendFlag)
