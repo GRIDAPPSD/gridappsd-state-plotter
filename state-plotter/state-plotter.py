@@ -84,6 +84,10 @@ vvalDiffDataPausedDict = {}
 vvalSELinesDict = {}
 vvalSimLinesDict = {}
 vvalDiffLinesDict = {}
+seLegendLineList = []
+seLegendLabelList = []
+simLegendLineList = []
+simLegendLabelList = []
 
 # global variables
 gapps = None
@@ -96,7 +100,9 @@ plotNominalFlag = True
 vvalPausedFlag = False
 vvalShowFlag = False
 firstPassFlag = True
+firstPlotFlag = True
 plotOverlayFlag = False
+plotLegendFlag = False
 plotMatchesFlag = False
 plotNumber = 0
 playIcon = None
@@ -607,6 +613,8 @@ def yAxisLimits(yMin, yMax, zoomVal, panVal):
 
 
 def vvalPlotData(event):
+    global firstPlotFlag
+
     # avoid error by making sure there is data to plot
     if len(vvalTSDataList)==0:
         return
@@ -627,6 +635,9 @@ def vvalPlotData(event):
                 vvalSELinesDict[pair].set_ydata(vvalSEDataDict[pair])
                 vvalSEYmin = min(vvalSEYmin, min(vvalSEDataDict[pair]))
                 vvalSEYmax = max(vvalSEYmax, max(vvalSEDataDict[pair]))
+                if firstPlotFlag and len(plotPairDict)>0:
+                    seLegendLineList.append(vvalSELinesDict[pair])
+                    seLegendLabelList.append(plotPairDict[pair])
         #print(appName + ': vvalSEYmin: ' + str(vvalSEYmin) + ', vvalSEYmax: ' + str(vvalSEYmax), flush=True)
 
         vvalSimYmax = -sys.float_info.max
@@ -638,6 +649,9 @@ def vvalPlotData(event):
                 vvalSimLinesDict[pair].set_ydata(vvalSimDataDict[pair])
                 vvalSimYmin = min(vvalSimYmin, min(vvalSimDataDict[pair]))
                 vvalSimYmax = max(vvalSimYmax, max(vvalSimDataDict[pair]))
+                if firstPlotFlag and len(plotPairDict)>0:
+                    simLegendLineList.append(vvalSimLinesDict[pair])
+                    simLegendLabelList.append(plotPairDict[pair])
         #print(appName + ': vvalSimYmin: ' + str(vvalSimYmin) + ', vvalSimYmax: ' + str(vvalSimYmax), flush=True)
 
         vvalDiffYmax = -sys.float_info.max
@@ -745,6 +759,9 @@ def vvalPlotData(event):
                 vvalSELinesDict[pair].set_ydata(vvalSEDataDict[pair][vvalStartpt:vvalEndpt])
                 vvalSEYmin = min(vvalSEYmin, min(vvalSEDataDict[pair][vvalStartpt:vvalEndpt]))
                 vvalSEYmax = max(vvalSEYmax, max(vvalSEDataDict[pair][vvalStartpt:vvalEndpt]))
+                if firstPlotFlag and len(plotPairDict)>0:
+                    seLegendLineList.append(vvalSELinesDict[pair])
+                    seLegendLabelList.append(plotPairDict[pair])
         #print(appName + ': vvalSEYmin: ' + str(vvalSEYmin) + ', vvalSEYmax: ' + str(vvalSEYmax), flush=True)
 
         vvalSimYmax = -sys.float_info.max
@@ -756,6 +773,9 @@ def vvalPlotData(event):
                 vvalSimLinesDict[pair].set_ydata(vvalSimDataDict[pair][vvalStartpt:vvalEndpt])
                 vvalSimYmin = min(vvalSimYmin, min(vvalSimDataDict[pair][vvalStartpt:vvalEndpt]))
                 vvalSimYmax = max(vvalSimYmax, max(vvalSimDataDict[pair][vvalStartpt:vvalEndpt]))
+                if firstPlotFlag and len(plotPairDict)>0:
+                    simLegendLineList.append(vvalSimLinesDict[pair])
+                    simLegendLabelList.append(plotPairDict[pair])
         #print(appName + ': vvalSimYmin: ' + str(vvalSimYmin) + ', vvalSimYmax: ' + str(vvalSimYmax), flush=True)
 
         vvalDiffYmax = -sys.float_info.max
@@ -800,6 +820,17 @@ def vvalPlotData(event):
     #print(appName + ': voltage value difference y-axis limits...', flush=True)
     newvvalDiffYmin, newvvalDiffYmax = yAxisLimits(vvalDiffYmin, vvalDiffYmax, vvalDiffZoomSldr.val, vvalDiffPanSldr.val)
     vvalDiffAx.set_ylim(newvvalDiffYmin, newvvalDiffYmax)
+
+    if firstPlotFlag and len(plotPairDict)>0:
+        if plotLegendFlag or len(seLegendLineList)<=10:
+            cols = math.ceil(len(seLegendLineList)/12)
+            vvalSEAx.legend(seLegendLineList, seLegendLabelList, ncol=cols)
+
+        if plotLegendFlag or len(simLegendLineList)<=10:
+            cols = math.ceil(len(simLegendLineList)/12)
+            vvalSimAx.legend(simLegendLineList, simLegendLabelList, ncol=cols)
+
+    firstPlotFlag = False
 
     # flush all the plot changes
     plt.draw()
@@ -895,7 +926,7 @@ def queryBusToSE():
     print(appName + ': end state-estimator bus to semrid query results', flush=True)
 
 
-def initPlot(configFlag, legendFlag):
+def initPlot(configFlag):
     global vvalTSZoomSldr, vvalTSPanSldr
     global vvalSEAx, vvalSEZoomSldr, vvalSEPanSldr
     global vvalSimAx, vvalSimZoomSldr, vvalSimPanSldr
@@ -1026,7 +1057,7 @@ def initPlot(configFlag, legendFlag):
     vvalDiffPanSldr.on_changed(vvalPlotData)
 
 
-def configPlot(busList, legendFlag):
+def configPlot(busList):
     if len(busList) > 0:
         for buspair in busList:
             buspair = buspair.upper()
@@ -1097,26 +1128,16 @@ def configPlot(busList, legendFlag):
         else:
             vvalDiffLinesDict[pair], = vvalDiffAx.plot([], [], label=plotPairDict[pair])
 
-    # need to wait on creating legend after other initialization until the
-    # lines are defined
-    if legendFlag or len(plotPairDict)<=10:
-        cols = math.ceil(len(plotPairDict)/12)
-        vvalSEAx.legend(ncol=cols)
-
-        if plotOverlayFlag:
-            vvalSimAx.legend(ncol=cols)
-
 
 def _main():
-    global gapps, plotNumber
-    global plotMagFlag, plotNominalFlag, plotOverlayFlag, plotMatchesFlag
+    global gapps, plotNumber, plotMagFlag, plotNominalFlag
+    global plotOverlayFlag, plotLegendFlag, plotMatchesFlag
 
     if len(sys.argv) < 2:
         print('Usage: ' + appName + ' simID simReq\n', flush=True)
         exit()
 
     plotConfigFlag = True
-    plotLegendFlag = False
     plotBusFlag = False
     plotBusList = []
     for arg in sys.argv:
@@ -1160,12 +1181,12 @@ def _main():
     queryVnom()
 
     # matplotlib setup done before receiving any messages that reference it
-    initPlot(plotConfigFlag, plotLegendFlag)
+    initPlot(plotConfigFlag)
 
     if plotConfigFlag or len(plotBusList)>0:
         # determine what to plot based on the state-plotter-config file
         # and finish plot initialization
-        configPlot(plotBusList, plotLegendFlag)
+        configPlot(plotBusList)
 
         # subscribe to state-estimator measurement output--with config file
         gapps.subscribe('/topic/goss.gridappsd.state-estimator.out.' +
