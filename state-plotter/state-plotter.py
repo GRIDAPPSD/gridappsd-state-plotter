@@ -1012,7 +1012,10 @@ def initPlot(configFlag, legendFlag):
     # shrink the margins, especially the top since we don't want a label
     plt.subplots_adjust(bottom=0.09, left=0.08, right=0.96, top=0.98, hspace=0.1)
     if plotMagFlag:
-        plt.ylabel('Est. Volt. Magnitude (V)')
+        if plotNominalFlag:
+            plt.ylabel('Est. Volt. Magnitude (p.u.)')
+        else:
+            plt.ylabel('Est. Volt. Magnitude (V)')
     else:
         plt.ylabel('Est. Volt. Angle (deg.)')
     # make time axis numbers invisible because the bottom plot will have them
@@ -1021,7 +1024,10 @@ def initPlot(configFlag, legendFlag):
     vvalSimAx = vvalFig.add_subplot(312, sharex=vvalSEAx)
     vvalSimAx.grid()
     if plotMagFlag:
-        plt.ylabel('Actual Volt. Magnitude (V)')
+        if plotNominalFlag:
+            plt.ylabel('Actual Volt. Mag. (p.u.)')
+        else:
+            plt.ylabel('Actual Volt. Magnitude (V)')
     else:
         plt.ylabel('Actual Volt. Angle (deg.)')
     plt.setp(vvalSimAx.get_xticklabels(), visible=False)
