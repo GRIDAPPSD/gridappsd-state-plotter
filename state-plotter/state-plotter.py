@@ -344,80 +344,42 @@ def measurementConfigCallback(header, message):
             matchCount += 1
 
             simvval = None
-            if vvalPausedFlag:
-                if not plotMatchesFlag:
-                    if matchCount == 1:
-                        vvalTSDataPausedList.append(ts - tsInit)
-                    vvalSEDataPausedDict[sepair].append(sevval)
-                if simDataTS is not None and sepair in SEToSimDict:
-                    for simmrid in SEToSimDict[sepair]:
-                        if simmrid in simDataTS:
-                            simmeas = simDataTS[simmrid]
-                            if simkey in simmeas:
-                                diffMatchCount += 1
-                                if plotMatchesFlag:
-                                    if diffMatchCount == 1:
-                                        vvalTSDataPausedList.append(ts - tsInit)
-                                    vvalSEDataPausedDict[sepair].append(sevval)
-                                simvval = simmeas[simkey]
-                                simvval = calcVNom(simvval, sepair)
-                                vvalSimDataPausedDict[sepair].append(simvval)
+            if not plotMatchesFlag:
+                if matchCount == 1:
+                    vvalTSDataPausedList.append(ts - tsInit) if vvalPausedFlag else vvalTSDataList.append(ts - tsInit)
+                vvalSEDataPausedDict[sepair].append(sevval) if vvalPausedFlag else vvalSEDataDict[sepair].append(sevval)
+            if simDataTS is not None and sepair in SEToSimDict:
+                for simmrid in SEToSimDict[sepair]:
+                    if simmrid in simDataTS:
+                        simmeas = simDataTS[simmrid]
+                        if simkey in simmeas:
+                            diffMatchCount += 1
+                            if plotMatchesFlag:
+                                if diffMatchCount == 1:
+                                    vvalTSDataPausedList.append(ts - tsInit) if vvalPausedFlag else vvalTSDataList.append(ts - tsInit)
+                                vvalSEDataPausedDict[sepair].append(sevval) if vvalPausedFlag else vvalSEDataDict[sepair].append(sevval)
+                            simvval = simmeas[simkey]
+                            simvval = calcVNom(simvval, sepair)
+                            vvalSimDataPausedDict[sepair].append(simvval) if vvalPausedFlag else vvalSimDataDict[sepair].append(simvval)
 
-                                if not plotMagFlag:
-                                    vvaldiff = sevval - simvval
-                                elif simvval != 0.0:
-                                    vvaldiff = 100.0*(sevval - simvval)/simvval
-                                else:
-                                    vvaldiff = 0.0
-                                if not plotOverlayFlag:
-                                    vvalDiffDataPausedDict[sepair].append(vvaldiff)
-                                if plotMagFlag:
-                                    vmagPrintWithSim(ts, sepair, sevval, simvval, vvaldiff)
-                                else:
-                                    vangPrintWithSim(ts, sepair, sevval, simvval, vvaldiff)
-                                break
-                if not simvval:
-                    if plotMagFlag:
-                        vmagPrintWithoutSim(ts, sepair, sevval)
-                    else:
-                        vangPrintWithoutSim(ts, sepair, sevval)
-
-            else:
-                if not plotMatchesFlag:
-                    if matchCount == 1:
-                        vvalTSDataList.append(ts - tsInit)
-                    vvalSEDataDict[sepair].append(sevval)
-                if simDataTS is not None and sepair in SEToSimDict:
-                    for simmrid in SEToSimDict[sepair]:
-                        if simmrid in simDataTS:
-                            simmeas = simDataTS[simmrid]
-                            if simkey in simmeas:
-                                diffMatchCount += 1
-                                if plotMatchesFlag:
-                                    if diffMatchCount == 1:
-                                        vvalTSDataList.append(ts - tsInit)
-                                    vvalSEDataDict[sepair].append(sevval)
-                                simvval = simmeas[simkey]
-                                simvval = calcVNom(simvval, sepair)
-                                vvalSimDataDict[sepair].append(simvval)
-                                if not plotMagFlag:
-                                    vvaldiff = sevval - simvval
-                                elif simvval != 0.0:
-                                    vvaldiff = 100.0*(sevval - simvval)/simvval
-                                else:
-                                    vvaldiff = 0.0
-                                if not plotOverlayFlag:
-                                    vvalDiffDataDict[sepair].append(vvaldiff)
-                                if plotMagFlag:
-                                    vmagPrintWithSim(ts, sepair, sevval, simvval, vvaldiff)
-                                else:
-                                    vangPrintWithSim(ts, sepair, sevval, simvval, vvaldiff)
-                                break
-                if not simvval:
-                    if plotMagFlag:
-                        vmagPrintWithoutSim(ts, sepair, sevval)
-                    else:
-                        vangPrintWithoutSim(ts, sepair, sevval)
+                            if not plotMagFlag:
+                                vvaldiff = sevval - simvval
+                            elif simvval != 0.0:
+                                vvaldiff = 100.0*(sevval - simvval)/simvval
+                            else:
+                                vvaldiff = 0.0
+                            if not plotOverlayFlag:
+                                vvalDiffDataPausedDict[sepair].append(vvaldiff) if vvalPausedFlag else vvalDiffDataDict[sepair].append(vvaldiff)
+                            if plotMagFlag:
+                                vmagPrintWithSim(ts, sepair, sevval, simvval, vvaldiff)
+                            else:
+                                vangPrintWithSim(ts, sepair, sevval, simvval, vvaldiff)
+                            break
+            if not simvval:
+                if plotMagFlag:
+                    vmagPrintWithoutSim(ts, sepair, sevval)
+                else:
+                    vangPrintWithoutSim(ts, sepair, sevval)
 
             # no reason to keep checking more pairs if we've found all we
             # are looking for
@@ -525,79 +487,41 @@ def measurementNoConfigCallback(header, message):
         matchCount += 1
 
         simvval = None
-        if vvalPausedFlag:
-            if not plotMatchesFlag:
-                if matchCount == 1:
-                    vvalTSDataPausedList.append(ts - tsInit)
-                vvalSEDataPausedDict[sepair].append(sevval)
-            if simDataTS is not None and sepair in SEToSimDict:
-                for simmrid in SEToSimDict[sepair]:
-                    if simmrid in simDataTS:
-                        simmeas = simDataTS[simmrid]
-                        if simkey in simmeas:
-                            diffMatchCount += 1
-                            if plotMatchesFlag:
-                                if diffMatchCount == 1:
-                                    vvalTSDataPausedList.append(ts - tsInit)
-                                vvalSEDataPausedDict[sepair].append(sevval)
+        if not plotMatchesFlag:
+            if matchCount == 1:
+                vvalTSDataPausedList.append(ts - tsInit) if vvalPausedFlag else vvalTSDataList.append(ts - tsInit)
+            vvalSEDataPausedDict[sepair].append(sevval) if vvalPausedFlag else vvalSEDataDict[sepair].append(sevval)
+        if simDataTS is not None and sepair in SEToSimDict:
+            for simmrid in SEToSimDict[sepair]:
+                if simmrid in simDataTS:
+                    simmeas = simDataTS[simmrid]
+                    if simkey in simmeas:
+                        diffMatchCount += 1
+                        if plotMatchesFlag:
+                            if diffMatchCount == 1:
+                                vvalTSDataPausedList.append(ts - tsInit) if vvalPausedFlag else vvalTSDataList.append(ts - tsInit)
+                            vvalSEDataPausedDict[sepair].append(sevval) if vvalPausedFlag else vvalSEDataDict[sepair].append(sevval)
 
-                            simvval = simmeas[simkey]
-                            simvval = calcVNom(simvval, sepair)
-                            vvalSimDataPausedDict[sepair].append(simvval)
-                            if not plotMagFlag:
-                                vvaldiff = sevval - simvval
-                            elif simvval != 0.0:
-                                vvaldiff = 100.0*(sevval - simvval)/simvval
-                            else:
-                                vvaldiff = 0.0
-                            vvalDiffDataPausedDict[sepair].append(vvaldiff)
-                            if plotMagFlag:
-                                vmagPrintWithSim(ts, sepair, sevval, simvval, vvaldiff)
-                            else:
-                                vangPrintWithSim(ts, sepair, sevval, simvval, vvaldiff)
-                            break
-            if not simvval:
-                if plotMagFlag:
-                    vmagPrintWithoutSim(ts, sepair, sevval)
-                else:
-                    vangPrintWithoutSim(ts, sepair, sevval)
-
-        else:
-            if not plotMatchesFlag:
-                if matchCount == 1:
-                    vvalTSDataList.append(ts - tsInit)
-                vvalSEDataDict[sepair].append(sevval)
-            if simDataTS is not None and sepair in SEToSimDict:
-                for simmrid in SEToSimDict[sepair]:
-                    if simmrid in simDataTS:
-                        simmeas = simDataTS[simmrid]
-                        if simkey in simmeas:
-                            diffMatchCount += 1
-                            if plotMatchesFlag:
-                                if diffMatchCount == 1:
-                                    vvalTSDataList.append(ts - tsInit)
-                                vvalSEDataDict[sepair].append(sevval)
-
-                            simvval = simmeas[simkey]
-                            simvval = calcVNom(simvval, sepair)
-                            vvalSimDataDict[sepair].append(simvval)
-                            if not plotMagFlag:
-                                vvaldiff = sevval - simvval
-                            elif simvval != 0.0:
-                                vvaldiff = 100.0*(sevval - simvval)/simvval
-                            else:
-                                vvaldiff = 0.0
-                            vvalDiffDataDict[sepair].append(vvaldiff)
-                            if plotMagFlag:
-                                vmagPrintWithSim(ts, sepair, sevval, simvval, vvaldiff)
-                            else:
-                                vangPrintWithSim(ts, sepair, sevval, simvval, vvaldiff)
-                            break
-            if not simvval:
-                if plotMagFlag:
-                    vmagPrintWithoutSim(ts, sepair, sevval)
-                else:
-                    vangPrintWithoutSim(ts, sepair, sevval)
+                        simvval = simmeas[simkey]
+                        simvval = calcVNom(simvval, sepair)
+                        vvalSimDataPausedDict[sepair].append(simvval) if vvalPausedFlag else vvalSimDataDict[sepair].append(simvval)
+                        if not plotMagFlag:
+                            vvaldiff = sevval - simvval
+                        elif simvval != 0.0:
+                            vvaldiff = 100.0*(sevval - simvval)/simvval
+                        else:
+                            vvaldiff = 0.0
+                        vvalDiffDataPausedDict[sepair].append(vvaldiff) if vvalPausedFlag else vvalDiffDataDict[sepair].append(vvaldiff)
+                        if plotMagFlag:
+                            vmagPrintWithSim(ts, sepair, sevval, simvval, vvaldiff)
+                        else:
+                            vangPrintWithSim(ts, sepair, sevval, simvval, vvaldiff)
+                        break
+        if not simvval:
+            if plotMagFlag:
+                vmagPrintWithoutSim(ts, sepair, sevval)
+            else:
+                vangPrintWithoutSim(ts, sepair, sevval)
 
         # no reason to keep checking more pairs if we've found all we
         # are looking for
