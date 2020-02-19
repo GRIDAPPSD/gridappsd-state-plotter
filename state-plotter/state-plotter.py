@@ -992,10 +992,16 @@ def initPlot(configFlag, legendFlag):
     #        )
 
     vvalFig = plt.figure(figsize=(10,6))
+
+    baseTitle = ''
+    if plotNominalFlag:
+        baseTitle = 'Nominal '
     if plotMagFlag:
-        vvalFig.canvas.set_window_title('Voltage Magnitude, Simulation ID: ' + simID)
+        baseTitle += 'Voltage Magnitude'
     else:
-        vvalFig.canvas.set_window_title('Voltage Angle, Simulation ID: ' + simID)
+        baseTitle += 'Voltage Angle'
+    vvalFig.canvas.set_window_title(baseTitle + ', Simulation ID: ' + simID)
+
     # shouldn't be necessary to catch close window event, but uncomment
     # if plt.show() doesn't consistently exit when the window is closed
     #vvalFig.canvas.mpl_connect('close_event', closeWindowCallback)
