@@ -91,7 +91,8 @@ appName = sys.argv[0]
 simID = sys.argv[1]
 simReq = sys.argv[2]
 tsInit = 0
-magFlag = True
+plotMagFlag = True
+plotNominalFlag = True
 vvalPausedFlag = False
 vvalShowFlag = False
 firstPassFlag = True
@@ -251,10 +252,11 @@ def vangPrintWithoutSim(ts, sepair, sevang):
 
 
 def calcVNom(vval, sepair):
-    if magFlag and sepair in SEToVnomMagDict:
-        return vval / SEToVnomMagDict[sepair]
-    elif not magFlag and sepair in SEToVnomAngDict:
-        return vval - SEToVnomAngDict[sepair]
+    if plotNominalFlag:
+        if plotMagFlag and sepair in SEToVnomMagDict:
+            return vval / SEToVnomMagDict[sepair]
+        elif not plotMagFlag and sepair in SEToVnomAngDict:
+            return vval - SEToVnomAngDict[sepair]
 
     return vval
 
@@ -316,7 +318,7 @@ def measurementConfigCallback(header, message):
     # end simulation data processing setup
 
     # set the data element keys we want to extract
-    if magFlag:
+    if plotMagFlag:
         sekey = 'v'
         simkey = 'magnitude'
     else:
@@ -361,7 +363,7 @@ def measurementConfigCallback(header, message):
                                 simvval = calcVNom(simvval, sepair)
                                 vvalSimDataPausedDict[sepair].append(simvval)
 
-                                if not magFlag:
+                                if not plotMagFlag:
                                     vvaldiff = sevval - simvval
                                 elif simvval != 0.0:
                                     vvaldiff = 100.0*(sevval - simvval)/simvval
@@ -369,13 +371,13 @@ def measurementConfigCallback(header, message):
                                     vvaldiff = 0.0
                                 if not plotOverlayFlag:
                                     vvalDiffDataPausedDict[sepair].append(vvaldiff)
-                                if magFlag:
+                                if plotMagFlag:
                                     vmagPrintWithSim(ts, sepair, sevval, simvval, vvaldiff)
                                 else:
                                     vangPrintWithSim(ts, sepair, sevval, simvval, vvaldiff)
                                 break
                 if not simvval:
-                    if magFlag:
+                    if plotMagFlag:
                         vmagPrintWithoutSim(ts, sepair, sevval)
                     else:
                         vangPrintWithoutSim(ts, sepair, sevval)
@@ -398,7 +400,7 @@ def measurementConfigCallback(header, message):
                                 simvval = simmeas[simkey]
                                 simvval = calcVNom(simvval, sepair)
                                 vvalSimDataDict[sepair].append(simvval)
-                                if not magFlag:
+                                if not plotMagFlag:
                                     vvaldiff = sevval - simvval
                                 elif simvval != 0.0:
                                     vvaldiff = 100.0*(sevval - simvval)/simvval
@@ -406,13 +408,13 @@ def measurementConfigCallback(header, message):
                                     vvaldiff = 0.0
                                 if not plotOverlayFlag:
                                     vvalDiffDataDict[sepair].append(vvaldiff)
-                                if magFlag:
+                                if plotMagFlag:
                                     vmagPrintWithSim(ts, sepair, sevval, simvval, vvaldiff)
                                 else:
                                     vangPrintWithSim(ts, sepair, sevval, simvval, vvaldiff)
                                 break
                 if not simvval:
-                    if magFlag:
+                    if plotMagFlag:
                         vmagPrintWithoutSim(ts, sepair, sevval)
                     else:
                         vangPrintWithoutSim(ts, sepair, sevval)
@@ -486,7 +488,7 @@ def measurementNoConfigCallback(header, message):
         tsInit = ts
 
     # set the data element keys we want to extract
-    if magFlag:
+    if plotMagFlag:
         sekey = 'v'
         simkey = 'magnitude'
     else:
@@ -542,20 +544,20 @@ def measurementNoConfigCallback(header, message):
                             simvval = simmeas[simkey]
                             simvval = calcVNom(simvval, sepair)
                             vvalSimDataPausedDict[sepair].append(simvval)
-                            if not magFlag:
+                            if not plotMagFlag:
                                 vvaldiff = sevval - simvval
                             elif simvval != 0.0:
                                 vvaldiff = 100.0*(sevval - simvval)/simvval
                             else:
                                 vvaldiff = 0.0
                             vvalDiffDataPausedDict[sepair].append(vvaldiff)
-                            if magFlag:
+                            if plotMagFlag:
                                 vmagPrintWithSim(ts, sepair, sevval, simvval, vvaldiff)
                             else:
                                 vangPrintWithSim(ts, sepair, sevval, simvval, vvaldiff)
                             break
             if not simvval:
-                if magFlag:
+                if plotMagFlag:
                     vmagPrintWithoutSim(ts, sepair, sevval)
                 else:
                     vangPrintWithoutSim(ts, sepair, sevval)
@@ -579,20 +581,20 @@ def measurementNoConfigCallback(header, message):
                             simvval = simmeas[simkey]
                             simvval = calcVNom(simvval, sepair)
                             vvalSimDataDict[sepair].append(simvval)
-                            if not magFlag:
+                            if not plotMagFlag:
                                 vvaldiff = sevval - simvval
                             elif simvval != 0.0:
                                 vvaldiff = 100.0*(sevval - simvval)/simvval
                             else:
                                 vvaldiff = 0.0
                             vvalDiffDataDict[sepair].append(vvaldiff)
-                            if magFlag:
+                            if plotMagFlag:
                                 vmagPrintWithSim(ts, sepair, sevval, simvval, vvaldiff)
                             else:
                                 vangPrintWithSim(ts, sepair, sevval, simvval, vvaldiff)
                             break
             if not simvval:
-                if magFlag:
+                if plotMagFlag:
                     vmagPrintWithoutSim(ts, sepair, sevval)
                 else:
                     vangPrintWithoutSim(ts, sepair, sevval)
@@ -990,7 +992,7 @@ def initPlot(configFlag, legendFlag):
     #        )
 
     vvalFig = plt.figure(figsize=(10,6))
-    if magFlag:
+    if plotMagFlag:
         vvalFig.canvas.set_window_title('Voltage Magnitude, Simulation ID: ' + simID)
     else:
         vvalFig.canvas.set_window_title('Voltage Angle, Simulation ID: ' + simID)
@@ -1003,7 +1005,7 @@ def initPlot(configFlag, legendFlag):
     vvalSEAx.grid()
     # shrink the margins, especially the top since we don't want a label
     plt.subplots_adjust(bottom=0.09, left=0.08, right=0.96, top=0.98, hspace=0.1)
-    if magFlag:
+    if plotMagFlag:
         plt.ylabel('Est. Volt. Magnitude (V)')
     else:
         plt.ylabel('Est. Volt. Angle (deg.)')
@@ -1012,7 +1014,7 @@ def initPlot(configFlag, legendFlag):
 
     vvalSimAx = vvalFig.add_subplot(312, sharex=vvalSEAx)
     vvalSimAx.grid()
-    if magFlag:
+    if plotMagFlag:
         plt.ylabel('Actual Volt. Magnitude (V)')
     else:
         plt.ylabel('Actual Volt. Angle (deg.)')
@@ -1022,12 +1024,12 @@ def initPlot(configFlag, legendFlag):
     vvalDiffAx.grid()
     plt.xlabel('Time (s)')
     if plotOverlayFlag:
-        if magFlag:
+        if plotMagFlag:
             plt.ylabel('Actual & Est. Magnitude')
         else:
             plt.ylabel('Actual & Est. Angle')
     else:
-        if magFlag:
+        if plotMagFlag:
             plt.ylabel('Volt. Magnitude % Diff.')
         else:
             plt.ylabel('Voltage Angle Diff.')
@@ -1170,7 +1172,8 @@ def configPlot(busList, legendFlag):
 
 
 def _main():
-    global gapps, magFlag, plotNumber, plotOverlayFlag, plotMatchesFlag
+    global gapps, plotNumber
+    global plotMagFlag, plotNominalFlag, plotOverlayFlag, plotMatchesFlag
 
     if len(sys.argv) < 2:
         print('Usage: ' + appName + ' simID simReq\n', flush=True)
@@ -1189,13 +1192,17 @@ def _main():
         elif arg == '-all':
             plotConfigFlag = False
         elif arg.startswith('-mag'):
-            magFlag = True
+            plotMagFlag = True
         elif arg.startswith('-ang'):
-            magFlag = False
+            plotMagFlag = False
         elif arg.startswith('-over'):
             plotOverlayFlag = True
         elif arg.startswith('-match'):
             plotMatchesFlag = True
+        elif arg.startswith('-act') or arg.startswith('-nonom'):
+            plotNominalFlag = False
+        elif arg.startswith('-nom'):
+            plotNominalFlag = True
         elif arg[0]=='-' and arg[1:].isdigit():
             plotConfigFlag = False
             plotNumber = int(arg[1:])
