@@ -128,7 +128,7 @@ vvalDiffPanSldr = None
 
 def queryBusToSim():
     sensRequestText = '{"configurationType":"CIM Dictionary","parameters":{"simulation_id":"' + simID + '"}}';
-    sensResponse = gapps.get_response('goss.gridappsd.process.request.config', sensRequestText, timeout=600)
+    sensResponse = gapps.get_response('goss.gridappsd.process.request.config', sensRequestText, timeout=1200)
 
     for feeders in sensResponse['data']['feeders']:
         for meas in feeders['measurements']:
@@ -195,7 +195,7 @@ def mapSEToVnom(semrid, phase, magnitude, angle):
 
 def queryVnom():
     vnomRequestText = '{"configurationType":"Vnom Export","parameters":{"simulation_id":"' + simID + '"}}';
-    vnomResponse = gapps.get_response('goss.gridappsd.process.request.config', vnomRequestText, timeout=600)
+    vnomResponse = gapps.get_response('goss.gridappsd.process.request.config', vnomRequestText, timeout=1200)
     # use busToSEDict dictionary to map to sepair (node,phase)
 
     for line in vnomResponse['data']['vnom']:
@@ -908,7 +908,7 @@ def queryBusToSE():
             "queryString": connectivity_names_query
             }
 
-    connectivity_names_response = gapps.get_response('goss.gridappsd.process.request.data.powergridmodel', connectivity_names_request, timeout=600)
+    connectivity_names_response = gapps.get_response('goss.gridappsd.process.request.data.powergridmodel', connectivity_names_request, timeout=1200)
 
     results = connectivity_names_response['data']['results']['bindings']
 
