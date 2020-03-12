@@ -91,9 +91,9 @@ simLegendLabelList = []
 
 # global variables
 gapps = None
-appName = sys.argv[0]
-simID = sys.argv[1]
-simReq = sys.argv[2]
+appName = None
+simID = None
+simReq = None
 tsInit = 0
 plotMagFlag = True
 plotNominalFlag = True
@@ -226,8 +226,8 @@ def vmagPrintWithSim(ts, sepair, sevmag, simvmag, vmagdiff):
     elif '_C1C3E687-6FFD-C753-582B-632A27E28507' in simReq:
         if vmagdiff > 3.0:
             print(appName + ': OUTLIER, 123-node, vmagdiff>3.0%: ts: ' + str(ts) + ', sepair: ' + sepair + ', busname: ' + SEToBusDict[sepair] + ', sevmag: ' + str(sevmag) + ', simvmag: ' + str(simvmag) + ', % diff: ' + str(vmagdiff), flush=True)
-        if vmagdiff < -2.0:
-            print(appName + ': OUTLIER, 123-node, vmagdiff<-2.0%: ts: ' + str(ts) + ', sepair: ' + sepair + ', busname: ' + SEToBusDict[sepair] + ', sevmag: ' + str(sevmag) + ', simvmag: ' + str(simvmag) + ', % diff: ' + str(vmagdiff), flush=True)
+        if vmagdiff < -2.5:
+            print(appName + ': OUTLIER, 123-node, vmagdiff<-2.5%: ts: ' + str(ts) + ', sepair: ' + sepair + ', busname: ' + SEToBusDict[sepair] + ', sevmag: ' + str(sevmag) + ', simvmag: ' + str(simvmag) + ', % diff: ' + str(vmagdiff), flush=True)
     # 9500-node
     #elif '_AAE94E4A-2465-6F5E-37B1-3E72183A4E44' in simReq:
 
@@ -239,9 +239,9 @@ def vangPrintWithSim(ts, sepair, sevang, simvang, vangdiff):
         if vangdiff > 34.0:
             print(appName + ': OUTLIER, 13-node, vangdiff>34.0: ts: ' + str(ts) + ', sepair: ' + sepair + ', busname: ' + SEToBusDict[sepair] + ', sevang: ' + str(sevang) + ', simvang: ' + str(simvang) + ', diff: ' + str(vangdiff), flush=True)
     # 123-node
-    elif '_C1C3E687-6FFD-C753-582B-632A27E28507' in simReq:
-        if vangdiff < -100.0:
-            print(appName + ': OUTLIER, 123-node, vangdiff<-100.0: ts: ' + str(ts) + ', sepair: ' + sepair + ', busname: ' + SEToBusDict[sepair] + ', sevang: ' + str(sevang) + ', simvang: ' + str(simvang) + ', diff: ' + str(vangdiff), flush=True)
+    #elif '_C1C3E687-6FFD-C753-582B-632A27E28507' in simReq:
+    #    if vangdiff < -10.0:
+    #        print(appName + ': OUTLIER, 123-node, vangdiff<-100.0: ts: ' + str(ts) + ', sepair: ' + sepair + ', busname: ' + SEToBusDict[sepair] + ', sevang: ' + str(sevang) + ', simvang: ' + str(simvang) + ', diff: ' + str(vangdiff), flush=True)
     # 9500-node
     #elif '_AAE94E4A-2465-6F5E-37B1-3E72183A4E44' in simReq:
 
@@ -477,6 +477,7 @@ def measurementNoConfigCallback(header, message):
         #print(appName + ': timestamp: ' + str(ts), flush=True)
         #print(appName + ': sevval: ' + str(sevval), flush=True)
 
+        # only do the dictionary initializtion code on the first call
         if firstPassFlag:
             vvalSEDataDict[sepair] = []
             vvalSEDataPausedDict[sepair] = []
@@ -489,6 +490,15 @@ def measurementNoConfigCallback(header, message):
             vvalSELinesDict[sepair], = vvalSEAx.plot([], [], label=SEToBusDict[sepair])
             vvalSimLinesDict[sepair], = vvalSimAx.plot([], [], label=SEToBusDict[sepair])
             vvalDiffLinesDict[sepair], = vvalDiffAx.plot([], [], label=SEToBusDict[sepair])
+
+        # 123 node angle plots:
+        #   phase A heads to -60 degrees right away
+        #   phase B heads to -20 degrees around 500 seconds
+        #   phase C stays around 0, ranging from 0 to 2.5 degrees away from
+        #     the actual angle
+        # PHASE EXCLUSION LOGIC
+        #if phase!='C':
+        #    continue
 
         matchCount += 1
 
@@ -536,7 +546,6 @@ def measurementNoConfigCallback(header, message):
         elif plotMatchesFlag and plotNumber>0 and diffMatchCount==plotNumber:
             break
 
-    # only do the dictionary initializtion code on the first call
     firstPassFlag = False
 
     if plotNumber > 0:
@@ -1130,12 +1139,17 @@ def configPlot(busList):
 
 
 def _main():
+    global appName, simID, simReq
     global gapps, plotNumber, plotMagFlag, plotNominalFlag
     global plotOverlayFlag, plotLegendFlag, plotMatchesFlag
 
     if len(sys.argv) < 2:
-        print('Usage: ' + appName + ' simID simReq\n', flush=True)
+        print('Usage: ' + sys.argv[0] + ' simID simReq\n', flush=True)
         exit()
+
+    appName = sys.argv[0]
+    simID = sys.argv[1]
+    simReq = sys.argv[2]
 
     plotConfigFlag = True
     plotBusFlag = False
