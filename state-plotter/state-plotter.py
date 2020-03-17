@@ -211,7 +211,7 @@ def queryVnom():
             if bus in busToSEDict:
                 semrid = busToSEDict[bus]
                 mapSEToVnomMag(semrid, int(vnom[2]), float(vnom[3]))
-                mapSEToVnomMag(semrid, int(vnom[6]), float(vnom[7])))
+                mapSEToVnomMag(semrid, int(vnom[6]), float(vnom[7]))
                 mapSEToVnomMag(semrid, int(vnom[10]), float(vnom[11]))
 
         print(appName + ': start state-estimator to vnom magnitude mapping...', flush=True)
