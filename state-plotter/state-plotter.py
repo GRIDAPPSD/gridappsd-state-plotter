@@ -1,4 +1,4 @@
-#!/usr/bin/python3.6
+#!/usr/bin/env python3
 
 # ------------------------------------------------------------------------------
 # Copyright (c) 2019, Battelle Memorial Institute All rights reserved.
@@ -181,15 +181,21 @@ def mapSEToSim():
     print(appName + ': ' + str(seMatchCount) + ' state-estimator node,phase pair matches out of ' + str(len(busToSimDict)) + ' total simulation mrids', flush=True)
 
 
-def mapSEToVnom(semrid, phase, magnitude, angle):
+def mapSEToVnomMag(semrid, phase, magnitude):
     if phase == 1:
         SEToVnomMagDict[semrid+',A'] = magnitude
-        SEToVnomAngDict[semrid+',A'] = angle
     elif phase == 2:
         SEToVnomMagDict[semrid+',B'] = magnitude
-        SEToVnomAngDict[semrid+',B'] = angle
     elif phase == 3:
         SEToVnomMagDict[semrid+',C'] = magnitude
+
+
+def mapSEToVnomAngle(semrid, phase, angle):
+    if phase == 1:
+        SEToVnomAngDict[semrid+',A'] = angle
+    elif phase == 2:
+        SEToVnomAngDict[semrid+',B'] = angle
+    elif phase == 3:
         SEToVnomAngDict[semrid+',C'] = angle
 
 
@@ -198,22 +204,33 @@ def queryVnom():
     vnomResponse = gapps.get_response('goss.gridappsd.process.request.config', vnomRequestText, timeout=1200)
     # use busToSEDict dictionary to map to sepair (node,phase)
 
-    for line in vnomResponse['data']['vnom']:
-        vnom = line.split(',')
-        bus = vnom[0].strip('"')
-        if bus in busToSEDict:
-            semrid = busToSEDict[bus]
-            mapSEToVnom(semrid, int(vnom[2]), float(vnom[3]), float(vnom[4]))
-            mapSEToVnom(semrid, int(vnom[6]), float(vnom[7]), float(vnom[8]))
-            mapSEToVnom(semrid, int(vnom[10]), float(vnom[11]), float(vnom[12]))
+    if plotMagFlag:
+        for line in vnomResponse['data']['vnom']:
+            vnom = line.split(',')
+            bus = vnom[0].strip('"')
+            if bus in busToSEDict:
+                semrid = busToSEDict[bus]
+                mapSEToVnomMag(semrid, int(vnom[2]), float(vnom[3]))
+                mapSEToVnomMag(semrid, int(vnom[6]), float(vnom[7])))
+                mapSEToVnomMag(semrid, int(vnom[10]), float(vnom[11]))
 
-    print(appName + ': start state-estimator to vnom magnitude mapping...', flush=True)
-    pprint.pprint(SEToVnomMagDict)
-    print(appName + ': end state-estimator to vnom magnitude mapping', flush=True)
+        print(appName + ': start state-estimator to vnom magnitude mapping...', flush=True)
+        pprint.pprint(SEToVnomMagDict)
+        print(appName + ': end state-estimator to vnom magnitude mapping', flush=True)
 
-    print(appName + ': start state-estimator to vnom angle mapping...', flush=True)
-    pprint.pprint(SEToVnomAngDict)
-    print(appName + ': end state-estimator to vnom angle mapping', flush=True)
+    else:
+        for line in vnomResponse['data']['vnom']:
+            vnom = line.split(',')
+            bus = vnom[0].strip('"')
+            if bus in busToSEDict:
+                semrid = busToSEDict[bus]
+                mapSEToVnom(semrid, int(vnom[2]), float(vnom[4]))
+                mapSEToVnom(semrid, int(vnom[6]), float(vnom[8]))
+                mapSEToVnom(semrid, int(vnom[10]), float(vnom[12]))
+
+        print(appName + ': start state-estimator to vnom angle mapping...', flush=True)
+        pprint.pprint(SEToVnomAngDict)
+        print(appName + ': end state-estimator to vnom angle mapping', flush=True)
 
 
 def vmagPrintWithSim(ts, sepair, sevmag, simvmag, vmagdiff):
