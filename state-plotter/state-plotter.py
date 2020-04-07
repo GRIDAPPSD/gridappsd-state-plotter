@@ -224,9 +224,9 @@ def queryVnom():
             bus = vnom[0].strip('"')
             if bus in busToSEDict:
                 semrid = busToSEDict[bus]
-                mapSEToVnom(semrid, int(vnom[2]), float(vnom[4]))
-                mapSEToVnom(semrid, int(vnom[6]), float(vnom[8]))
-                mapSEToVnom(semrid, int(vnom[10]), float(vnom[12]))
+                mapSEToVnomAngle(semrid, int(vnom[2]), float(vnom[4]))
+                mapSEToVnomAngle(semrid, int(vnom[6]), float(vnom[8]))
+                mapSEToVnomAngle(semrid, int(vnom[10]), float(vnom[12]))
 
         print(appName + ': start state-estimator to vnom angle mapping...', flush=True)
         pprint.pprint(SEToVnomAngDict)
