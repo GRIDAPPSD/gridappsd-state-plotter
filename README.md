@@ -22,24 +22,71 @@ The following is the structure of the state plotter:
 
 ## Prerequisites
 
-1. Python version 3.6 or newer is required.
+1. Python version 3.6 or newer is required and should be the one found, based on your $PATH value, starting the Python interpreter with the command:
 
-2. The gridappsd-python module must be installed in python.  See <https://github.com/GRIDAPPSD/gridappsd-python> for installation instructions.
+```` bash
+python
+````
+
+2. The gridappsd-python module must be installed in python.  To check if this module is already installed:
+
+```` bash
+python
+>>> import gridappsd
+````
+
+If the import returns an error message, see <https://github.com/GRIDAPPSD/gridappsd-python> for installation instructions.
+
+3. The tkinter module must be installed in python, which is typically the case with most full Linux distributions.  To check if this module is already installed:
+
+```` bash
+python
+>>> import tkinter
+````
+
+If the import returns an error message, the following command should install the tkinter module into python along with the required Tk GUI libraries:
+
+```` bash
+sudo apt-get install python-tk
+````
 
 3. The matplotlib module must be installed in python.  Use the following command to install the newest available version:
 
 ```` bash
-sudo python3 -m pip install -U matplotlib
+sudo python -m pip install -U matplotlib
 ````
 
-4. Verify the matplotlib is version 3.1.0 or newer and that the TkAgg backend is available:
+4. Verify the matplotlib module is version 3.1.0 or newer:
 
 ```` bash
-python3
+python
 >>> import matplotlib
 >>> matplotlib.__version__
->>> matplotlib.rcsetup.interactive_bk
 ````
+
+5. Verify that the host or Docker container you are using is setup to support X Windows applications as needed for displaying matplotlib plots:
+
+```` bash
+python
+>>> import matplotlib.pyplot as plt
+>>> plt.plot([1,2,3,4])
+>>> plt.show()
+````
+
+If errors are output without a plot window, there are various solutions to
+allow X Windows applications to display. If you are running in a Docker container with the docker compose command, the following docker-compose.yml directives are needed before running docker compose so the container shares the X11 port with the host:
+
+```` bash
+volumes:
+    - /tmp/.X11-unix:/tmp/.X11-unix
+environment:
+    - DISPLAY=${DISPLAY}
+````
+
+If you are running in a Docker container with the docker run command, the following blog provides guidance in the section titled "Running UI apps with Docker": <http://fabiorehm.com/blog/2014/09/11/running-gui-apps-with-docker/>
+
+If you are running from a host that's different than the one running your Linux windows manager via ssh, you can use ssh X11 port forwarding with the "-X" command line option when starting your ssh connection.
+
 
 
 ## Installing state plotter
