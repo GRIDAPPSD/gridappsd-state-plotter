@@ -64,6 +64,8 @@ python
 >>> matplotlib.__version__
 ````
 
+<ol>
+<li>
 5. Verify that the host or Docker container you are using is setup to support X Windows applications as needed for displaying matplotlib plots:
 
 ```` bash
@@ -75,9 +77,7 @@ python
 
 &nbsp;&nbsp;&nbsp;&nbsp;If errors are output without a plot window being shown, there are various solutions to allow X Windows applications to display.
 
-    If you are running in a Docker container with the docker compose command, the following docker-compose.yml directives are needed before running docker compose so the container shares the X11 port with the host that is running your Linux windows manager:
-
-> If you are running in a Docker container with the docker compose command, the following docker-compose.yml directives are needed before running docker compose so the container shares the X11 port with the host that is running your Linux windows manager:
+If you are running in a Docker container with the docker compose command, the following docker-compose.yml directives are needed before running docker compose so the container shares the X11 port with the host that is running your Linux windows manager:
 
 ```` bash
 volumes:
@@ -89,6 +89,8 @@ environment:
 &nbsp;&nbsp;&nbsp;&nbsp;If you are running in a Docker container with the docker run command, the following blog provides guidance in the section titled "Running GUI apps with Docker": <http://fabiorehm.com/blog/2014/09/11/running-gui-apps-with-docker/>
 
 &nbsp;&nbsp;&nbsp;&nbsp;If you are running from a host that's different than the one running your Linux windows manager via ssh, you can use ssh X11 port forwarding with the "-X" command line option when starting your ssh connection.
+</li>
+</ol>
 
 
 
