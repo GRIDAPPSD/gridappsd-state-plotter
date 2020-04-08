@@ -35,7 +35,7 @@ python
 >>> import gridappsd
 ````
 
-If the import returns an error message, see <https://github.com/GRIDAPPSD/gridappsd-python> for installation instructions.
+&nbsp;&nbsp;&nbsp;&nbsp;If the import returns an error message, see <https://github.com/GRIDAPPSD/gridappsd-python> for installation instructions.
 
 3. The tkinter module must be installed in python, which is typically the case with most full Linux distributions.  To check if this module is already installed:
 
