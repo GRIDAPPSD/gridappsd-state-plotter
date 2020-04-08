@@ -96,7 +96,7 @@ environment:
     - DISPLAY=${DISPLAY}
 ````
 
-If you are running in a Docker container with the docker run command, the following blog provides guidance in the section titled "Running GUI apps with Docker": <http://fabiorehm.com/blog/2014/09/11/running-gui-apps-with-docker/>
+If you are running in a Docker container with the docker run command, the following blog provides guidance in the section titled "Running GUI apps with Docker": <http://fabiorehm.com/blog/2014/09/11/running-gui-apps-with-docker/>.
 
 If you are running from a host that's different than the one running your Linux windows manager via ssh, you can use ssh X11 port forwarding with the "-X" command line option when starting your ssh connection.
 </li>
@@ -106,7 +106,7 @@ If you are running from a host that's different than the one running your Linux 
 
 ## Installing state plotter
 
-1. Clone the repository <https://github.com/GRIDAPPSD/gridappsd-state-ploter> under the same parent directory as the gridappsd-python module, assumed to be ~/git:
+Clone the repository <https://github.com/GRIDAPPSD/gridappsd-state-ploter> under the same parent directory as the gridappsd-python module, assumed to be ~/git:
 
 ```` bash
 ~/git
