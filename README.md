@@ -44,7 +44,7 @@ python
 >>> import tkinter
 ````
 
-If the import returns an error message, the following command should install the tkinter module into python along with the required Tk GUI libraries:
+&nbsp;&nbsp;&nbsp;&nbsp;If the import returns an error message, the following command should install the tkinter module into python along with the required Tk GUI libraries:
 
 ```` bash
 sudo apt-get install python-tk
@@ -73,8 +73,7 @@ python
 >>> plt.show()
 ````
 
-If errors are output without a plot window, there are various solutions to
-allow X Windows applications to display. If you are running in a Docker container with the docker compose command, the following docker-compose.yml directives are needed before running docker compose so the container shares the X11 port with the host:
+&nbsp;&nbsp;&nbsp;&nbsp;If errors are output without a plot window being shown, there are various solutions to allow X Windows applications to display. If you are running in a Docker container with the docker compose command, the following docker-compose.yml directives are needed before running docker compose so the container shares the X11 port with the host that is running your Linux windows manager:
 
 ```` bash
 volumes:
@@ -83,9 +82,9 @@ environment:
     - DISPLAY=${DISPLAY}
 ````
 
-If you are running in a Docker container with the docker run command, the following blog provides guidance in the section titled "Running UI apps with Docker": <http://fabiorehm.com/blog/2014/09/11/running-gui-apps-with-docker/>
+&nbsp;&nbsp;&nbsp;&nbsp;If you are running in a Docker container with the docker run command, the following blog provides guidance in the section titled "Running GUI apps with Docker": <http://fabiorehm.com/blog/2014/09/11/running-gui-apps-with-docker/>
 
-If you are running from a host that's different than the one running your Linux windows manager via ssh, you can use ssh X11 port forwarding with the "-X" command line option when starting your ssh connection.
+&nbsp;&nbsp;&nbsp;&nbsp;If you are running from a host that's different than the one running your Linux windows manager via ssh, you can use ssh X11 port forwarding with the "-X" command line option when starting your ssh connection.
 
 
 
