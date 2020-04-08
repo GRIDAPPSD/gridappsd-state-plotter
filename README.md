@@ -75,7 +75,9 @@ python
 
 &nbsp;&nbsp;&nbsp;&nbsp;If errors are output without a plot window being shown, there are various solutions to allow X Windows applications to display.
 
-> <font color="black">If you are running in a Docker container with the docker compose command, the following docker-compose.yml directives are needed before running docker compose so the container shares the X11 port with the host that is running your Linux windows manager:</font>
+    If you are running in a Docker container with the docker compose command, the following docker-compose.yml directives are needed before running docker compose so the container shares the X11 port with the host that is running your Linux windows manager:
+
+> If you are running in a Docker container with the docker compose command, the following docker-compose.yml directives are needed before running docker compose so the container shares the X11 port with the host that is running your Linux windows manager:
 
 ```` bash
 volumes:
