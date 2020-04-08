@@ -22,51 +22,61 @@ The following is the structure of the state plotter:
 
 ## Prerequisites
 
-1. Python version 3.6 or newer is required and should be the one found, based on your $PATH value, starting the Python interpreter with the command:
+<ol>
+<li>
+Python version 3.6 or newer is required and should be the one found, based on your $PATH value, starting the Python interpreter with the command:
 
 ```` bash
 python
 ````
+</li>
 
-2. The gridappsd-python module must be installed in python.  To check if this module is already installed:
+<li>
+The gridappsd-python module must be installed in python.  To check if this module is already installed:
 
 ```` bash
 python
 >>> import gridappsd
 ````
 
-&nbsp;&nbsp;&nbsp;&nbsp;If the import returns an error message, see <https://github.com/GRIDAPPSD/gridappsd-python> for installation instructions.
+If the import returns an error message, see <https://github.com/GRIDAPPSD/gridappsd-python> for installation instructions.
+</li>
 
-3. The tkinter module must be installed in python, which is typically the case with most full Linux distributions.  To check if this module is already installed:
+<li>
+The tkinter module must be installed in python, which is typically the case with most full Linux distributions.  To check if this module is already installed:
 
 ```` bash
 python
 >>> import tkinter
 ````
 
-&nbsp;&nbsp;&nbsp;&nbsp;If the import returns an error message, the following command should install the tkinter module into python along with the required Tk GUI libraries:
+If the import returns an error message, the following command should install the tkinter module into python along with the required Tk GUI libraries:
 
 ```` bash
 sudo apt-get install python-tk
 ````
+</li>
 
-3. The matplotlib module must be installed in python.  Use the following command to install the newest available version:
+<li>
+The matplotlib module must be installed in python.  Use the following command to install the newest available version:
 
 ```` bash
 sudo python -m pip install -U matplotlib
 ````
+</li>
 
-4. Verify the matplotlib module is version 3.1.0 or newer:
+<li>
+Verify the matplotlib module is version 3.1.0 or newer:
 
 ```` bash
 python
 >>> import matplotlib
 >>> matplotlib.__version__
 ````
+</li>
 
-<ol>
 <li>
-5. Verify that the host or Docker container you are using is setup to support X Windows applications as needed for displaying matplotlib plots:
+Verify that the host or Docker container you are using is setup to support X Windows applications as needed for displaying matplotlib plots:
 
 ```` bash
 python
@@ -75,7 +85,7 @@ python
 >>> plt.show()
 ````
 
-&nbsp;&nbsp;&nbsp;&nbsp;If errors are output without a plot window being shown, there are various solutions to allow X Windows applications to display.
+If errors are output without a plot window being shown, there are various solutions to allow X Windows applications to display.
 
 If you are running in a Docker container with the docker compose command, the following docker-compose.yml directives are needed before running docker compose so the container shares the X11 port with the host that is running your Linux windows manager:
 
@@ -86,9 +96,9 @@ environment:
     - DISPLAY=${DISPLAY}
 ````
 
-&nbsp;&nbsp;&nbsp;&nbsp;If you are running in a Docker container with the docker run command, the following blog provides guidance in the section titled "Running GUI apps with Docker": <http://fabiorehm.com/blog/2014/09/11/running-gui-apps-with-docker/>
+If you are running in a Docker container with the docker run command, the following blog provides guidance in the section titled "Running GUI apps with Docker": <http://fabiorehm.com/blog/2014/09/11/running-gui-apps-with-docker/>
 
-&nbsp;&nbsp;&nbsp;&nbsp;If you are running from a host that's different than the one running your Linux windows manager via ssh, you can use ssh X11 port forwarding with the "-X" command line option when starting your ssh connection.
+If you are running from a host that's different than the one running your Linux windows manager via ssh, you can use ssh X11 port forwarding with the "-X" command line option when starting your ssh connection.
 </li>
 </ol>
 
