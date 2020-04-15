@@ -88,6 +88,7 @@ seLegendLineList = []
 seLegendLabelList = []
 simLegendLineList = []
 simLegendLabelList = []
+plotPhaseList = []
 
 # global variables
 gapps = None
@@ -105,6 +106,7 @@ plotOverlayFlag = False
 plotLegendFlag = False
 plotMatchesFlag = False
 plotNumber = 0
+plotTitle = None
 playIcon = None
 pauseIcon = None
 checkedIcon = None
@@ -513,9 +515,9 @@ def measurementNoConfigCallback(header, message):
         #   phase B heads to -20 degrees around 500 seconds
         #   phase C stays around 0, ranging from 0 to 2.5 degrees away from
         #     the actual angle
-        # PHASE EXCLUSION LOGIC
-        #if phase!='C':
-        #    continue
+        # Phase exclusion logic
+        if plotPhaseList and phase not in plotPhaseList:
+            continue
 
         matchCount += 1
 
@@ -981,7 +983,10 @@ def initPlot(configFlag):
         baseTitle += 'Voltage Magnitude'
     else:
         baseTitle += 'Voltage Angle'
-    vvalFig.canvas.set_window_title(baseTitle + ', Simulation ID: ' + simID)
+    baseTitle += ', Simulation ID: ' + simID
+    if plotTitle:
+        baseTitle += ', ' + plotTitle
+    vvalFig.canvas.set_window_title(baseTitle)
 
     # shouldn't be necessary to catch close window event, but uncomment
     # if plt.show() doesn't consistently exit when the window is closed
@@ -1156,7 +1161,7 @@ def configPlot(busList):
 
 
 def _main():
-    global appName, simID, simReq
+    global appName, simID, simReq, plotTitle
     global gapps, plotNumber, plotMagFlag, plotNominalFlag
     global plotOverlayFlag, plotLegendFlag, plotMatchesFlag
 
@@ -1170,11 +1175,19 @@ def _main():
 
     plotConfigFlag = True
     plotBusFlag = False
+    plotPhaseFlag = False
+    plotTitleFlag = False
     plotBusList = []
     for arg in sys.argv:
         if plotBusFlag:
             plotBusList.append(arg)
             plotBusFlag = False
+        elif plotPhaseFlag:
+            plotPhaseList.append(arg)
+            plotPhaseFlag = False
+        elif plotTitleFlag:
+            plotTitle = arg
+            plotTitleFlag = False
         elif arg == '-legend':
             plotLegendFlag = True
         elif arg == '-all':
@@ -1196,6 +1209,10 @@ def _main():
             plotNumber = int(arg[1:])
         elif arg == '-bus':
             plotBusFlag = True
+        elif arg == '-phase':
+            plotPhaseFlag = True
+        elif arg == '-title':
+            plotTitleFlag = True
 
     gapps = GridAPPSD()
 
