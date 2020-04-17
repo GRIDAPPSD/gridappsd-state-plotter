@@ -516,7 +516,7 @@ def measurementNoConfigCallback(header, message):
         #   phase C stays around 0, ranging from 0 to 2.5 degrees away from
         #     the actual angle
         # Phase exclusion logic
-        if plotPhaseList and phase not in plotPhaseList:
+        if len(plotPhaseList)>0 and phase not in plotPhaseList:
             continue
 
         matchCount += 1
@@ -1167,6 +1167,55 @@ def _main():
 
     if len(sys.argv) < 2:
         print('Usage: ' + sys.argv[0] + ' simID simReq\n', flush=True)
+        usestr = '''Optional command line arguments:
+        -mag[nitude]: voltage magnitude plots should be created (default)
+        -ang[le]: voltage angle plots should be created
+        -over[lay]: overlays simulation measurement and state estimate values
+         in the same bottom plot instead of the default to plot the difference
+         between simulation measurement and state estimate values
+        -match: only plot state estimates when there is a matching bus,phase
+         pair in simulation measurements
+        -nom[inal]: plot nominal voltage magnitudes and angles instead of
+         actual (default)
+        -act[ual]: plot actual voltage magnitudes and angles instead of the
+         default nominal values
+        -nonom[inal]: equivalent to -act[ual], nominal values are not plotted
+        -bus: plots the specified bus name and phase comma-separated pair (no
+         spaces) given as the argument that follows. The bus name alone may be
+         given without a comma and phase and all phases that are present will
+         be plotted, e.g. "-bus 150" will plot phases A, B, and C if present.
+         Plotting combinations of bus,phase pairs is done by repeating the -bus
+         option, e.g., "-bus 150,A -bus 160,A". Using -bus on the command line
+         results in state-plotter-config.csv bus,phase pairs being disregarded.
+        -all: plots all bus,phase pairs disregarding any pairs specified by
+         state-plotter-config.csv or the -bus option
+        -#, where # is an integer value: plots the first # bus,phase pairs
+         that occur in state estimator output, e.g., "-25" plots the first 25
+         bus,phase pairs. Like -all, any pairs specified by
+         state-plotter-config.csv or the -bus option are disregarded when
+         using this option
+        -phase: plots only the specified phase (A, B, or C) given as the
+         argument that follows. Combinations of phases in the same plot are
+         done by repeating the -phase option, e.g., "-phase A -phase B" to
+         exclude phase C. If there are bus,phase pairs specified in
+         state-plotter-config.csv or with the -bus option, they will be
+         excluded if -phase is used and the phase of the pair differs. E.g.,
+         "-bus 160,A -phase C" will not plot the 160,A pair, nor any data in
+         this case, since the -phase option specifies only phase C
+        -legend: Indicates that a legend should be shown for the plot when
+         bus,phase pairs are specified either with the -bus option or in 
+         state-plotter-config.csv
+        -title: appends argument that follows to the standard title to allow
+         plot windows to be distinguished from each other. The argument can be
+         quoted to allow spaces.
+
+state-plotter-config.csv format:
+        Each line contains a bus name and phase comma-separated pair. The bus
+        name alone may be given without a comma and phase and all phases that
+        are present will be plotted. Lines starting with the character "#" are
+        treated as comments and ignored as are blank lines.
+        '''
+        print(usestr, flush=True)
         exit()
 
     appName = sys.argv[0]
