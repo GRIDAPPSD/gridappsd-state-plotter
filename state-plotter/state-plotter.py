@@ -508,7 +508,13 @@ def measurementNoConfigCallback(header, message):
             # create a lines dictionary entry per node/phase pair for each plot
             vvalSELinesDict[sepair], = vvalSEAx.plot([], [], label=SEToBusDict[sepair])
             vvalSimLinesDict[sepair], = vvalSimAx.plot([], [], label=SEToBusDict[sepair])
-            vvalDiffLinesDict[sepair], = vvalDiffAx.plot([], [], label=SEToBusDict[sepair])
+
+            if plotOverlayFlag:
+                vvalDiffLinesDict[sepair+' Actual'], = vvalDiffAx.plot([], [], label=SEToBusDict[sepair]+' Actual')
+                color = vvalDiffLinesDict[sepair+' Actual'].get_color()
+                vvalDiffLinesDict[sepair+' Est.'], = vvalDiffAx.plot([], [], label=SEToBusDict[sepair]+' Est.', linestyle='--', color=color)
+            else:
+                vvalDiffLinesDict[sepair], = vvalDiffAx.plot([], [], label=SEToBusDict[sepair])
 
         # 123 node angle plots:
         #   phase A heads to -60 degrees right away
@@ -1165,9 +1171,10 @@ def _main():
     global gapps, plotNumber, plotMagFlag, plotNominalFlag
     global plotOverlayFlag, plotLegendFlag, plotMatchesFlag
 
-    if len(sys.argv) < 2:
-        print('Usage: ' + sys.argv[0] + ' simID simReq\n', flush=True)
-        usestr = '''Optional command line arguments:
+    if len(sys.argv)<2 or '-help' in sys.argv:
+        usestr =  '\nUsage: ' + sys.argv[0] + ' simID simReq\n'
+        usestr += '''
+Optional command line arguments:
         -mag[nitude]: voltage magnitude plots should be created (default)
         -ang[le]: voltage angle plots should be created
         -over[lay]: overlays simulation measurement and state estimate values
