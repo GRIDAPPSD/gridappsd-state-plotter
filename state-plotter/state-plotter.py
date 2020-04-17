@@ -105,7 +105,7 @@ firstPlotFlag = True
 plotOverlayFlag = False
 plotLegendFlag = False
 plotMatchesFlag = False
-plotNumber = 0
+plotNumber = 50
 plotTitle = None
 playIcon = None
 pauseIcon = None
@@ -1194,13 +1194,21 @@ Optional command line arguments:
          Plotting combinations of bus,phase pairs is done by repeating the -bus
          option, e.g., "-bus 150,A -bus 160,A". Using -bus on the command line
          results in state-plotter-config.csv bus,phase pairs being disregarded.
+        -conf[ig]: read bus name and phase pairs from state-plotter-config.csv
+         file in parent directory. Each line contains a bus name and phase
+         comma-separated pair. The bus name alone may be given without a comma
+         and phase and all phases that are present will be plotted. Lines
+         starting with the character "#" are treated as comments and ignored
+         as are blank lines.
         -all: plots all bus,phase pairs disregarding any pairs specified by
          state-plotter-config.csv or the -bus option
         -#, where # is an integer value: plots the first # bus,phase pairs
          that occur in state estimator output, e.g., "-25" plots the first 25
          bus,phase pairs. Like -all, any pairs specified by
          state-plotter-config.csv or the -bus option are disregarded when
-         using this option
+         using this option. Default without specifying any of -bus, -conf,
+         -all, or -# is -50 so the first 50 bus,phase pairs are plotted or
+         all pairs if there are less than 50.
         -phase: plots only the specified phase (A, B, or C) given as the
          argument that follows. Combinations of phases in the same plot are
          done by repeating the -phase option, e.g., "-phase A -phase B" to
@@ -1208,19 +1216,14 @@ Optional command line arguments:
          state-plotter-config.csv or with the -bus option, they will be
          excluded if -phase is used and the phase of the pair differs. E.g.,
          "-bus 160,A -phase C" will not plot the 160,A pair, nor any data in
-         this case, since the -phase option specifies only phase C
+         this case, since the -phase option specifies only phase C.
         -legend: Indicates that a legend should be shown for the plot when
          bus,phase pairs are specified either with the -bus option or in 
          state-plotter-config.csv
         -title: appends argument that follows to the standard title to allow
          plot windows to be distinguished from each other. The argument can be
          quoted to allow spaces.
-
-state-plotter-config.csv format:
-        Each line contains a bus name and phase comma-separated pair. The bus
-        name alone may be given without a comma and phase and all phases that
-        are present will be plotted. Lines starting with the character "#" are
-        treated as comments and ignored as are blank lines.
+        -help: show this usage message
         '''
         print(usestr, flush=True)
         exit()
@@ -1229,7 +1232,7 @@ state-plotter-config.csv format:
     simID = sys.argv[1]
     simReq = sys.argv[2]
 
-    plotConfigFlag = True
+    plotConfigFlag = False
     plotBusFlag = False
     plotPhaseFlag = False
     plotTitleFlag = False
@@ -1247,6 +1250,7 @@ state-plotter-config.csv format:
         elif arg == '-legend':
             plotLegendFlag = True
         elif arg == '-all':
+            plotNumber = 0 # magic number to plot all pairs
             plotConfigFlag = False
         elif arg.startswith('-mag'):
             plotMagFlag = True
@@ -1265,6 +1269,8 @@ state-plotter-config.csv format:
             plotNumber = int(arg[1:])
         elif arg == '-bus':
             plotBusFlag = True
+        elif arg.startswith('-conf'):
+            plotConfigFlag = True
         elif arg == '-phase':
             plotPhaseFlag = True
         elif arg == '-title':
