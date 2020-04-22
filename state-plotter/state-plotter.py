@@ -105,7 +105,7 @@ firstPlotFlag = True
 plotOverlayFlag = False
 plotLegendFlag = False
 plotMatchesFlag = False
-plotNumber = 50
+plotNumber = 0
 plotTitle = None
 playIcon = None
 pauseIcon = None
@@ -277,10 +277,10 @@ def vangPrintWithoutSim(ts, sepair, sevang):
 
 
 def calcVNom(vval, sepair):
-    if plotNominalFlag:
-        if plotMagFlag and sepair in SEToVnomMagDict:
+    if plotNominalFlag and sepair in SEToVnomMagDict:
+        if plotMagFlag:
             return vval / SEToVnomMagDict[sepair]
-        elif not plotMagFlag and sepair in SEToVnomAngDict:
+        else:
             return vval - SEToVnomAngDict[sepair]
 
     return vval
@@ -388,17 +388,17 @@ def measurementConfigCallback(header, message):
                             vvalSimDataPausedDict[sepair].append(simvval) if vvalPausedFlag else vvalSimDataDict[sepair].append(simvval)
 
                             if not plotMagFlag:
-                                vvaldiff = sevval - simvval
+                                diffvval = sevval - simvval
                             elif simvval != 0.0:
-                                vvaldiff = 100.0*(sevval - simvval)/simvval
+                                diffvval = 100.0*(sevval - simvval)/simvval
                             else:
-                                vvaldiff = 0.0
+                                diffvval = 0.0
                             if not plotOverlayFlag:
-                                vvalDiffDataPausedDict[sepair].append(vvaldiff) if vvalPausedFlag else vvalDiffDataDict[sepair].append(vvaldiff)
+                                vvalDiffDataPausedDict[sepair].append(diffvval) if vvalPausedFlag else vvalDiffDataDict[sepair].append(diffvval)
                             if plotMagFlag:
-                                vmagPrintWithSim(ts, sepair, sevval, simvval, vvaldiff)
+                                vmagPrintWithSim(ts, sepair, sevval, simvval, diffvval)
                             else:
-                                vangPrintWithSim(ts, sepair, sevval, simvval, vvaldiff)
+                                vangPrintWithSim(ts, sepair, sevval, simvval, diffvval)
                             break
             if not simvval:
                 if plotMagFlag:
@@ -431,8 +431,8 @@ def measurementNoConfigCallback(header, message):
     diffMatchCount = 0
     sepairCount = len(estVolt)
 
-    # update the timestamp zoom slider upper limit and default value
     if firstPassFlag:
+        # update the timestamp zoom slider upper limit and default value
         # scale based on cube root of number of node/phase pairs
         # 18 is just a magic number that seems to produce reasonable values
         # for the 3 models used as test cases--20 is a bit too big, 15 too small
@@ -502,8 +502,9 @@ def measurementNoConfigCallback(header, message):
             vvalSEDataPausedDict[sepair] = []
             vvalSimDataDict[sepair] = []
             vvalSimDataPausedDict[sepair] = []
-            vvalDiffDataDict[sepair] = []
-            vvalDiffDataPausedDict[sepair] = []
+            if not plotOverlayFlag:
+                vvalDiffDataDict[sepair] = []
+                vvalDiffDataPausedDict[sepair] = []
 
             # create a lines dictionary entry per node/phase pair for each plot
             vvalSELinesDict[sepair], = vvalSEAx.plot([], [], label=SEToBusDict[sepair])
@@ -516,11 +517,12 @@ def measurementNoConfigCallback(header, message):
             else:
                 vvalDiffLinesDict[sepair], = vvalDiffAx.plot([], [], label=SEToBusDict[sepair])
 
-        # 123 node angle plots:
+        # 123-node angle plots:
         #   phase A heads to -60 degrees right away
         #   phase B heads to -20 degrees around 500 seconds
         #   phase C stays around 0, ranging from 0 to 2.5 degrees away from
         #     the actual angle
+
         # Phase exclusion logic
         if len(plotPhaseList)>0 and phase not in plotPhaseList:
             continue
@@ -546,17 +548,20 @@ def measurementNoConfigCallback(header, message):
                         simvval = simmeas[simkey]
                         simvval = calcVNom(simvval, sepair)
                         vvalSimDataPausedDict[sepair].append(simvval) if vvalPausedFlag else vvalSimDataDict[sepair].append(simvval)
+
                         if not plotMagFlag:
-                            vvaldiff = sevval - simvval
+                            diffvval = sevval - simvval
                         elif simvval != 0.0:
-                            vvaldiff = 100.0*(sevval - simvval)/simvval
+                            diffvval = 100.0*(sevval - simvval)/simvval
                         else:
-                            vvaldiff = 0.0
-                        vvalDiffDataPausedDict[sepair].append(vvaldiff) if vvalPausedFlag else vvalDiffDataDict[sepair].append(vvaldiff)
+                            diffvval = 0.0
+                        if not plotOverlayFlag:
+                            vvalDiffDataPausedDict[sepair].append(diffvval) if vvalPausedFlag else vvalDiffDataDict[sepair].append(diffvval)
+
                         if plotMagFlag:
-                            vmagPrintWithSim(ts, sepair, sevval, simvval, vvaldiff)
+                            vmagPrintWithSim(ts, sepair, sevval, simvval, diffvval)
                         else:
-                            vangPrintWithSim(ts, sepair, sevval, simvval, vvaldiff)
+                            vangPrintWithSim(ts, sepair, sevval, simvval, diffvval)
                         break
         if not simvval:
             if plotMagFlag:
@@ -577,6 +582,208 @@ def measurementNoConfigCallback(header, message):
         print(appName + ': ' + str(sepairCount) + ' state-estimator measurements, ' + str(matchCount) + ' node,phase pair matches (matching first ' + str(plotNumber) + '), ' + str(diffMatchCount) + ' matches to simulation data', flush=True)
     else:
         print(appName + ': ' + str(sepairCount) + ' state-estimator measurements, ' + str(matchCount) + ' node,phase pair matches (matching all), ' + str(diffMatchCount) + ' matches to simulation data', flush=True)
+
+    # update plots with the new data
+    vvalPlotData(None)
+
+
+def measurementMMMCallback(header, message):
+    global firstPassFlag, tsInit
+
+    msgdict = message['message']
+    ts = msgdict['timestamp']
+    print(appName + ': measurement timestamp: ' + str(ts), flush=True)
+
+    estVolt = msgdict['Estimate']['SvEstVoltages']
+    sepairCount = len(estVolt)
+
+    if firstPassFlag:
+        # update the timestamp zoom slider upper limit and default value
+        # scale based on cube root of number of node/phase pairs
+        # 18 is just a magic number that seems to produce reasonable values
+        # for the 3 models used as test cases--20 is a bit too big, 15 too small
+        upper = 18 * (sepairCount**(1./3))
+        # round to the nearest 10 to keep the slider from looking odd
+        upper = int(round(upper/10.0)) * 10;
+        # sanity check just in case
+        upper = max(upper, 60)
+        # // is integer floor division operator
+        default = upper // 2;
+        #print('setting slider upper limit: ' + str(upper) + ', default value: ' + str(default) + ', matchCount: ' + str(matchCount), flush=True)
+        vvalTSZoomSldr.valmin = 1
+        vvalTSZoomSldr.valmax = upper
+        vvalTSZoomSldr.val = default
+        vvalTSZoomSldr.ax.set_xlim(vvalTSZoomSldr.valmin, vvalTSZoomSldr.valmax)
+        vvalTSZoomSldr.set_val(vvalTSZoomSldr.val)
+        vvalTSZoomSldr.valmin = 1
+
+        vvalSEDataDict['Min'] = []
+        vvalSEDataDict['Max'] = []
+        vvalSEDataDict['Mean'] = []
+        vvalSEDataPausedDict['Min'] = []
+        vvalSEDataPausedDict['Max'] = []
+        vvalSEDataPausedDict['Mean'] = []
+        vvalSimDataDict['Min'] = []
+        vvalSimDataDict['Max'] = []
+        vvalSimDataDict['Mean'] = []
+        vvalSimDataPausedDict['Min'] = []
+        vvalSimDataPausedDict['Max'] = []
+        vvalSimDataPausedDict['Mean'] = []
+
+        # create a lines dictionary entry per node/phase pair for each plot
+        vvalSELinesDict['Min'], = vvalSEAx.plot([], [], label='Minimum')
+        vvalSELinesDict['Max'], = vvalSEAx.plot([], [], label='Maximum')
+        vvalSELinesDict['Mean'], = vvalSEAx.plot([], [], label='Mean')
+        vvalSimLinesDict['Min'], = vvalSimAx.plot([], [], label='Minimum')
+        vvalSimLinesDict['Max'], = vvalSimAx.plot([], [], label='Maximum')
+        vvalSimLinesDict['Mean'], = vvalSimAx.plot([], [], label='Mean')
+
+        if plotOverlayFlag:
+            vvalDiffLinesDict['Min Actual'], = vvalDiffAx.plot([], [], label='Min Actual')
+            color = vvalDiffLinesDict['Min Actual'].get_color()
+            vvalDiffLinesDict['Min Est.'], = vvalDiffAx.plot([], [], label='Min Est.', linestyle='--', color=color)
+
+            vvalDiffLinesDict['Max Actual'], = vvalDiffAx.plot([], [], label='Max Actual')
+            color = vvalDiffLinesDict['Max Actual'].get_color()
+            vvalDiffLinesDict['Max Est.'], = vvalDiffAx.plot([], [], label='Max Est.', linestyle='--', color=color)
+
+            vvalDiffLinesDict['Mean Actual'], = vvalDiffAx.plot([], [], label='Mean Actual')
+            color = vvalDiffLinesDict['Mean Actual'].get_color()
+            vvalDiffLinesDict['Mean Est.'], = vvalDiffAx.plot([], [], label='Mean Est.', linestyle='--', color=color)
+
+        else:
+            vvalDiffDataDict['Min'] = []
+            vvalDiffDataDict['Max'] = []
+            vvalDiffDataDict['Mean'] = []
+            vvalDiffDataPausedDict['Min'] = []
+            vvalDiffDataPausedDict['Max'] = []
+            vvalDiffDataPausedDict['Mean'] = []
+
+            vvalDiffLinesDict['Min'], = vvalDiffAx.plot([], [], label='Minimum')
+            vvalDiffLinesDict['Max'], = vvalDiffAx.plot([], [], label='Maximum')
+            vvalDiffLinesDict['Mean'], = vvalDiffAx.plot([], [], label='Mean')
+
+    # simulation data processing setup
+    # to account for state estimator work queue draining design, iterate over
+    # simDataDict and toss all measurements until we reach the current timestamp
+    for tskey in list(simDataDict):
+        if tskey < ts:
+            del simDataDict[tskey]
+        else:
+            break
+
+    # verify the first key is the current timestamp after tossing the ones
+    # before the current timestamp
+    if simDataDict and next(iter(simDataDict)) == ts:
+        simDataTS = simDataDict[ts]
+        # now that we have a copy, won't need this timestamp any longer either
+        del simDataDict[ts]
+    else:
+        simDataTS = None
+    # end simulation data processing setup
+
+    if firstPassFlag:
+        # save first timestamp so what we plot is an offset from this
+        tsInit = ts
+        firstPassFlag = False
+
+    # set the data element keys we want to extract
+    if plotMagFlag:
+        sekey = 'v'
+        simkey = 'magnitude'
+    else:
+        sekey = 'angle'
+        simkey = 'angle'
+
+    semin = sys.float_info.max
+    semax = -sys.float_info.max
+    sesum = 0.0
+    sectr = 0
+    simmin = sys.float_info.max
+    simmax = -sys.float_info.max
+    simsum = 0.0
+    simctr = 0
+    diffmin = sys.float_info.max
+    diffmax = -sys.float_info.max
+    diffsum = 0.0
+
+    for item in estVolt:
+        # only consider phases A, B, C and user-specified phases
+        phase = item['phase']
+        if phase!='A' and phase!='B' and phase!='C' or \
+           len(plotPhaseList)>0 and phase not in plotPhaseList:
+            continue
+
+        sepair = item['ConnectivityNode'] + ',' + phase
+        sevval = item[sekey]
+        sevval = calcVNom(sevval, sepair)
+
+        #print(appName + ': node,phase pair: ' + sepair, flush=True)
+        #print(appName + ': timestamp: ' + str(ts), flush=True)
+        #print(appName + ': sevval: ' + str(sevval), flush=True)
+
+        simvval = None
+        if not plotMatchesFlag:
+            semin = min(semin, sevval)
+            semax = max(semax, sevval)
+            sesum += sevval
+            sectr += 1
+        if simDataTS is not None and sepair in SEToSimDict:
+            for simmrid in SEToSimDict[sepair]:
+                if simmrid in simDataTS:
+                    simmeas = simDataTS[simmrid]
+                    if simkey in simmeas:
+                        if plotMatchesFlag:
+                            semin = min(semin, sevval)
+                            semax = max(semax, sevval)
+                            sesum += sevval
+                            sectr += 1
+
+                        simvval = simmeas[simkey]
+                        simvval = calcVNom(simvval, sepair)
+                        simmin = min(simmin, simvval)
+                        simmax = max(simmax, simvval)
+                        simsum += simvval
+                        simctr += 1
+
+                        if not plotMagFlag:
+                            diffvval = sevval - simvval
+                        elif simvval != 0.0:
+                            diffvval = 100.0*(sevval - simvval)/simvval
+                        else:
+                            diffvval = 0.0
+
+                        if not plotOverlayFlag:
+                            diffmin = min(diffmin, diffvval)
+                            diffmax = max(diffmax, diffvval)
+                            diffsum += diffvval
+
+                        if plotMagFlag:
+                            vmagPrintWithSim(ts, sepair, sevval, simvval, diffvval)
+                        else:
+                            vangPrintWithSim(ts, sepair, sevval, simvval, diffvval)
+                        break
+
+        if not simvval:
+            if plotMagFlag:
+                vmagPrintWithoutSim(ts, sepair, sevval)
+            else:
+                vangPrintWithoutSim(ts, sepair, sevval)
+
+    vvalTSDataPausedList.append(ts - tsInit) if vvalPausedFlag else vvalTSDataList.append(ts - tsInit)
+
+    vvalSEDataPausedDict['Min'].append(semin) if vvalPausedFlag else vvalSEDataDict['Min'].append(semin)
+    vvalSEDataPausedDict['Max'].append(semax) if vvalPausedFlag else vvalSEDataDict['Max'].append(semax)
+    vvalSEDataPausedDict['Mean'].append(sesum/sectr) if vvalPausedFlag else vvalSEDataDict['Mean'].append(sesum/sectr)
+
+    vvalSimDataPausedDict['Min'].append(simmin) if vvalPausedFlag else vvalSimDataDict['Min'].append(simmin)
+    vvalSimDataPausedDict['Max'].append(simmax) if vvalPausedFlag else vvalSimDataDict['Max'].append(simmax)
+    vvalSimDataPausedDict['Mean'].append(simsum/simctr) if vvalPausedFlag else vvalSimDataDict['Mean'].append(simsum/simctr)
+
+    if not plotOverlayFlag:
+        vvalDiffDataPausedDict['Min'].append(diffmin) if vvalPausedFlag else vvalDiffDataDict['Min'].append(diffmin)
+        vvalDiffDataPausedDict['Max'].append(diffmax) if vvalPausedFlag else vvalDiffDataDict['Max'].append(diffmax)
+        vvalDiffDataPausedDict['Mean'].append(diffsum/simctr) if vvalPausedFlag else vvalDiffDataDict['Mean'].append(diffsum/simctr)
 
     # update plots with the new data
     vvalPlotData(None)
@@ -892,9 +1099,10 @@ def vvalPauseCallback(event):
             vvalSimDataDict[pair].extend(vvalSimDataPausedDict[pair])
             vvalSimDataPausedDict[pair].clear()
 
-        for pair in vvalDiffDataDict:
-            vvalDiffDataDict[pair].extend(vvalDiffDataPausedDict[pair])
-            vvalDiffDataPausedDict[pair].clear()
+        if not plotOverlayFlag:
+            for pair in vvalDiffDataDict:
+                vvalDiffDataDict[pair].extend(vvalDiffDataPausedDict[pair])
+                vvalDiffDataPausedDict[pair].clear()
 
     vvalPlotData(None)
 
@@ -1167,8 +1375,8 @@ def configPlot(busList):
 
 
 def _main():
-    global appName, simID, simReq, plotTitle
-    global gapps, plotNumber, plotMagFlag, plotNominalFlag
+    global appName, simID, simReq, gapps
+    global plotTitle, plotNumber, plotMagFlag, plotNominalFlag
     global plotOverlayFlag, plotLegendFlag, plotMatchesFlag
 
     if len(sys.argv)<2 or '-help' in sys.argv:
@@ -1187,6 +1395,9 @@ Optional command line arguments:
         -act[ual]: plot actual voltage magnitudes and angles instead of the
          default nominal values
         -nonom[inal]: equivalent to -act[ual], nominal values are not plotted
+        -min[maxmean]: plots minimum, maximum, and mean values over all
+         bus,phase pairs for each timestamp (default if none from -bus, -conf,
+         -all, nor -# are specified)
         -bus: plots the specified bus name and phase comma-separated pair (no
          spaces) given as the argument that follows. The bus name alone may be
          given without a comma and phase and all phases that are present will
@@ -1206,9 +1417,8 @@ Optional command line arguments:
          that occur in state estimator output, e.g., "-25" plots the first 25
          bus,phase pairs. Like -all, any pairs specified by
          state-plotter-config.csv or the -bus option are disregarded when
-         using this option. Default without specifying any of -bus, -conf,
-         -all, or -# is -50 so the first 50 bus,phase pairs are plotted or
-         all pairs if there are less than 50.
+         using this option. If there are fewer pairs than #, all pairs are
+         plotted.
         -phase: plots only the specified phase (A, B, or C) given as the
          argument that follows. Combinations of phases in the same plot are
          done by repeating the -phase option, e.g., "-phase A -phase B" to
@@ -1232,6 +1442,7 @@ Optional command line arguments:
     simID = sys.argv[1]
     simReq = sys.argv[2]
 
+    plotMMMFlag = True
     plotConfigFlag = False
     plotBusFlag = False
     plotPhaseFlag = False
@@ -1251,7 +1462,12 @@ Optional command line arguments:
             plotLegendFlag = True
         elif arg == '-all':
             plotNumber = 0 # magic number to plot all pairs
+            plotMMMFlag = False
             plotConfigFlag = False
+        elif arg.startswith('-min'):
+            plotMMMFlag = True
+            plotConfigFlag = False
+            plotLegendFlag = True
         elif arg.startswith('-mag'):
             plotMagFlag = True
         elif arg.startswith('-ang'):
@@ -1265,12 +1481,15 @@ Optional command line arguments:
         elif arg.startswith('-nom'):
             plotNominalFlag = True
         elif arg[0]=='-' and arg[1:].isdigit():
-            plotConfigFlag = False
             plotNumber = int(arg[1:])
+            plotMMMFlag = False
+            plotConfigFlag = False
         elif arg == '-bus':
             plotBusFlag = True
+            plotMMMFlag = False
         elif arg.startswith('-conf'):
             plotConfigFlag = True
+            plotMMMFlag = False
         elif arg == '-phase':
             plotPhaseFlag = True
         elif arg == '-title':
@@ -1302,9 +1521,14 @@ Optional command line arguments:
         gapps.subscribe('/topic/goss.gridappsd.state-estimator.out.' +
                         simID, measurementConfigCallback)
     else:
-        # subscribe to state-estimator measurement output--without config file
-        gapps.subscribe('/topic/goss.gridappsd.state-estimator.out.' +
-                        simID, measurementNoConfigCallback)
+        # subscribe to state-estimator measurement output--one of two methods
+        # without config file
+        if plotMMMFlag:
+            gapps.subscribe('/topic/goss.gridappsd.state-estimator.out.' +
+                            simID, measurementMMMCallback)
+        else:
+            gapps.subscribe('/topic/goss.gridappsd.state-estimator.out.' +
+                            simID, measurementNoConfigCallback)
 
     # subscribe to simulation output for comparison with measurements
     gapps.subscribe('/topic/goss.gridappsd.simulation.output.' +
