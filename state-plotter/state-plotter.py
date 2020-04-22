@@ -783,16 +783,28 @@ def measurementMMMCallback(header, message):
 
     vvalSEDataPausedDict['Min'].append(semin) if vvalPausedFlag else vvalSEDataDict['Min'].append(semin)
     vvalSEDataPausedDict['Max'].append(semax) if vvalPausedFlag else vvalSEDataDict['Max'].append(semax)
-    vvalSEDataPausedDict['Mean'].append(sesum/sectr) if vvalPausedFlag else vvalSEDataDict['Mean'].append(sesum/sectr)
+    if sectr > 0:
+        semean = sesum/sectr
+    else:
+        semean = 0.0
+    vvalSEDataPausedDict['Mean'].append(semean) if vvalPausedFlag else vvalSEDataDict['Mean'].append(semean)
 
     vvalSimDataPausedDict['Min'].append(simmin) if vvalPausedFlag else vvalSimDataDict['Min'].append(simmin)
     vvalSimDataPausedDict['Max'].append(simmax) if vvalPausedFlag else vvalSimDataDict['Max'].append(simmax)
-    vvalSimDataPausedDict['Mean'].append(simsum/simctr) if vvalPausedFlag else vvalSimDataDict['Mean'].append(simsum/simctr)
+    if simctr > 0:
+        simmean = simsum/simctr
+    else:
+        simmean = 0.0
+    vvalSimDataPausedDict['Mean'].append(simmean) if vvalPausedFlag else vvalSimDataDict['Mean'].append(simmean)
 
     if not plotOverlayFlag:
         vvalDiffDataPausedDict['Min'].append(diffmin) if vvalPausedFlag else vvalDiffDataDict['Min'].append(diffmin)
         vvalDiffDataPausedDict['Max'].append(diffmax) if vvalPausedFlag else vvalDiffDataDict['Max'].append(diffmax)
-        vvalDiffDataPausedDict['Mean'].append(diffsum/simctr) if vvalPausedFlag else vvalDiffDataDict['Mean'].append(diffsum/simctr)
+        if simctr > 0:
+            diffmean = diffsum/simctr
+        else:
+            diffmean = 0.0
+        vvalDiffDataPausedDict['Mean'].append(diffmean) if vvalPausedFlag else vvalDiffDataDict['Mean'].append(diffmean)
 
     # update plots with the new data
     vvalPlotData(None)
