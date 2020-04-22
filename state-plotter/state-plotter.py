@@ -1422,7 +1422,8 @@ Optional command line arguments:
         -nonom[inal]: equivalent to -act[ual], nominal values are not plotted
         -min[maxmean]: plots minimum, maximum, and mean values over all
          bus,phase pairs for each timestamp (default if none from -bus, -conf,
-         -all, nor -# are specified)
+         -all, nor -# are specified). Can be used in combination with -phase
+         to report statistics for specific phases.
         -bus: plots the specified bus name and phase comma-separated pair (no
          spaces) given as the argument that follows. The bus name alone may be
          given without a comma and phase and all phases that are present will
