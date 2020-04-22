@@ -508,15 +508,18 @@ def measurementNoConfigCallback(header, message):
                 vvalDiffDataPausedDict[sepair] = []
 
             # create a lines dictionary entry per node/phase pair for each plot
-            vvalSELinesDict[sepair], = vvalSEAx.plot([], [], label=SEToBusDict[sepair])
-            vvalSimLinesDict[sepair], = vvalSimAx.plot([], [], label=SEToBusDict[sepair])
-
             if plotOverlayFlag:
+                vvalSELinesDict[sepair], = vvalSEAx.plot([], [], label=SEToBusDict[sepair], linestyle='--')
+
                 vvalDiffLinesDict[sepair+' Actual'], = vvalDiffAx.plot([], [], label=SEToBusDict[sepair]+' Actual')
                 color = vvalDiffLinesDict[sepair+' Actual'].get_color()
                 vvalDiffLinesDict[sepair+' Est.'], = vvalDiffAx.plot([], [], label=SEToBusDict[sepair]+' Est.', linestyle='--', color=color)
             else:
+                vvalSELinesDict[sepair], = vvalSEAx.plot([], [], label=SEToBusDict[sepair])
+
                 vvalDiffLinesDict[sepair], = vvalDiffAx.plot([], [], label=SEToBusDict[sepair])
+
+            vvalSimLinesDict[sepair], = vvalSimAx.plot([], [], label=SEToBusDict[sepair])
 
         # 123-node angle plots:
         #   phase A heads to -60 degrees right away
@@ -632,14 +635,11 @@ def measurementMMMCallback(header, message):
         vvalSimDataPausedDict['Mean'] = []
 
         # create a lines dictionary entry per node/phase pair for each plot
-        vvalSELinesDict['Min'], = vvalSEAx.plot([], [], label='Minimum')
-        vvalSELinesDict['Max'], = vvalSEAx.plot([], [], label='Maximum')
-        vvalSELinesDict['Mean'], = vvalSEAx.plot([], [], label='Mean')
-        vvalSimLinesDict['Min'], = vvalSimAx.plot([], [], label='Minimum')
-        vvalSimLinesDict['Max'], = vvalSimAx.plot([], [], label='Maximum')
-        vvalSimLinesDict['Mean'], = vvalSimAx.plot([], [], label='Mean')
-
         if plotOverlayFlag:
+            vvalSELinesDict['Min'], = vvalSEAx.plot([], [], label='Minimum', linestyle='--')
+            vvalSELinesDict['Max'], = vvalSEAx.plot([], [], label='Maximum', linestyle='--')
+            vvalSELinesDict['Mean'], = vvalSEAx.plot([], [], label='Mean', linestyle='--')
+
             vvalDiffLinesDict['Min Actual'], = vvalDiffAx.plot([], [], label='Min Actual')
             color = vvalDiffLinesDict['Min Actual'].get_color()
             vvalDiffLinesDict['Min Est.'], = vvalDiffAx.plot([], [], label='Min Est.', linestyle='--', color=color)
@@ -653,6 +653,10 @@ def measurementMMMCallback(header, message):
             vvalDiffLinesDict['Mean Est.'], = vvalDiffAx.plot([], [], label='Mean Est.', linestyle='--', color=color)
 
         else:
+            vvalSELinesDict['Min'], = vvalSEAx.plot([], [], label='Minimum')
+            vvalSELinesDict['Max'], = vvalSEAx.plot([], [], label='Maximum')
+            vvalSELinesDict['Mean'], = vvalSEAx.plot([], [], label='Mean')
+
             vvalDiffDataDict['Min'] = []
             vvalDiffDataDict['Max'] = []
             vvalDiffDataDict['Mean'] = []
@@ -663,6 +667,10 @@ def measurementMMMCallback(header, message):
             vvalDiffLinesDict['Min'], = vvalDiffAx.plot([], [], label='Minimum')
             vvalDiffLinesDict['Max'], = vvalDiffAx.plot([], [], label='Maximum')
             vvalDiffLinesDict['Mean'], = vvalDiffAx.plot([], [], label='Mean')
+
+        vvalSimLinesDict['Min'], = vvalSimAx.plot([], [], label='Minimum')
+        vvalSimLinesDict['Max'], = vvalSimAx.plot([], [], label='Maximum')
+        vvalSimLinesDict['Mean'], = vvalSimAx.plot([], [], label='Mean')
 
     # simulation data processing setup
     # to account for state estimator work queue draining design, iterate over
@@ -1367,17 +1375,16 @@ def configPlot(busList):
         # create a lines dictionary entry per node/phase pair for each plot
         if plotOverlayFlag:
             vvalSELinesDict[pair], = vvalSEAx.plot([], [], label=plotPairDict[pair], linestyle='--')
-        else:
-            vvalSELinesDict[pair], = vvalSEAx.plot([], [], label=plotPairDict[pair])
 
-        vvalSimLinesDict[pair], = vvalSimAx.plot([], [], label=plotPairDict[pair])
-
-        if plotOverlayFlag:
             vvalDiffLinesDict[pair+' Actual'], = vvalDiffAx.plot([], [], label=plotPairDict[pair]+' Actual')
             color = vvalDiffLinesDict[pair+' Actual'].get_color()
             vvalDiffLinesDict[pair+' Est.'], = vvalDiffAx.plot([], [], label=plotPairDict[pair]+' Est.', linestyle='--', color=color)
         else:
+            vvalSELinesDict[pair], = vvalSEAx.plot([], [], label=plotPairDict[pair])
+
             vvalDiffLinesDict[pair], = vvalDiffAx.plot([], [], label=plotPairDict[pair])
+
+        vvalSimLinesDict[pair], = vvalSimAx.plot([], [], label=plotPairDict[pair])
 
 
 def _main():
