@@ -98,6 +98,7 @@ simReq = None
 tsInit = 0
 plotMagFlag = True
 plotNominalFlag = True
+plotMMMFlag = True
 vvalPausedFlag = False
 vvalShowFlag = False
 firstPassFlag = True
@@ -1062,14 +1063,19 @@ def vvalPlotData(event):
     newvvalDiffYmin, newvvalDiffYmax = yAxisLimits(vvalDiffYmin, vvalDiffYmax, vvalDiffZoomSldr.val, vvalDiffPanSldr.val)
     vvalDiffAx.set_ylim(newvvalDiffYmin, newvvalDiffYmax)
 
-    if firstPlotFlag and len(plotPairDict)>0:
-        if plotLegendFlag or len(seLegendLineList)<=10:
-            cols = math.ceil(len(seLegendLineList)/12)
-            vvalSEAx.legend(seLegendLineList, seLegendLabelList, ncol=cols)
+    if firstPlotFlag:
+        if plotMMMFlag:
+            vvalSEAx.legend()
+            vvalSimAx.legend()
 
-        if plotLegendFlag or len(simLegendLineList)<=10:
-            cols = math.ceil(len(simLegendLineList)/12)
-            vvalSimAx.legend(simLegendLineList, simLegendLabelList, ncol=cols)
+        elif len(plotPairDict) > 0:
+            if plotLegendFlag or len(seLegendLineList)<=10:
+                cols = math.ceil(len(seLegendLineList)/12)
+                vvalSEAx.legend(seLegendLineList, seLegendLabelList, ncol=cols)
+
+            if plotLegendFlag or len(simLegendLineList)<=10:
+                cols = math.ceil(len(simLegendLineList)/12)
+                vvalSimAx.legend(simLegendLineList, simLegendLabelList, ncol=cols)
 
     firstPlotFlag = False
 
@@ -1377,7 +1383,7 @@ def configPlot(busList):
 def _main():
     global appName, simID, simReq, gapps
     global plotTitle, plotNumber, plotMagFlag, plotNominalFlag
-    global plotOverlayFlag, plotLegendFlag, plotMatchesFlag
+    global plotMMMFlag, plotOverlayFlag, plotLegendFlag, plotMatchesFlag
 
     if len(sys.argv)<2 or '-help' in sys.argv:
         usestr =  '\nUsage: ' + sys.argv[0] + ' simID simReq\n'
@@ -1442,7 +1448,6 @@ Optional command line arguments:
     simID = sys.argv[1]
     simReq = sys.argv[2]
 
-    plotMMMFlag = True
     plotConfigFlag = False
     plotBusFlag = False
     plotPhaseFlag = False
@@ -1467,7 +1472,6 @@ Optional command line arguments:
         elif arg.startswith('-min'):
             plotMMMFlag = True
             plotConfigFlag = False
-            plotLegendFlag = True
         elif arg.startswith('-mag'):
             plotMagFlag = True
         elif arg.startswith('-ang'):
