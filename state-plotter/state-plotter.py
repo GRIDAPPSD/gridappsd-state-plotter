@@ -51,6 +51,7 @@ import sys
 import json
 import math
 import pprint
+import statistics
 
 # gridappsd-python module
 from gridappsd import GridAPPSD
@@ -513,7 +514,7 @@ def measurementNoConfigCallback(header, message):
 
                 vvalDiffLinesDict[sepair+' Actual'], = vvalDiffAx.plot([], [], label=SEToBusDict[sepair]+' Actual')
                 color = vvalDiffLinesDict[sepair+' Actual'].get_color()
-                vvalDiffLinesDict[sepair+' Est.'], = vvalDiffAx.plot([], [], label=SEToBusDict[sepair]+' Est.', linestyle='--', color=color)
+                vvalDiffLinesDict[sepair+' Est'], = vvalDiffAx.plot([], [], label=SEToBusDict[sepair]+' Est.', linestyle='--', color=color)
             else:
                 vvalSELinesDict[sepair], = vvalSEAx.plot([], [], label=SEToBusDict[sepair])
 
@@ -624,53 +625,81 @@ def measurementMMMCallback(header, message):
         vvalSEDataDict['Min'] = []
         vvalSEDataDict['Max'] = []
         vvalSEDataDict['Mean'] = []
+        vvalSEDataDict['Stdev Low'] = []
+        vvalSEDataDict['Stdev High'] = []
         vvalSEDataPausedDict['Min'] = []
         vvalSEDataPausedDict['Max'] = []
         vvalSEDataPausedDict['Mean'] = []
+        vvalSEDataPausedDict['Stdev Low'] = []
+        vvalSEDataPausedDict['Stdev High'] = []
         vvalSimDataDict['Min'] = []
         vvalSimDataDict['Max'] = []
         vvalSimDataDict['Mean'] = []
+        vvalSimDataDict['Stdev Low'] = []
+        vvalSimDataDict['Stdev High'] = []
         vvalSimDataPausedDict['Min'] = []
         vvalSimDataPausedDict['Max'] = []
         vvalSimDataPausedDict['Mean'] = []
+        vvalSimDataPausedDict['Stdev Low'] = []
+        vvalSimDataPausedDict['Stdev High'] = []
 
         # create a lines dictionary entry per node/phase pair for each plot
         if plotOverlayFlag:
-            vvalSELinesDict['Min'], = vvalSEAx.plot([], [], label='Minimum', linestyle='--')
-            vvalSELinesDict['Max'], = vvalSEAx.plot([], [], label='Maximum', linestyle='--')
-            vvalSELinesDict['Mean'], = vvalSEAx.plot([], [], label='Mean', linestyle='--')
+            vvalSELinesDict['Min'], = vvalSEAx.plot([], [], label='Minimum', linestyle='--', color='cyan')
+            vvalSELinesDict['Max'], = vvalSEAx.plot([], [], label='Maximum', linestyle='--', color='cyan')
+            vvalSELinesDict['Stdev Low'], = vvalSEAx.plot([], [], label='Std. Dev. Low', linestyle='--', color='blue')
+            vvalSELinesDict['Stdev High'], = vvalSEAx.plot([], [], label='Std. Dev. High', linestyle='--', color='blue')
+            vvalSELinesDict['Mean'], = vvalSEAx.plot([], [], label='Mean', linestyle='--', color='red')
 
-            vvalDiffLinesDict['Min Actual'], = vvalDiffAx.plot([], [], label='Min Actual')
+            vvalDiffLinesDict['Min Actual'], = vvalDiffAx.plot([], [], label='Minimum Actual', color='cyan')
             color = vvalDiffLinesDict['Min Actual'].get_color()
-            vvalDiffLinesDict['Min Est.'], = vvalDiffAx.plot([], [], label='Min Est.', linestyle='--', color=color)
+            vvalDiffLinesDict['Min Est'], = vvalDiffAx.plot([], [], label='Minimum Est.', linestyle='--', color=color)
 
-            vvalDiffLinesDict['Max Actual'], = vvalDiffAx.plot([], [], label='Max Actual')
+            vvalDiffLinesDict['Max Actual'], = vvalDiffAx.plot([], [], label='Maximum Actual', color='cyan')
             color = vvalDiffLinesDict['Max Actual'].get_color()
-            vvalDiffLinesDict['Max Est.'], = vvalDiffAx.plot([], [], label='Max Est.', linestyle='--', color=color)
+            vvalDiffLinesDict['Max Est'], = vvalDiffAx.plot([], [], label='Maximum Est.', linestyle='--', color=color)
 
-            vvalDiffLinesDict['Mean Actual'], = vvalDiffAx.plot([], [], label='Mean Actual')
+            vvalDiffLinesDict['Stdev Low Actual'], = vvalDiffAx.plot([], [], label='Std. Dev. Low Actual', color='blue')
+            color = vvalDiffLinesDict['Stdev Low Actual'].get_color()
+            vvalDiffLinesDict['Stdev Low Est'], = vvalDiffAx.plot([], [], label='Std. Dev. Low Est.', linestyle='--', color=color)
+
+            vvalDiffLinesDict['Stdev High Actual'], = vvalDiffAx.plot([], [], label='Std. Dev. High Actual', color='blue')
+            color = vvalDiffLinesDict['Stdev High Actual'].get_color()
+            vvalDiffLinesDict['Stdev High Est'], = vvalDiffAx.plot([], [], label='Std. Dev. High Est.', linestyle='--', color=color)
+
+            vvalDiffLinesDict['Mean Actual'], = vvalDiffAx.plot([], [], label='Mean Actual', color='red')
             color = vvalDiffLinesDict['Mean Actual'].get_color()
-            vvalDiffLinesDict['Mean Est.'], = vvalDiffAx.plot([], [], label='Mean Est.', linestyle='--', color=color)
+            vvalDiffLinesDict['Mean Est'], = vvalDiffAx.plot([], [], label='Mean Est.', linestyle='--', color=color)
 
         else:
-            vvalSELinesDict['Min'], = vvalSEAx.plot([], [], label='Minimum')
-            vvalSELinesDict['Max'], = vvalSEAx.plot([], [], label='Maximum')
-            vvalSELinesDict['Mean'], = vvalSEAx.plot([], [], label='Mean')
+            vvalSELinesDict['Min'], = vvalSEAx.plot([], [], label='Minimum', color='cyan')
+            vvalSELinesDict['Max'], = vvalSEAx.plot([], [], label='Maximum', color='cyan')
+            vvalSELinesDict['Stdev Low'], = vvalSEAx.plot([], [], label='Std. Dev. Low', color='blue')
+            vvalSELinesDict['Stdev High'], = vvalSEAx.plot([], [], label='Std. Dev. High', color='blue')
+            vvalSELinesDict['Mean'], = vvalSEAx.plot([], [], label='Mean', color='red')
 
             vvalDiffDataDict['Min'] = []
             vvalDiffDataDict['Max'] = []
+            vvalDiffDataDict['Stdev Low'] = []
+            vvalDiffDataDict['Stdev High'] = []
             vvalDiffDataDict['Mean'] = []
             vvalDiffDataPausedDict['Min'] = []
             vvalDiffDataPausedDict['Max'] = []
+            vvalDiffDataPausedDict['Stdev Low'] = []
+            vvalDiffDataPausedDict['Stdev High'] = []
             vvalDiffDataPausedDict['Mean'] = []
 
-            vvalDiffLinesDict['Min'], = vvalDiffAx.plot([], [], label='Minimum')
-            vvalDiffLinesDict['Max'], = vvalDiffAx.plot([], [], label='Maximum')
-            vvalDiffLinesDict['Mean'], = vvalDiffAx.plot([], [], label='Mean')
+            vvalDiffLinesDict['Min'], = vvalDiffAx.plot([], [], label='Minimum', color='cyan')
+            vvalDiffLinesDict['Max'], = vvalDiffAx.plot([], [], label='Maximum', color='cyan')
+            vvalDiffLinesDict['Stdev Low'], = vvalDiffAx.plot([], [], label='Std. Dev. Low', color='blue')
+            vvalDiffLinesDict['Stdev High'], = vvalDiffAx.plot([], [], label='Std. Dev. High', color='blue')
+            vvalDiffLinesDict['Mean'], = vvalDiffAx.plot([], [], label='Mean', color='red')
 
-        vvalSimLinesDict['Min'], = vvalSimAx.plot([], [], label='Minimum')
-        vvalSimLinesDict['Max'], = vvalSimAx.plot([], [], label='Maximum')
-        vvalSimLinesDict['Mean'], = vvalSimAx.plot([], [], label='Mean')
+        vvalSimLinesDict['Min'], = vvalSimAx.plot([], [], label='Minimum', color='cyan')
+        vvalSimLinesDict['Max'], = vvalSimAx.plot([], [], label='Maximum', color='cyan')
+        vvalSimLinesDict['Stdev Low'], = vvalSimAx.plot([], [], label='Std. Dev. Low', color='blue')
+        vvalSimLinesDict['Stdev High'], = vvalSimAx.plot([], [], label='Std. Dev. High', color='blue')
+        vvalSimLinesDict['Mean'], = vvalSimAx.plot([], [], label='Mean', color='red')
 
     # simulation data processing setup
     # to account for state estimator work queue draining design, iterate over
@@ -704,17 +733,9 @@ def measurementMMMCallback(header, message):
         sekey = 'angle'
         simkey = 'angle'
 
-    semin = sys.float_info.max
-    semax = -sys.float_info.max
-    sesum = 0.0
-    sectr = 0
-    simmin = sys.float_info.max
-    simmax = -sys.float_info.max
-    simsum = 0.0
-    simctr = 0
-    diffmin = sys.float_info.max
-    diffmax = -sys.float_info.max
-    diffsum = 0.0
+    selist = []
+    simlist = []
+    difflist = []
 
     for item in estVolt:
         # only consider phases A, B, C and user-specified phases
@@ -733,27 +754,18 @@ def measurementMMMCallback(header, message):
 
         simvval = None
         if not plotMatchesFlag:
-            semin = min(semin, sevval)
-            semax = max(semax, sevval)
-            sesum += sevval
-            sectr += 1
+            selist.append(sevval)
         if simDataTS is not None and sepair in SEToSimDict:
             for simmrid in SEToSimDict[sepair]:
                 if simmrid in simDataTS:
                     simmeas = simDataTS[simmrid]
                     if simkey in simmeas:
                         if plotMatchesFlag:
-                            semin = min(semin, sevval)
-                            semax = max(semax, sevval)
-                            sesum += sevval
-                            sectr += 1
+                            selist.append(sevval)
 
                         simvval = simmeas[simkey]
                         simvval = calcVNom(simvval, sepair)
-                        simmin = min(simmin, simvval)
-                        simmax = max(simmax, simvval)
-                        simsum += simvval
-                        simctr += 1
+                        simlist.append(simvval)
 
                         if not plotMagFlag:
                             diffvval = sevval - simvval
@@ -763,9 +775,7 @@ def measurementMMMCallback(header, message):
                             diffvval = 0.0
 
                         if not plotOverlayFlag:
-                            diffmin = min(diffmin, diffvval)
-                            diffmax = max(diffmax, diffvval)
-                            diffsum += diffvval
+                            difflist.append(diffvval)
 
                         if plotMagFlag:
                             vmagPrintWithSim(ts, sepair, sevval, simvval, diffvval)
@@ -781,30 +791,36 @@ def measurementMMMCallback(header, message):
 
     vvalTSDataPausedList.append(ts - tsInit) if vvalPausedFlag else vvalTSDataList.append(ts - tsInit)
 
+    semin = min(selist)
+    semax = max(selist)
+    semean = statistics.mean(selist)
+    sestdev = statistics.pstdev(selist, semean)
     vvalSEDataPausedDict['Min'].append(semin) if vvalPausedFlag else vvalSEDataDict['Min'].append(semin)
     vvalSEDataPausedDict['Max'].append(semax) if vvalPausedFlag else vvalSEDataDict['Max'].append(semax)
-    if sectr > 0:
-        semean = sesum/sectr
-    else:
-        semean = 0.0
     vvalSEDataPausedDict['Mean'].append(semean) if vvalPausedFlag else vvalSEDataDict['Mean'].append(semean)
+    vvalSEDataPausedDict['Stdev Low'].append(semean-sestdev) if vvalPausedFlag else vvalSEDataDict['Stdev Low'].append(semean-sestdev)
+    vvalSEDataPausedDict['Stdev High'].append(semean+sestdev) if vvalPausedFlag else vvalSEDataDict['Stdev High'].append(semean+sestdev)
 
+    simmin = min(simlist)
+    simmax = max(simlist)
+    simmean = statistics.mean(simlist)
+    simstdev = statistics.pstdev(simlist, simmean)
     vvalSimDataPausedDict['Min'].append(simmin) if vvalPausedFlag else vvalSimDataDict['Min'].append(simmin)
     vvalSimDataPausedDict['Max'].append(simmax) if vvalPausedFlag else vvalSimDataDict['Max'].append(simmax)
-    if simctr > 0:
-        simmean = simsum/simctr
-    else:
-        simmean = 0.0
     vvalSimDataPausedDict['Mean'].append(simmean) if vvalPausedFlag else vvalSimDataDict['Mean'].append(simmean)
+    vvalSimDataPausedDict['Stdev Low'].append(simmean-simstdev) if vvalPausedFlag else vvalSimDataDict['Stdev Low'].append(simmean-simstdev)
+    vvalSimDataPausedDict['Stdev High'].append(simmean+simstdev) if vvalPausedFlag else vvalSimDataDict['Stdev High'].append(simmean+simstdev)
 
     if not plotOverlayFlag:
+        diffmin = min(difflist)
+        diffmax = max(difflist)
+        diffmean = statistics.mean(difflist)
+        diffstdev = statistics.pstdev(difflist, diffmean)
         vvalDiffDataPausedDict['Min'].append(diffmin) if vvalPausedFlag else vvalDiffDataDict['Min'].append(diffmin)
         vvalDiffDataPausedDict['Max'].append(diffmax) if vvalPausedFlag else vvalDiffDataDict['Max'].append(diffmax)
-        if simctr > 0:
-            diffmean = diffsum/simctr
-        else:
-            diffmean = 0.0
         vvalDiffDataPausedDict['Mean'].append(diffmean) if vvalPausedFlag else vvalDiffDataDict['Mean'].append(diffmean)
+        vvalDiffDataPausedDict['Stdev Low'].append(diffmean-diffstdev) if vvalPausedFlag else vvalDiffDataDict['Stdev Low'].append(diffmean-diffstdev)
+        vvalDiffDataPausedDict['Stdev High'].append(diffmean+diffstdev) if vvalPausedFlag else vvalDiffDataDict['Stdev High'].append(diffmean+diffstdev)
 
     # update plots with the new data
     vvalPlotData(None)
@@ -921,8 +937,8 @@ def vvalPlotData(event):
         if plotOverlayFlag:
             for pair in vvalSEDataDict:
                 if len(vvalSEDataDict[pair]) > 0:
-                    vvalDiffLinesDict[pair+' Est.'].set_xdata(vvalTSDataList)
-                    vvalDiffLinesDict[pair+' Est.'].set_ydata(vvalSEDataDict[pair])
+                    vvalDiffLinesDict[pair+' Est'].set_xdata(vvalTSDataList)
+                    vvalDiffLinesDict[pair+' Est'].set_ydata(vvalSEDataDict[pair])
                     vvalDiffYmin = min(vvalDiffYmin, min(vvalSEDataDict[pair]))
                     vvalDiffYmax = max(vvalDiffYmax, max(vvalSEDataDict[pair]))
                 if len(vvalSimDataDict[pair]) > 0:
@@ -1045,8 +1061,8 @@ def vvalPlotData(event):
         if plotOverlayFlag:
             for pair in vvalSEDataDict:
                 if len(vvalSEDataDict[pair][vvalStartpt:vvalEndpt]) > 0:
-                    vvalDiffLinesDict[pair+' Est.'].set_xdata(vvalTSDataList[vvalStartpt:vvalEndpt])
-                    vvalDiffLinesDict[pair+' Est.'].set_ydata(vvalSEDataDict[pair][vvalStartpt:vvalEndpt])
+                    vvalDiffLinesDict[pair+' Est'].set_xdata(vvalTSDataList[vvalStartpt:vvalEndpt])
+                    vvalDiffLinesDict[pair+' Est'].set_ydata(vvalSEDataDict[pair][vvalStartpt:vvalEndpt])
                     vvalDiffYmin = min(vvalDiffYmin, min(vvalSEDataDict[pair][vvalStartpt:vvalEndpt]))
                     vvalDiffYmax = max(vvalDiffYmax, max(vvalSEDataDict[pair][vvalStartpt:vvalEndpt]))
                 if len(vvalSimDataDict[pair][vvalStartpt:vvalEndpt]) > 0:
@@ -1390,7 +1406,7 @@ def configPlot(busList):
 
             vvalDiffLinesDict[pair+' Actual'], = vvalDiffAx.plot([], [], label=plotPairDict[pair]+' Actual')
             color = vvalDiffLinesDict[pair+' Actual'].get_color()
-            vvalDiffLinesDict[pair+' Est.'], = vvalDiffAx.plot([], [], label=plotPairDict[pair]+' Est.', linestyle='--', color=color)
+            vvalDiffLinesDict[pair+' Est'], = vvalDiffAx.plot([], [], label=plotPairDict[pair]+' Est.', linestyle='--', color=color)
         else:
             vvalSELinesDict[pair], = vvalSEAx.plot([], [], label=plotPairDict[pair])
 
