@@ -129,6 +129,10 @@ vvalDiffAx = None
 vvalDiffZoomSldr = None
 vvalDiffPanSldr = None
 
+#stdevBlue = 'DodgerBlue'
+#minmaxBlue = 'PaleTurquoise'
+stdevBlue = '#389dff'
+minmaxBlue = '#9be6ff'
 
 def queryBusToSim():
     sensRequestText = '{"configurationType":"CIM Dictionary","parameters":{"simulation_id":"' + simID + '"}}';
@@ -920,10 +924,10 @@ def vvalPlotData(event):
 
         if plotMMMFlag:
             plt.sca(vvalSEAx)
-            plt.fill_between(x=vvalTSDataList, y1=vvalSEDataDict['Mean'], y2=vvalSEDataDict['Stdev Low'], color='DodgerBlue')
-            plt.fill_between(x=vvalTSDataList, y1=vvalSEDataDict['Mean'], y2=vvalSEDataDict['Stdev High'], color='DodgerBlue')
-            plt.fill_between(x=vvalTSDataList, y1=vvalSEDataDict['Stdev Low'], y2=vvalSEDataDict['Min'], color='LightSkyBlue')
-            plt.fill_between(x=vvalTSDataList, y1=vvalSEDataDict['Stdev High'], y2=vvalSEDataDict['Max'], color='LightSkyBlue')
+            plt.fill_between(x=vvalTSDataList, y1=vvalSEDataDict['Mean'], y2=vvalSEDataDict['Stdev Low'], color=stdevBlue)
+            plt.fill_between(x=vvalTSDataList, y1=vvalSEDataDict['Mean'], y2=vvalSEDataDict['Stdev High'], color=stdevBlue)
+            plt.fill_between(x=vvalTSDataList, y1=vvalSEDataDict['Stdev Low'], y2=vvalSEDataDict['Min'], color=minmaxBlue)
+            plt.fill_between(x=vvalTSDataList, y1=vvalSEDataDict['Stdev High'], y2=vvalSEDataDict['Max'], color=minmaxBlue)
 
         vvalSimYmax = -sys.float_info.max
         vvalSimYmin = sys.float_info.max
@@ -941,10 +945,10 @@ def vvalPlotData(event):
 
         if plotMMMFlag:
             plt.sca(vvalSimAx)
-            plt.fill_between(x=vvalTSDataList, y1=vvalSimDataDict['Mean'], y2=vvalSimDataDict['Stdev Low'], color='DodgerBlue')
-            plt.fill_between(x=vvalTSDataList, y1=vvalSimDataDict['Mean'], y2=vvalSimDataDict['Stdev High'], color='DodgerBlue')
-            plt.fill_between(x=vvalTSDataList, y1=vvalSimDataDict['Stdev Low'], y2=vvalSimDataDict['Min'], color='LightSkyBlue')
-            plt.fill_between(x=vvalTSDataList, y1=vvalSimDataDict['Stdev High'], y2=vvalSimDataDict['Max'], color='LightSkyBlue')
+            plt.fill_between(x=vvalTSDataList, y1=vvalSimDataDict['Mean'], y2=vvalSimDataDict['Stdev Low'], color=stdevBlue)
+            plt.fill_between(x=vvalTSDataList, y1=vvalSimDataDict['Mean'], y2=vvalSimDataDict['Stdev High'], color=stdevBlue)
+            plt.fill_between(x=vvalTSDataList, y1=vvalSimDataDict['Stdev Low'], y2=vvalSimDataDict['Min'], color=minmaxBlue)
+            plt.fill_between(x=vvalTSDataList, y1=vvalSimDataDict['Stdev High'], y2=vvalSimDataDict['Max'], color=minmaxBlue)
 
         vvalDiffYmax = -sys.float_info.max
         vvalDiffYmin = sys.float_info.max
@@ -970,10 +974,10 @@ def vvalPlotData(event):
                     vvalDiffYmax = max(vvalDiffYmax, max(vvalDiffDataDict[pair]))
             if plotMMMFlag:
                 plt.sca(vvalDiffAx)
-                plt.fill_between(x=vvalTSDataList, y1=vvalDiffDataDict['Mean'], y2=vvalDiffDataDict['Stdev Low'], color='DodgerBlue')
-                plt.fill_between(x=vvalTSDataList, y1=vvalDiffDataDict['Mean'], y2=vvalDiffDataDict['Stdev High'], color='DodgerBlue')
-                plt.fill_between(x=vvalTSDataList, y1=vvalDiffDataDict['Stdev Low'], y2=vvalDiffDataDict['Min'], color='LightSkyBlue')
-                plt.fill_between(x=vvalTSDataList, y1=vvalDiffDataDict['Stdev High'], y2=vvalDiffDataDict['Max'], color='LightSkyBlue')
+                plt.fill_between(x=vvalTSDataList, y1=vvalDiffDataDict['Mean'], y2=vvalDiffDataDict['Stdev Low'], color=stdevBlue)
+                plt.fill_between(x=vvalTSDataList, y1=vvalDiffDataDict['Mean'], y2=vvalDiffDataDict['Stdev High'], color=stdevBlue)
+                plt.fill_between(x=vvalTSDataList, y1=vvalDiffDataDict['Stdev Low'], y2=vvalDiffDataDict['Min'], color=minmaxBlue)
+                plt.fill_between(x=vvalTSDataList, y1=vvalDiffDataDict['Stdev High'], y2=vvalDiffDataDict['Max'], color=minmaxBlue)
         #print(appName + ': vvalDiffYmin: ' + str(vvalDiffYmin) + ', vvalDiffYmax: ' + str(vvalDiffYmax), flush=True)
 
     else:
@@ -1064,10 +1068,10 @@ def vvalPlotData(event):
 
         if plotMMMFlag:
             plt.sca(vvalSEAx)
-            plt.fill_between(x=vvalTSDataList[vvalStartpt:vvalEndpt], y1=vvalSEDataDict['Mean'][vvalStartpt:vvalEndpt], y2=vvalSEDataDict['Stdev Low'][vvalStartpt:vvalEndpt], color='DodgerBlue')
-            plt.fill_between(x=vvalTSDataList[vvalStartpt:vvalEndpt], y1=vvalSEDataDict['Mean'][vvalStartpt:vvalEndpt], y2=vvalSEDataDict['Stdev High'][vvalStartpt:vvalEndpt], color='DodgerBlue')
-            plt.fill_between(x=vvalTSDataList[vvalStartpt:vvalEndpt], y1=vvalSEDataDict['Stdev Low'][vvalStartpt:vvalEndpt], y2=vvalSEDataDict['Min'][vvalStartpt:vvalEndpt], color='LightSkyBlue')
-            plt.fill_between(x=vvalTSDataList[vvalStartpt:vvalEndpt], y1=vvalSEDataDict['Stdev High'][vvalStartpt:vvalEndpt], y2=vvalSEDataDict['Max'][vvalStartpt:vvalEndpt], color='LightSkyBlue')
+            plt.fill_between(x=vvalTSDataList[vvalStartpt:vvalEndpt], y1=vvalSEDataDict['Mean'][vvalStartpt:vvalEndpt], y2=vvalSEDataDict['Stdev Low'][vvalStartpt:vvalEndpt], color=stdevBlue)
+            plt.fill_between(x=vvalTSDataList[vvalStartpt:vvalEndpt], y1=vvalSEDataDict['Mean'][vvalStartpt:vvalEndpt], y2=vvalSEDataDict['Stdev High'][vvalStartpt:vvalEndpt], color=stdevBlue)
+            plt.fill_between(x=vvalTSDataList[vvalStartpt:vvalEndpt], y1=vvalSEDataDict['Stdev Low'][vvalStartpt:vvalEndpt], y2=vvalSEDataDict['Min'][vvalStartpt:vvalEndpt], color=minmaxBlue)
+            plt.fill_between(x=vvalTSDataList[vvalStartpt:vvalEndpt], y1=vvalSEDataDict['Stdev High'][vvalStartpt:vvalEndpt], y2=vvalSEDataDict['Max'][vvalStartpt:vvalEndpt], color=minmaxBlue)
 
         vvalSimYmax = -sys.float_info.max
         vvalSimYmin = sys.float_info.max
@@ -1085,10 +1089,10 @@ def vvalPlotData(event):
 
         if plotMMMFlag:
             plt.sca(vvalSimAx)
-            plt.fill_between(x=vvalTSDataList[vvalStartpt:vvalEndpt], y1=vvalSimDataDict['Mean'][vvalStartpt:vvalEndpt], y2=vvalSimDataDict['Stdev Low'][vvalStartpt:vvalEndpt], color='DodgerBlue')
-            plt.fill_between(x=vvalTSDataList[vvalStartpt:vvalEndpt], y1=vvalSimDataDict['Mean'][vvalStartpt:vvalEndpt], y2=vvalSimDataDict['Stdev High'][vvalStartpt:vvalEndpt], color='DodgerBlue')
-            plt.fill_between(x=vvalTSDataList[vvalStartpt:vvalEndpt], y1=vvalSimDataDict['Stdev Low'][vvalStartpt:vvalEndpt], y2=vvalSimDataDict['Min'][vvalStartpt:vvalEndpt], color='LightSkyBlue')
-            plt.fill_between(x=vvalTSDataList[vvalStartpt:vvalEndpt], y1=vvalSimDataDict['Stdev High'][vvalStartpt:vvalEndpt], y2=vvalSimDataDict['Max'][vvalStartpt:vvalEndpt], color='LightSkyBlue')
+            plt.fill_between(x=vvalTSDataList[vvalStartpt:vvalEndpt], y1=vvalSimDataDict['Mean'][vvalStartpt:vvalEndpt], y2=vvalSimDataDict['Stdev Low'][vvalStartpt:vvalEndpt], color=stdevBlue)
+            plt.fill_between(x=vvalTSDataList[vvalStartpt:vvalEndpt], y1=vvalSimDataDict['Mean'][vvalStartpt:vvalEndpt], y2=vvalSimDataDict['Stdev High'][vvalStartpt:vvalEndpt], color=stdevBlue)
+            plt.fill_between(x=vvalTSDataList[vvalStartpt:vvalEndpt], y1=vvalSimDataDict['Stdev Low'][vvalStartpt:vvalEndpt], y2=vvalSimDataDict['Min'][vvalStartpt:vvalEndpt], color=minmaxBlue)
+            plt.fill_between(x=vvalTSDataList[vvalStartpt:vvalEndpt], y1=vvalSimDataDict['Stdev High'][vvalStartpt:vvalEndpt], y2=vvalSimDataDict['Max'][vvalStartpt:vvalEndpt], color=minmaxBlue)
 
         vvalDiffYmax = -sys.float_info.max
         vvalDiffYmin = sys.float_info.max
@@ -1115,10 +1119,10 @@ def vvalPlotData(event):
 
             if plotMMMFlag:
                 plt.sca(vvalDiffAx)
-                plt.fill_between(x=vvalTSDataList[vvalStartpt:vvalEndpt], y1=vvalDiffDataDict['Mean'][vvalStartpt:vvalEndpt], y2=vvalDiffDataDict['Stdev Low'][vvalStartpt:vvalEndpt], color='DodgerBlue')
-                plt.fill_between(x=vvalTSDataList[vvalStartpt:vvalEndpt], y1=vvalDiffDataDict['Mean'][vvalStartpt:vvalEndpt], y2=vvalDiffDataDict['Stdev High'][vvalStartpt:vvalEndpt], color='DodgerBlue')
-                plt.fill_between(x=vvalTSDataList[vvalStartpt:vvalEndpt], y1=vvalDiffDataDict['Stdev Low'][vvalStartpt:vvalEndpt], y2=vvalDiffDataDict['Min'][vvalStartpt:vvalEndpt], color='LightSkyBlue')
-                plt.fill_between(x=vvalTSDataList[vvalStartpt:vvalEndpt], y1=vvalDiffDataDict['Stdev High'][vvalStartpt:vvalEndpt], y2=vvalDiffDataDict['Max'][vvalStartpt:vvalEndpt], color='LightSkyBlue')
+                plt.fill_between(x=vvalTSDataList[vvalStartpt:vvalEndpt], y1=vvalDiffDataDict['Mean'][vvalStartpt:vvalEndpt], y2=vvalDiffDataDict['Stdev Low'][vvalStartpt:vvalEndpt], color=stdevBlue)
+                plt.fill_between(x=vvalTSDataList[vvalStartpt:vvalEndpt], y1=vvalDiffDataDict['Mean'][vvalStartpt:vvalEndpt], y2=vvalDiffDataDict['Stdev High'][vvalStartpt:vvalEndpt], color=stdevBlue)
+                plt.fill_between(x=vvalTSDataList[vvalStartpt:vvalEndpt], y1=vvalDiffDataDict['Stdev Low'][vvalStartpt:vvalEndpt], y2=vvalDiffDataDict['Min'][vvalStartpt:vvalEndpt], color=minmaxBlue)
+                plt.fill_between(x=vvalTSDataList[vvalStartpt:vvalEndpt], y1=vvalDiffDataDict['Stdev High'][vvalStartpt:vvalEndpt], y2=vvalDiffDataDict['Max'][vvalStartpt:vvalEndpt], color=minmaxBlue)
 
         #print(appName + ': vvalDiffYmin: ' + str(vvalDiffYmin) + ', vvalDiffYmax: ' + str(vvalDiffYmax), flush=True)
 
