@@ -918,6 +918,13 @@ def vvalPlotData(event):
                     seLegendLabelList.append(plotPairDict[pair])
         #print(appName + ': vvalSEYmin: ' + str(vvalSEYmin) + ', vvalSEYmax: ' + str(vvalSEYmax), flush=True)
 
+        if plotMMMFlag:
+            plt.sca(vvalSEAx)
+            plt.fill_between(x=vvalTSDataList, y1=vvalSEDataDict['Mean'], y2=vvalSEDataDict['Stdev Low'], color='DodgerBlue')
+            plt.fill_between(x=vvalTSDataList, y1=vvalSEDataDict['Mean'], y2=vvalSEDataDict['Stdev High'], color='DodgerBlue')
+            plt.fill_between(x=vvalTSDataList, y1=vvalSEDataDict['Stdev Low'], y2=vvalSEDataDict['Min'], color='LightSkyBlue')
+            plt.fill_between(x=vvalTSDataList, y1=vvalSEDataDict['Stdev High'], y2=vvalSEDataDict['Max'], color='LightSkyBlue')
+
         vvalSimYmax = -sys.float_info.max
         vvalSimYmin = sys.float_info.max
         for pair in vvalSimDataDict:
@@ -931,6 +938,13 @@ def vvalPlotData(event):
                     simLegendLineList.append(vvalSimLinesDict[pair])
                     simLegendLabelList.append(plotPairDict[pair])
         #print(appName + ': vvalSimYmin: ' + str(vvalSimYmin) + ', vvalSimYmax: ' + str(vvalSimYmax), flush=True)
+
+        if plotMMMFlag:
+            plt.sca(vvalSimAx)
+            plt.fill_between(x=vvalTSDataList, y1=vvalSimDataDict['Mean'], y2=vvalSimDataDict['Stdev Low'], color='DodgerBlue')
+            plt.fill_between(x=vvalTSDataList, y1=vvalSimDataDict['Mean'], y2=vvalSimDataDict['Stdev High'], color='DodgerBlue')
+            plt.fill_between(x=vvalTSDataList, y1=vvalSimDataDict['Stdev Low'], y2=vvalSimDataDict['Min'], color='LightSkyBlue')
+            plt.fill_between(x=vvalTSDataList, y1=vvalSimDataDict['Stdev High'], y2=vvalSimDataDict['Max'], color='LightSkyBlue')
 
         vvalDiffYmax = -sys.float_info.max
         vvalDiffYmin = sys.float_info.max
@@ -954,6 +968,12 @@ def vvalPlotData(event):
                     vvalDiffLinesDict[pair].set_ydata(vvalDiffDataDict[pair])
                     vvalDiffYmin = min(vvalDiffYmin, min(vvalDiffDataDict[pair]))
                     vvalDiffYmax = max(vvalDiffYmax, max(vvalDiffDataDict[pair]))
+            if plotMMMFlag:
+                plt.sca(vvalDiffAx)
+                plt.fill_between(x=vvalTSDataList, y1=vvalDiffDataDict['Mean'], y2=vvalDiffDataDict['Stdev Low'], color='DodgerBlue')
+                plt.fill_between(x=vvalTSDataList, y1=vvalDiffDataDict['Mean'], y2=vvalDiffDataDict['Stdev High'], color='DodgerBlue')
+                plt.fill_between(x=vvalTSDataList, y1=vvalDiffDataDict['Stdev Low'], y2=vvalDiffDataDict['Min'], color='LightSkyBlue')
+                plt.fill_between(x=vvalTSDataList, y1=vvalDiffDataDict['Stdev High'], y2=vvalDiffDataDict['Max'], color='LightSkyBlue')
         #print(appName + ': vvalDiffYmin: ' + str(vvalDiffYmin) + ', vvalDiffYmax: ' + str(vvalDiffYmax), flush=True)
 
     else:
@@ -1042,6 +1062,13 @@ def vvalPlotData(event):
                     seLegendLabelList.append(plotPairDict[pair])
         #print(appName + ': vvalSEYmin: ' + str(vvalSEYmin) + ', vvalSEYmax: ' + str(vvalSEYmax), flush=True)
 
+        if plotMMMFlag:
+            plt.sca(vvalSEAx)
+            plt.fill_between(x=vvalTSDataList[vvalStartpt:vvalEndpt], y1=vvalSEDataDict['Mean'][vvalStartpt:vvalEndpt], y2=vvalSEDataDict['Stdev Low'][vvalStartpt:vvalEndpt], color='DodgerBlue')
+            plt.fill_between(x=vvalTSDataList[vvalStartpt:vvalEndpt], y1=vvalSEDataDict['Mean'][vvalStartpt:vvalEndpt], y2=vvalSEDataDict['Stdev High'][vvalStartpt:vvalEndpt], color='DodgerBlue')
+            plt.fill_between(x=vvalTSDataList[vvalStartpt:vvalEndpt], y1=vvalSEDataDict['Stdev Low'][vvalStartpt:vvalEndpt], y2=vvalSEDataDict['Min'][vvalStartpt:vvalEndpt], color='LightSkyBlue')
+            plt.fill_between(x=vvalTSDataList[vvalStartpt:vvalEndpt], y1=vvalSEDataDict['Stdev High'][vvalStartpt:vvalEndpt], y2=vvalSEDataDict['Max'][vvalStartpt:vvalEndpt], color='LightSkyBlue')
+
         vvalSimYmax = -sys.float_info.max
         vvalSimYmin = sys.float_info.max
         for pair in vvalSimDataDict:
@@ -1055,6 +1082,13 @@ def vvalPlotData(event):
                     simLegendLineList.append(vvalSimLinesDict[pair])
                     simLegendLabelList.append(plotPairDict[pair])
         #print(appName + ': vvalSimYmin: ' + str(vvalSimYmin) + ', vvalSimYmax: ' + str(vvalSimYmax), flush=True)
+
+        if plotMMMFlag:
+            plt.sca(vvalSimAx)
+            plt.fill_between(x=vvalTSDataList[vvalStartpt:vvalEndpt], y1=vvalSimDataDict['Mean'][vvalStartpt:vvalEndpt], y2=vvalSimDataDict['Stdev Low'][vvalStartpt:vvalEndpt], color='DodgerBlue')
+            plt.fill_between(x=vvalTSDataList[vvalStartpt:vvalEndpt], y1=vvalSimDataDict['Mean'][vvalStartpt:vvalEndpt], y2=vvalSimDataDict['Stdev High'][vvalStartpt:vvalEndpt], color='DodgerBlue')
+            plt.fill_between(x=vvalTSDataList[vvalStartpt:vvalEndpt], y1=vvalSimDataDict['Stdev Low'][vvalStartpt:vvalEndpt], y2=vvalSimDataDict['Min'][vvalStartpt:vvalEndpt], color='LightSkyBlue')
+            plt.fill_between(x=vvalTSDataList[vvalStartpt:vvalEndpt], y1=vvalSimDataDict['Stdev High'][vvalStartpt:vvalEndpt], y2=vvalSimDataDict['Max'][vvalStartpt:vvalEndpt], color='LightSkyBlue')
 
         vvalDiffYmax = -sys.float_info.max
         vvalDiffYmin = sys.float_info.max
@@ -1078,6 +1112,14 @@ def vvalPlotData(event):
                     vvalDiffLinesDict[pair].set_ydata(vvalDiffDataDict[pair][vvalStartpt:vvalEndpt])
                     vvalDiffYmin = min(vvalDiffYmin, min(vvalDiffDataDict[pair][vvalStartpt:vvalEndpt]))
                     vvalDiffYmax = max(vvalDiffYmax, max(vvalDiffDataDict[pair][vvalStartpt:vvalEndpt]))
+
+            if plotMMMFlag:
+                plt.sca(vvalDiffAx)
+                plt.fill_between(x=vvalTSDataList[vvalStartpt:vvalEndpt], y1=vvalDiffDataDict['Mean'][vvalStartpt:vvalEndpt], y2=vvalDiffDataDict['Stdev Low'][vvalStartpt:vvalEndpt], color='DodgerBlue')
+                plt.fill_between(x=vvalTSDataList[vvalStartpt:vvalEndpt], y1=vvalDiffDataDict['Mean'][vvalStartpt:vvalEndpt], y2=vvalDiffDataDict['Stdev High'][vvalStartpt:vvalEndpt], color='DodgerBlue')
+                plt.fill_between(x=vvalTSDataList[vvalStartpt:vvalEndpt], y1=vvalDiffDataDict['Stdev Low'][vvalStartpt:vvalEndpt], y2=vvalDiffDataDict['Min'][vvalStartpt:vvalEndpt], color='LightSkyBlue')
+                plt.fill_between(x=vvalTSDataList[vvalStartpt:vvalEndpt], y1=vvalDiffDataDict['Stdev High'][vvalStartpt:vvalEndpt], y2=vvalDiffDataDict['Max'][vvalStartpt:vvalEndpt], color='LightSkyBlue')
+
         #print(appName + ': vvalDiffYmin: ' + str(vvalDiffYmin) + ', vvalDiffYmax: ' + str(vvalDiffYmax), flush=True)
 
     # state-estimator voltage magnitude plot y-axis zoom and pan calculation
