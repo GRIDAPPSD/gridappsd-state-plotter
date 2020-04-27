@@ -283,10 +283,11 @@ def vangPrintWithoutSim(ts, sepair, sevang):
 
 
 def calcVNom(vval, sepair):
-    if plotNominalFlag and sepair in SEToVnomMagDict:
-        if plotMagFlag:
+    if plotMagFlag:
+        if plotNominalFlag and sepair in SEToVnomMagDict:
             return vval / SEToVnomMagDict[sepair]
-        else:
+    else:
+        if plotNominalFlag and sepair in SEToVnomAngDict:
             return vval - SEToVnomAngDict[sepair]
 
     return vval
