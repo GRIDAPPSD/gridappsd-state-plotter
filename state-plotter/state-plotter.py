@@ -1279,13 +1279,19 @@ def initPlot(configFlag):
 
     vvalFig = plt.figure(figsize=(10,6))
 
-    baseTitle = ''
-    if plotNominalFlag:
-        baseTitle = 'Nominal '
     if plotMagFlag:
-        baseTitle += 'Voltage Magnitude'
+        baseTitle = 'Voltage Magnitude, '
+        if plotNominalFlag:
+            baseTitle += 'Per-Unit'
+        else:
+            baseTitle += 'Physical Units'
     else:
-        baseTitle += 'Voltage Angle'
+        baseTitle = 'Voltage Angle, '
+        if plotNominalFlag:
+            baseTitle += 'Relative to Nominal'
+        else:
+            baseTitle += 'Absolute'
+
     baseTitle += ', Simulation ID: ' + simID
     if plotTitle:
         baseTitle += ', ' + plotTitle
@@ -1300,6 +1306,7 @@ def initPlot(configFlag):
     vvalSEAx.grid()
     # shrink the margins, especially the top since we don't want a label
     plt.subplots_adjust(bottom=0.09, left=0.08, right=0.96, top=0.98, hspace=0.1)
+    # state estimator y-axis labels
     if plotMagFlag:
         if plotNominalFlag:
             plt.ylabel('Est. Volt. Magnitude (p.u.)')
@@ -1312,28 +1319,34 @@ def initPlot(configFlag):
 
     vvalSimAx = vvalFig.add_subplot(312, sharex=vvalSEAx)
     vvalSimAx.grid()
+    # simulation measurement y-axis labels
     if plotMagFlag:
         if plotNominalFlag:
-            plt.ylabel('Actual Volt. Mag. (p.u.)')
+            plt.ylabel('Field Volt. Mag. (p.u.)')
         else:
-            plt.ylabel('Actual Volt. Magnitude (V)')
+            plt.ylabel('Field Volt. Magnitude (V)')
     else:
-        plt.ylabel('Actual Volt. Angle (deg.)')
+        plt.ylabel('Field Volt. Angle (deg.)')
     plt.setp(vvalSimAx.get_xticklabels(), visible=False)
 
     vvalDiffAx = vvalFig.add_subplot(313, sharex=vvalSEAx)
     vvalDiffAx.grid()
     plt.xlabel('Time (s)')
     if plotOverlayFlag:
+        # overlay plot y-axis labels
         if plotMagFlag:
-            plt.ylabel('Actual & Est. Magnitude')
+            if plotNominalFlag:
+                plt.ylabel('Field & Est. Mag. (p.u.)')
+            else:
+                plt.ylabel('Field & Est. Mag. (V)')
         else:
-            plt.ylabel('Actual & Est. Angle')
+            plt.ylabel('Field & Est. Angle (deg.)')
     else:
+        # difference plot y-axis labels
         if plotMagFlag:
             plt.ylabel('Volt. Magnitude % Diff.')
         else:
-            plt.ylabel('Voltage Angle Diff.')
+            plt.ylabel('Difference (deg.)')
 
     # pause/play button
     vvalPauseAx = plt.axes([0.01, 0.01, 0.03, 0.03])
