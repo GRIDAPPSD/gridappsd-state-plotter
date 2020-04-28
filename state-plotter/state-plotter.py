@@ -1497,9 +1497,11 @@ Optional command line arguments:
         -match: only plot state estimates when there is a matching bus,phase
          pair in simulation measurements
         -comp[aritivebasis]: plot comparitive basis values. I.e., per-unit
-         voltage magnitudes and relative to nominal voltage angles (default)
-        -phys[icalunits]: plot physical units for voltage magnitude and
-         absolute values for voltage angles
+         voltage magnitudes and relative-to-nominal voltage angles (default)
+        -phys[icalunits]: plot voltage magnitude in physical units and voltage
+         angle in absolute/non-relative terms. I.e., no shifting is applied to
+         the voltage angle; three-phase systems will have voltage angles
+         clustered around each of three nominal phase angles.
         -nocomp[aritivebasis]: equivalent to -phys[icalunits], comparitive
          basis values are not plotted
         -stat[s][istics]: plots minimum, maximum, mean and standard deviation

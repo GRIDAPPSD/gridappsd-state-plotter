@@ -133,8 +133,8 @@ Clone the repository <https://github.com/GRIDAPPSD/gridappsd-state-ploter> under
 - -ang[le]: voltage angle plots should be created
 - -over[lay]: overlays simulation measurement and state estimate values in the same bottom plot instead of the default to plot the difference between simulation measurement and state estimate values
 - -match: only plot state estimates when there is a matching bus,phase pair in simulation measurements
-- -comp[aritivebasis]: plot comparitive basis values. I.e., per-unit voltage magnitudes and relative to nominal voltage angles (default)
-- -phys[icalunits]: plot physical units for voltage magnitude and absolute values for voltage angles
+- -comp[aritivebasis]: plot comparitive basis values. I.e., per-unit voltage magnitudes and relative-to-nominal voltage angles (default)
+- -phys[icalunits]: plot voltage magnitude in physical units and voltage angle in absolute/non-relative terms. I.e., no shifting is applied to the voltage angle; three-phase systems will have voltage angles clustered around each of three nominal phase angles.
 - -nocomp[aritivebasis]: equivalent to -phys[icalunits], comparitive basis values are not plotted
 - -stat[s][istics]: plots minimum, maximum, mean and standard deviation values over all bus,phase pairs for each timestamp (default if none from -bus, -conf, -all, nor -# are specified). Can be used in combination with -phase to report statistics for specific phases.  The standard deviation is shown as a shaded range below and above the mean value.  Minimum and maximum value ranges are shaded below and above the standard deviation ranges.
 - -bus: plots the specified bus name and phase comma-separated pair (no spaces) given as the argument that follows. The bus name alone may be given without a comma and phase and all phases that are present will be plotted, e.g. "-bus 150" will plot phases A, B, and C if present.  Plotting combinations of bus,phase pairs is done by repeating the -bus option, e.g., "-bus 150,A -bus 160,A". Using -bus on the command line results in state-plotter-config.csv bus,phase pairs being disregarded.
