@@ -123,9 +123,9 @@ Clone the repository <https://github.com/GRIDAPPSD/gridappsd-state-ploter> under
 
 3. Configure and start the simulation from the GRIDAPPSD platform web browser visualization, click on the "Simulation ID" value in the upper left corner of the simulation diagram to copy the value to the clipboard.
 
-3. With the state estimator being invoked either by the platform or separately from the command line, run the script "./run-plot.sh" from the command line with the Simulation ID value pasted from the clipboard as the command line argument to the script.
+4. With the state estimator being invoked either by the platform or separately from the command line, run the script "./run-plot.sh" from the command line with the Simulation ID value pasted from the clipboard as the command line argument to the script.
 
-4. The state plotter will process running simulation measurements and state estimator messages and update plots with new data along with sending diagnostic log output to the terminal.
+5. The state plotter will process running simulation measurements and state estimator messages and update plots with new data along with sending diagnostic log output to the terminal.
 
 ## Command line options for state plotter
 
@@ -133,10 +133,10 @@ Clone the repository <https://github.com/GRIDAPPSD/gridappsd-state-ploter> under
 - -ang[le]: voltage angle plots should be created
 - -over[lay]: overlays simulation measurement and state estimate values in the same bottom plot instead of the default to plot the difference between simulation measurement and state estimate values
 - -match: only plot state estimates when there is a matching bus,phase pair in simulation measurements
-- -nom[inal]: plot nominal voltage magnitudes and angles instead of actual (default)
-- -act[ual]: plot actual voltage magnitudes and angles instead of the default nominal values
-- -nonom[inal]: equivalent to -act[ual], nominal values are not plotted
-- -min[maxmean]: plots minimum, maximum, and mean values over all bus,phase pairs for each timestamp (default if none from -bus, -conf, -all, nor -# are specified). Can be used in combination with -phase to report statistics for specific phases.
+- -comp[aritivebasis]: plot comparitive basis values. I.e., per-unit voltage magnitudes and relative to nominal voltage angles (default)
+- -phys[icalunits]: plot physical units for voltage magnitude and absolute values for voltage angles
+- -nocomp[aritivebasis]: equivalent to -phys[icalunits], comparitive basis values are not plotted
+- -stat[s][istics]: plots minimum, maximum, mean and standard deviation values over all bus,phase pairs for each timestamp (default if none from -bus, -conf, -all, nor -# are specified). Can be used in combination with -phase to report statistics for specific phases.  The standard deviation is shown as a shaded range below and above the mean value.  Minimum and maximum value ranges are shaded below and above the standard deviation ranges.
 - -bus: plots the specified bus name and phase comma-separated pair (no spaces) given as the argument that follows. The bus name alone may be given without a comma and phase and all phases that are present will be plotted, e.g. "-bus 150" will plot phases A, B, and C if present.  Plotting combinations of bus,phase pairs is done by repeating the -bus option, e.g., "-bus 150,A -bus 160,A". Using -bus on the command line results in state-plotter-config.csv bus,phase pairs being disregarded.
 - -conf[ig]: read bus name and phase pairs from state-plotter-config.csv file in parent directory. Each line contains a bus name and phase comma-separated pair. The bus name alone may be given without a comma and phase and all phases that are present will be plotted. Lines starting with the character "#" are treated as comments and ignored as are blank lines.
 - -all: plots all bus,phase pairs disregarding any pairs specified by state-plotter-config.csv or the -bus option
