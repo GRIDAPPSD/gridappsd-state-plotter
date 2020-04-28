@@ -98,7 +98,7 @@ simID = None
 simReq = None
 tsInit = 0
 plotMagFlag = True
-plotNominalFlag = True
+plotCompFlag = True
 plotStatsFlag = True
 vvalPausedFlag = False
 vvalShowFlag = False
@@ -284,10 +284,10 @@ def vangPrintWithoutSim(ts, sepair, sevang):
 
 def calcVNom(vval, sepair):
     if plotMagFlag:
-        if plotNominalFlag and sepair in SEToVnomMagDict:
+        if plotCompFlag and sepair in SEToVnomMagDict:
             return vval / SEToVnomMagDict[sepair]
     else:
-        if plotNominalFlag and sepair in SEToVnomAngDict:
+        if plotCompFlag and sepair in SEToVnomAngDict:
             return vval - SEToVnomAngDict[sepair]
 
     return vval
@@ -1286,13 +1286,13 @@ def initPlot(configFlag):
 
     if plotMagFlag:
         baseTitle = 'Voltage Magnitude, '
-        if plotNominalFlag:
+        if plotCompFlag:
             baseTitle += 'Per-Unit'
         else:
             baseTitle += 'Physical Units'
     else:
         baseTitle = 'Voltage Angle, '
-        if plotNominalFlag:
+        if plotCompFlag:
             baseTitle += 'Relative to Nominal'
         else:
             baseTitle += 'Absolute'
@@ -1313,7 +1313,7 @@ def initPlot(configFlag):
     plt.subplots_adjust(bottom=0.09, left=0.08, right=0.96, top=0.98, hspace=0.1)
     # state estimator y-axis labels
     if plotMagFlag:
-        if plotNominalFlag:
+        if plotCompFlag:
             plt.ylabel('Est. Volt. Magnitude (p.u.)')
         else:
             plt.ylabel('Est. Volt. Magnitude (V)')
@@ -1326,7 +1326,7 @@ def initPlot(configFlag):
     vvalSimAx.grid()
     # simulation measurement y-axis labels
     if plotMagFlag:
-        if plotNominalFlag:
+        if plotCompFlag:
             plt.ylabel('Field Volt. Mag. (p.u.)')
         else:
             plt.ylabel('Field Volt. Magnitude (V)')
@@ -1340,7 +1340,7 @@ def initPlot(configFlag):
     if plotOverlayFlag:
         # overlay plot y-axis labels
         if plotMagFlag:
-            if plotNominalFlag:
+            if plotCompFlag:
                 plt.ylabel('Field & Est. Mag. (p.u.)')
             else:
                 plt.ylabel('Field & Est. Mag. (V)')
@@ -1482,7 +1482,7 @@ def configPlot(busList):
 
 def _main():
     global appName, simID, simReq, gapps
-    global plotTitle, plotNumber, plotMagFlag, plotNominalFlag
+    global plotTitle, plotNumber, plotMagFlag, plotCompFlag
     global plotStatsFlag, plotOverlayFlag, plotLegendFlag, plotMatchesFlag
 
     if len(sys.argv)<2 or '-help' in sys.argv:
@@ -1496,11 +1496,12 @@ Optional command line arguments:
          between simulation measurement and state estimate values
         -match: only plot state estimates when there is a matching bus,phase
          pair in simulation measurements
-        -nom[inal]: plot nominal voltage magnitudes and angles instead of
-         actual (default)
-        -act[ual]: plot actual voltage magnitudes and angles instead of the
-         default nominal values
-        -nonom[inal]: equivalent to -act[ual], nominal values are not plotted
+        -comp[aritivebasis]: plot comparitive basis values. I.e., per-unit
+         voltage magnitudes and relative to nominal voltage angles (default)
+        -phys[icalunits]: plot physical units for voltage magnitude and
+         absolute values for voltage angles
+        -nocomp[aritivebasis]: equivalent to -phys[icalunits], comparitive
+         basis values are not plotted
         -stat[s][istics]: plots minimum, maximum, mean and standard deviation
          values over all bus,phase pairs for each timestamp (default if none
          from -bus, -conf, -all, nor -# are specified). Can be used in
@@ -1584,10 +1585,10 @@ Optional command line arguments:
             plotOverlayFlag = True
         elif arg.startswith('-match'):
             plotMatchesFlag = True
-        elif arg.startswith('-act') or arg.startswith('-nonom'):
-            plotNominalFlag = False
-        elif arg.startswith('-nom'):
-            plotNominalFlag = True
+        elif arg.startswith('-phys') or arg.startswith('-nocomp'):
+            plotCompFlag = False
+        elif arg.startswith('-comp'):
+            plotCompFlag = True
         elif arg[0]=='-' and arg[1:].isdigit():
             plotNumber = int(arg[1:])
             plotStatsFlag = False
