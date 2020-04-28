@@ -99,7 +99,7 @@ simReq = None
 tsInit = 0
 plotMagFlag = True
 plotNominalFlag = True
-plotMMMFlag = True
+plotStatsFlag = True
 vvalPausedFlag = False
 vvalShowFlag = False
 firstPassFlag = True
@@ -597,7 +597,7 @@ def measurementNoConfigCallback(header, message):
     vvalPlotData(None)
 
 
-def measurementMMMCallback(header, message):
+def measurementStatsCallback(header, message):
     global firstPassFlag, tsInit
 
     msgdict = message['message']
@@ -923,7 +923,7 @@ def vvalPlotData(event):
                     seLegendLabelList.append(plotPairDict[pair])
         #print(appName + ': vvalSEYmin: ' + str(vvalSEYmin) + ', vvalSEYmax: ' + str(vvalSEYmax), flush=True)
 
-        if plotMMMFlag:
+        if plotStatsFlag:
             plt.sca(vvalSEAx)
             plt.fill_between(x=vvalTSDataList, y1=vvalSEDataDict['Mean'], y2=vvalSEDataDict['Stdev Low'], color=stdevBlue)
             plt.fill_between(x=vvalTSDataList, y1=vvalSEDataDict['Mean'], y2=vvalSEDataDict['Stdev High'], color=stdevBlue)
@@ -944,7 +944,7 @@ def vvalPlotData(event):
                     simLegendLabelList.append(plotPairDict[pair])
         #print(appName + ': vvalSimYmin: ' + str(vvalSimYmin) + ', vvalSimYmax: ' + str(vvalSimYmax), flush=True)
 
-        if plotMMMFlag:
+        if plotStatsFlag:
             plt.sca(vvalSimAx)
             plt.fill_between(x=vvalTSDataList, y1=vvalSimDataDict['Mean'], y2=vvalSimDataDict['Stdev Low'], color=stdevBlue)
             plt.fill_between(x=vvalTSDataList, y1=vvalSimDataDict['Mean'], y2=vvalSimDataDict['Stdev High'], color=stdevBlue)
@@ -973,7 +973,7 @@ def vvalPlotData(event):
                     vvalDiffLinesDict[pair].set_ydata(vvalDiffDataDict[pair])
                     vvalDiffYmin = min(vvalDiffYmin, min(vvalDiffDataDict[pair]))
                     vvalDiffYmax = max(vvalDiffYmax, max(vvalDiffDataDict[pair]))
-            if plotMMMFlag:
+            if plotStatsFlag:
                 plt.sca(vvalDiffAx)
                 plt.fill_between(x=vvalTSDataList, y1=vvalDiffDataDict['Mean'], y2=vvalDiffDataDict['Stdev Low'], color=stdevBlue)
                 plt.fill_between(x=vvalTSDataList, y1=vvalDiffDataDict['Mean'], y2=vvalDiffDataDict['Stdev High'], color=stdevBlue)
@@ -1067,7 +1067,7 @@ def vvalPlotData(event):
                     seLegendLabelList.append(plotPairDict[pair])
         #print(appName + ': vvalSEYmin: ' + str(vvalSEYmin) + ', vvalSEYmax: ' + str(vvalSEYmax), flush=True)
 
-        if plotMMMFlag:
+        if plotStatsFlag:
             plt.sca(vvalSEAx)
             plt.fill_between(x=vvalTSDataList[vvalStartpt:vvalEndpt], y1=vvalSEDataDict['Mean'][vvalStartpt:vvalEndpt], y2=vvalSEDataDict['Stdev Low'][vvalStartpt:vvalEndpt], color=stdevBlue)
             plt.fill_between(x=vvalTSDataList[vvalStartpt:vvalEndpt], y1=vvalSEDataDict['Mean'][vvalStartpt:vvalEndpt], y2=vvalSEDataDict['Stdev High'][vvalStartpt:vvalEndpt], color=stdevBlue)
@@ -1088,7 +1088,7 @@ def vvalPlotData(event):
                     simLegendLabelList.append(plotPairDict[pair])
         #print(appName + ': vvalSimYmin: ' + str(vvalSimYmin) + ', vvalSimYmax: ' + str(vvalSimYmax), flush=True)
 
-        if plotMMMFlag:
+        if plotStatsFlag:
             plt.sca(vvalSimAx)
             plt.fill_between(x=vvalTSDataList[vvalStartpt:vvalEndpt], y1=vvalSimDataDict['Mean'][vvalStartpt:vvalEndpt], y2=vvalSimDataDict['Stdev Low'][vvalStartpt:vvalEndpt], color=stdevBlue)
             plt.fill_between(x=vvalTSDataList[vvalStartpt:vvalEndpt], y1=vvalSimDataDict['Mean'][vvalStartpt:vvalEndpt], y2=vvalSimDataDict['Stdev High'][vvalStartpt:vvalEndpt], color=stdevBlue)
@@ -1118,7 +1118,7 @@ def vvalPlotData(event):
                     vvalDiffYmin = min(vvalDiffYmin, min(vvalDiffDataDict[pair][vvalStartpt:vvalEndpt]))
                     vvalDiffYmax = max(vvalDiffYmax, max(vvalDiffDataDict[pair][vvalStartpt:vvalEndpt]))
 
-            if plotMMMFlag:
+            if plotStatsFlag:
                 plt.sca(vvalDiffAx)
                 plt.fill_between(x=vvalTSDataList[vvalStartpt:vvalEndpt], y1=vvalDiffDataDict['Mean'][vvalStartpt:vvalEndpt], y2=vvalDiffDataDict['Stdev Low'][vvalStartpt:vvalEndpt], color=stdevBlue)
                 plt.fill_between(x=vvalTSDataList[vvalStartpt:vvalEndpt], y1=vvalDiffDataDict['Mean'][vvalStartpt:vvalEndpt], y2=vvalDiffDataDict['Stdev High'][vvalStartpt:vvalEndpt], color=stdevBlue)
@@ -1147,7 +1147,7 @@ def vvalPlotData(event):
     vvalDiffAx.set_ylim(newvvalDiffYmin, newvvalDiffYmax)
 
     if firstPlotFlag:
-        if plotMMMFlag:
+        if plotStatsFlag:
             vvalSEAx.legend()
             vvalSimAx.legend()
 
@@ -1478,7 +1478,7 @@ def configPlot(busList):
 def _main():
     global appName, simID, simReq, gapps
     global plotTitle, plotNumber, plotMagFlag, plotNominalFlag
-    global plotMMMFlag, plotOverlayFlag, plotLegendFlag, plotMatchesFlag
+    global plotStatsFlag, plotOverlayFlag, plotLegendFlag, plotMatchesFlag
 
     if len(sys.argv)<2 or '-help' in sys.argv:
         usestr =  '\nUsage: ' + sys.argv[0] + ' simID simReq\n'
@@ -1496,10 +1496,13 @@ Optional command line arguments:
         -act[ual]: plot actual voltage magnitudes and angles instead of the
          default nominal values
         -nonom[inal]: equivalent to -act[ual], nominal values are not plotted
-        -min[maxmean]: plots minimum, maximum, and mean values over all
-         bus,phase pairs for each timestamp (default if none from -bus, -conf,
-         -all, nor -# are specified). Can be used in combination with -phase
-         to report statistics for specific phases.
+        -stat[s][istics]: plots minimum, maximum, mean and standard deviation
+         values over all bus,phase pairs for each timestamp (default if none
+         from -bus, -conf, -all, nor -# are specified). Can be used in
+         combination with -phase to report statistics for specific phases.
+         The standard deviation is shown as a shaded range below and above
+         the mean value.  Minimum and maximum value ranges are shaded below
+         and above the standard deviation ranges.
         -bus: plots the specified bus name and phase comma-separated pair (no
          spaces) given as the argument that follows. The bus name alone may be
          given without a comma and phase and all phases that are present will
@@ -1563,10 +1566,10 @@ Optional command line arguments:
             plotLegendFlag = True
         elif arg == '-all':
             plotNumber = 0 # magic number to plot all pairs
-            plotMMMFlag = False
+            plotStatsFlag = False
             plotConfigFlag = False
-        elif arg.startswith('-min'):
-            plotMMMFlag = True
+        elif arg.startswith('-stat'):
+            plotStatsFlag = True
             plotConfigFlag = False
         elif arg.startswith('-mag'):
             plotMagFlag = True
@@ -1582,14 +1585,14 @@ Optional command line arguments:
             plotNominalFlag = True
         elif arg[0]=='-' and arg[1:].isdigit():
             plotNumber = int(arg[1:])
-            plotMMMFlag = False
+            plotStatsFlag = False
             plotConfigFlag = False
         elif arg == '-bus':
             plotBusFlag = True
-            plotMMMFlag = False
+            plotStatsFlag = False
         elif arg.startswith('-conf'):
             plotConfigFlag = True
-            plotMMMFlag = False
+            plotStatsFlag = False
         elif arg == '-phase':
             plotPhaseFlag = True
         elif arg == '-title':
@@ -1623,9 +1626,9 @@ Optional command line arguments:
     else:
         # subscribe to state-estimator measurement output--one of two methods
         # without config file
-        if plotMMMFlag:
+        if plotStatsFlag:
             gapps.subscribe('/topic/goss.gridappsd.state-estimator.out.' +
-                            simID, measurementMMMCallback)
+                            simID, measurementStatsCallback)
         else:
             gapps.subscribe('/topic/goss.gridappsd.state-estimator.out.' +
                             simID, measurementNoConfigCallback)
