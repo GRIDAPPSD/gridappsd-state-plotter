@@ -688,21 +688,6 @@ def measurementStatsCallback(header, message):
 
             vvalDiffLinesDict['Mean'], = vvalDiffAx.plot([], [], label='Mean', color='red')
 
-            if plotMagFlag:
-                vvalDiffDataDict['Min'] = []
-                vvalDiffDataDict['Max'] = []
-                vvalDiffDataDict['Stdev Low'] = []
-                vvalDiffDataDict['Stdev High'] = []
-                vvalDiffDataPausedDict['Min'] = []
-                vvalDiffDataPausedDict['Max'] = []
-                vvalDiffDataPausedDict['Stdev Low'] = []
-                vvalDiffDataPausedDict['Stdev High'] = []
-
-                vvalDiffLinesDict['Min'], = vvalDiffAx.plot([], [], label='Minimum', color='cyan')
-                vvalDiffLinesDict['Max'], = vvalDiffAx.plot([], [], label='Maximum', color='cyan')
-                vvalDiffLinesDict['Stdev Low'], = vvalDiffAx.plot([], [], label='Std. Dev. Low', color='blue')
-                vvalDiffLinesDict['Stdev High'], = vvalDiffAx.plot([], [], label='Std. Dev. High', color='blue')
-
         vvalSimLinesDict['Min'], = vvalSimAx.plot([], [], label='Minimum', color='cyan')
         vvalSimLinesDict['Max'], = vvalSimAx.plot([], [], label='Maximum', color='cyan')
         vvalSimLinesDict['Stdev Low'], = vvalSimAx.plot([], [], label='Std. Dev. Low', color='blue')
@@ -822,15 +807,6 @@ def measurementStatsCallback(header, message):
     if not plotOverlayFlag:
         diffmean = statistics.mean(difflist)
         vvalDiffDataPausedDict['Mean'].append(diffmean) if vvalPausedFlag else vvalDiffDataDict['Mean'].append(diffmean)
-
-        if plotMagFlag:
-            diffmin = min(difflist)
-            diffmax = max(difflist)
-            diffstdev = statistics.pstdev(difflist, diffmean)
-            vvalDiffDataPausedDict['Min'].append(diffmin) if vvalPausedFlag else vvalDiffDataDict['Min'].append(diffmin)
-            vvalDiffDataPausedDict['Max'].append(diffmax) if vvalPausedFlag else vvalDiffDataDict['Max'].append(diffmax)
-            vvalDiffDataPausedDict['Stdev Low'].append(diffmean-diffstdev) if vvalPausedFlag else vvalDiffDataDict['Stdev Low'].append(diffmean-diffstdev)
-            vvalDiffDataPausedDict['Stdev High'].append(diffmean+diffstdev) if vvalPausedFlag else vvalDiffDataDict['Stdev High'].append(diffmean+diffstdev)
 
     # update plots with the new data
     vvalPlotData(None)
@@ -978,12 +954,6 @@ def vvalPlotData(event):
                     vvalDiffLinesDict[pair].set_ydata(vvalDiffDataDict[pair])
                     vvalDiffYmin = min(vvalDiffYmin, min(vvalDiffDataDict[pair]))
                     vvalDiffYmax = max(vvalDiffYmax, max(vvalDiffDataDict[pair]))
-            if plotStatsFlag and plotMagFlag:
-                plt.sca(vvalDiffAx)
-                plt.fill_between(x=vvalTSDataList, y1=vvalDiffDataDict['Mean'], y2=vvalDiffDataDict['Stdev Low'], color=stdevBlue)
-                plt.fill_between(x=vvalTSDataList, y1=vvalDiffDataDict['Mean'], y2=vvalDiffDataDict['Stdev High'], color=stdevBlue)
-                plt.fill_between(x=vvalTSDataList, y1=vvalDiffDataDict['Stdev Low'], y2=vvalDiffDataDict['Min'], color=minmaxBlue)
-                plt.fill_between(x=vvalTSDataList, y1=vvalDiffDataDict['Stdev High'], y2=vvalDiffDataDict['Max'], color=minmaxBlue)
         #print(appName + ': vvalDiffYmin: ' + str(vvalDiffYmin) + ', vvalDiffYmax: ' + str(vvalDiffYmax), flush=True)
 
     else:
@@ -1122,13 +1092,6 @@ def vvalPlotData(event):
                     vvalDiffLinesDict[pair].set_ydata(vvalDiffDataDict[pair][vvalStartpt:vvalEndpt])
                     vvalDiffYmin = min(vvalDiffYmin, min(vvalDiffDataDict[pair][vvalStartpt:vvalEndpt]))
                     vvalDiffYmax = max(vvalDiffYmax, max(vvalDiffDataDict[pair][vvalStartpt:vvalEndpt]))
-
-            if plotStatsFlag and plotMagFlag:
-                plt.sca(vvalDiffAx)
-                plt.fill_between(x=vvalTSDataList[vvalStartpt:vvalEndpt], y1=vvalDiffDataDict['Mean'][vvalStartpt:vvalEndpt], y2=vvalDiffDataDict['Stdev Low'][vvalStartpt:vvalEndpt], color=stdevBlue)
-                plt.fill_between(x=vvalTSDataList[vvalStartpt:vvalEndpt], y1=vvalDiffDataDict['Mean'][vvalStartpt:vvalEndpt], y2=vvalDiffDataDict['Stdev High'][vvalStartpt:vvalEndpt], color=stdevBlue)
-                plt.fill_between(x=vvalTSDataList[vvalStartpt:vvalEndpt], y1=vvalDiffDataDict['Stdev Low'][vvalStartpt:vvalEndpt], y2=vvalDiffDataDict['Min'][vvalStartpt:vvalEndpt], color=minmaxBlue)
-                plt.fill_between(x=vvalTSDataList[vvalStartpt:vvalEndpt], y1=vvalDiffDataDict['Stdev High'][vvalStartpt:vvalEndpt], y2=vvalDiffDataDict['Max'][vvalStartpt:vvalEndpt], color=minmaxBlue)
 
         #print(appName + ': vvalDiffYmin: ' + str(vvalDiffYmin) + ', vvalDiffYmax: ' + str(vvalDiffYmax), flush=True)
 
