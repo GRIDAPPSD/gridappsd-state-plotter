@@ -807,6 +807,10 @@ def measurementStatsCallback(header, message):
     if not plotOverlayFlag:
         diffmean = statistics.mean(difflist)
         vvalDiffDataPausedDict['Mean'].append(diffmean) if vvalPausedFlag else vvalDiffDataDict['Mean'].append(diffmean)
+        if plotMagFlag:
+            print(appName + ': mean magnitude % diff: ' + str(diffmean), flush=True)
+        else:
+            print(appName + ': mean angle diff: ' + str(diffmean), flush=True)
 
     # update plots with the new data
     vvalPlotData(None)
@@ -1121,11 +1125,11 @@ def vvalPlotData(event):
 
         elif len(plotPairDict) > 0:
             if plotLegendFlag or len(seLegendLineList)<=10:
-                cols = math.ceil(len(seLegendLineList)/12)
+                cols = math.ceil(len(seLegendLineList)/8)
                 vvalSEAx.legend(seLegendLineList, seLegendLabelList, ncol=cols)
 
             if plotLegendFlag or len(simLegendLineList)<=10:
-                cols = math.ceil(len(simLegendLineList)/12)
+                cols = math.ceil(len(simLegendLineList)/8)
                 vvalSimAx.legend(simLegendLineList, simLegendLabelList, ncol=cols)
 
     firstPlotFlag = False
