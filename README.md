@@ -144,5 +144,6 @@ Clone the repository <https://github.com/GRIDAPPSD/gridappsd-state-ploter> under
 - -phase: plots only the specified phase (A, B, or C) given as the argument that follows. Combinations of phases in the same plot are done by repeating the -phase option, e.g., "-phase A -phase B" to exclude phase C. If there are bus,phase pairs specified in state-plotter-config.csv or with the -bus option, they will be excluded if -phase is used and the phase of the pair differs. E.g., "-bus 160,A -phase C" will not plot the 160,A pair, nor any data in this case, since the -phase option specifies only phase C.
 - -legend: Indicates that a legend should be shown for the plot when bus,phase pairs are specified either with the -bus option or in state-plotter-config.csv
 - -title: appends argument that follows to the standard title to allow plot windows to be distinguished from each other. The argument can be quoted to allow spaces.
+- -print: print diagnostic bus,phase pair data for each timestamp
 - -help: show usage message
 

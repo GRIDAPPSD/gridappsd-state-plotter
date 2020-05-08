@@ -107,6 +107,7 @@ firstPlotFlag = True
 plotOverlayFlag = False
 plotLegendFlag = False
 plotMatchesFlag = False
+printDataFlag = False
 plotNumber = 0
 plotTitle = None
 playIcon = None
@@ -242,44 +243,48 @@ def queryVnom():
 
 
 def vmagPrintWithSim(ts, sepair, sevmag, simvmag, vmagdiff):
-    print(appName + ', ts: ' + str(ts) + ', sepair: ' + sepair + ', busname: ' + SEToBusDict[sepair] + ', sevmag: ' + str(sevmag) + ', simvmag: ' + str(simvmag) + ', % mag diff: ' + str(vmagdiff), flush=True)
-    # 13-node
-    if '_5B816B93-7A5F-B64C-8460-47C17D6E4B0F' in simReq:
-        if vmagdiff < -2.0:
-            print(appName + ': OUTLIER, 13-node, vmagdiff<-2.0%: ts: ' + str(ts) + ', sepair: ' + sepair + ', busname: ' + SEToBusDict[sepair] + ', sevmag: ' + str(sevmag) + ', simvmag: ' + str(simvmag) + ', % diff: ' + str(vmagdiff), flush=True)
-    # 123-node
-    elif '_C1C3E687-6FFD-C753-582B-632A27E28507' in simReq:
-        if vmagdiff > 3.0:
-            print(appName + ': OUTLIER, 123-node, vmagdiff>3.0%: ts: ' + str(ts) + ', sepair: ' + sepair + ', busname: ' + SEToBusDict[sepair] + ', sevmag: ' + str(sevmag) + ', simvmag: ' + str(simvmag) + ', % diff: ' + str(vmagdiff), flush=True)
-        if vmagdiff < -2.5:
-            print(appName + ': OUTLIER, 123-node, vmagdiff<-2.5%: ts: ' + str(ts) + ', sepair: ' + sepair + ', busname: ' + SEToBusDict[sepair] + ', sevmag: ' + str(sevmag) + ', simvmag: ' + str(simvmag) + ', % diff: ' + str(vmagdiff), flush=True)
-    # 9500-node
-    #elif '_AAE94E4A-2465-6F5E-37B1-3E72183A4E44' in simReq:
+    if printDataFlag:
+        print(appName + ', ts: ' + str(ts) + ', sepair: ' + sepair + ', busname: ' + SEToBusDict[sepair] + ', sevmag: ' + str(sevmag) + ', simvmag: ' + str(simvmag) + ', % mag diff: ' + str(vmagdiff), flush=True)
+        # 13-node
+        if '_5B816B93-7A5F-B64C-8460-47C17D6E4B0F' in simReq:
+            if vmagdiff < -2.0:
+                print(appName + ': OUTLIER, 13-node, vmagdiff<-2.0%: ts: ' + str(ts) + ', sepair: ' + sepair + ', busname: ' + SEToBusDict[sepair] + ', sevmag: ' + str(sevmag) + ', simvmag: ' + str(simvmag) + ', % diff: ' + str(vmagdiff), flush=True)
+        # 123-node
+        elif '_C1C3E687-6FFD-C753-582B-632A27E28507' in simReq:
+            if vmagdiff > 3.0:
+                print(appName + ': OUTLIER, 123-node, vmagdiff>3.0%: ts: ' + str(ts) + ', sepair: ' + sepair + ', busname: ' + SEToBusDict[sepair] + ', sevmag: ' + str(sevmag) + ', simvmag: ' + str(simvmag) + ', % diff: ' + str(vmagdiff), flush=True)
+            if vmagdiff < -2.5:
+                print(appName + ': OUTLIER, 123-node, vmagdiff<-2.5%: ts: ' + str(ts) + ', sepair: ' + sepair + ', busname: ' + SEToBusDict[sepair] + ', sevmag: ' + str(sevmag) + ', simvmag: ' + str(simvmag) + ', % diff: ' + str(vmagdiff), flush=True)
+        # 9500-node
+        #elif '_AAE94E4A-2465-6F5E-37B1-3E72183A4E44' in simReq:
 
 
 def vangPrintWithSim(ts, sepair, sevang, simvang, vangdiff):
-    print(appName + ', ts: ' + str(ts) + ', sepair: ' + sepair + ', busname: ' + SEToBusDict[sepair] + ', sevang: ' + str(sevang) + ', simvang: ' + str(simvang) + ', diff: ' + str(vangdiff), flush=True)
-    # 13-node
-    if '_5B816B93-7A5F-B64C-8460-47C17D6E4B0F' in simReq:
-        if vangdiff > 34.0:
-            print(appName + ': OUTLIER, 13-node, vangdiff>34.0: ts: ' + str(ts) + ', sepair: ' + sepair + ', busname: ' + SEToBusDict[sepair] + ', sevang: ' + str(sevang) + ', simvang: ' + str(simvang) + ', diff: ' + str(vangdiff), flush=True)
-    # 123-node
-    #elif '_C1C3E687-6FFD-C753-582B-632A27E28507' in simReq:
-    #    if vangdiff < -10.0:
-    #        print(appName + ': OUTLIER, 123-node, vangdiff<-100.0: ts: ' + str(ts) + ', sepair: ' + sepair + ', busname: ' + SEToBusDict[sepair] + ', sevang: ' + str(sevang) + ', simvang: ' + str(simvang) + ', diff: ' + str(vangdiff), flush=True)
-    # 9500-node
-    #elif '_AAE94E4A-2465-6F5E-37B1-3E72183A4E44' in simReq:
+    if printDataFlag:
+        print(appName + ', ts: ' + str(ts) + ', sepair: ' + sepair + ', busname: ' + SEToBusDict[sepair] + ', sevang: ' + str(sevang) + ', simvang: ' + str(simvang) + ', diff: ' + str(vangdiff), flush=True)
+        # 13-node
+        if '_5B816B93-7A5F-B64C-8460-47C17D6E4B0F' in simReq:
+            if vangdiff > 34.0:
+                print(appName + ': OUTLIER, 13-node, vangdiff>34.0: ts: ' + str(ts) + ', sepair: ' + sepair + ', busname: ' + SEToBusDict[sepair] + ', sevang: ' + str(sevang) + ', simvang: ' + str(simvang) + ', diff: ' + str(vangdiff), flush=True)
+        # 123-node
+        #elif '_C1C3E687-6FFD-C753-582B-632A27E28507' in simReq:
+        #    if vangdiff < -10.0:
+        #        print(appName + ': OUTLIER, 123-node, vangdiff<-100.0: ts: ' + str(ts) + ', sepair: ' + sepair + ', busname: ' + SEToBusDict[sepair] + ', sevang: ' + str(sevang) + ', simvang: ' + str(simvang) + ', diff: ' + str(vangdiff), flush=True)
+        # 9500-node
+        #elif '_AAE94E4A-2465-6F5E-37B1-3E72183A4E44' in simReq:
 
 
 def vmagPrintWithoutSim(ts, sepair, sevmag):
-    print(appName + ', NO SIM MATCH, ts: ' + str(ts) + ', sepair: ' + sepair + ', busname: ' + SEToBusDict[sepair] + ', sevmag: ' + str(sevmag), flush=True)
-    if '_5B816B93-7A5F-B64C-8460-47C17D6E4B0F' in simReq:
-        if sevmag > 4000:
-            print(appName + ': OUTLIER, 13-node, sevmag>4K: ts: ' + str(ts) + ', sepair: ' + sepair + ', busname: ' + SEToBusDict[sepair] + ', sevmag > 4K: ' + str(sevmag), flush=True)
+    if printDataFlag:
+        print(appName + ', NO SIM MATCH, ts: ' + str(ts) + ', sepair: ' + sepair + ', busname: ' + SEToBusDict[sepair] + ', sevmag: ' + str(sevmag), flush=True)
+        if '_5B816B93-7A5F-B64C-8460-47C17D6E4B0F' in simReq:
+            if sevmag > 4000:
+                print(appName + ': OUTLIER, 13-node, sevmag>4K: ts: ' + str(ts) + ', sepair: ' + sepair + ', busname: ' + SEToBusDict[sepair] + ', sevmag > 4K: ' + str(sevmag), flush=True)
 
 
 def vangPrintWithoutSim(ts, sepair, sevang):
-    print(appName + ', NO SIM MATCH, ts: ' + str(ts) + ', sepair: ' + sepair + ', busname: ' + SEToBusDict[sepair] + ', sevang: ' + str(sevang), flush=True)
+    if printDataFlag:
+        print(appName + ', NO SIM MATCH, ts: ' + str(ts) + ', sepair: ' + sepair + ', busname: ' + SEToBusDict[sepair] + ', sevang: ' + str(sevang), flush=True)
 
 
 def calcVNom(vval, sepair):
@@ -1451,7 +1456,7 @@ def configPlot(busList):
 
 def _main():
     global appName, simID, simReq, gapps
-    global plotTitle, plotNumber, plotMagFlag, plotCompFlag
+    global plotTitle, plotNumber, plotMagFlag, plotCompFlag, printDataFlag
     global plotStatsFlag, plotOverlayFlag, plotLegendFlag, plotMatchesFlag
 
     if len(sys.argv)<2 or '-help' in sys.argv:
@@ -1515,6 +1520,7 @@ Optional command line arguments:
         -title: appends argument that follows to the standard title to allow
          plot windows to be distinguished from each other. The argument can be
          quoted to allow spaces.
+        -print: print diagnostic bus,phase pair data for each timestamp
         -help: show this usage message
         '''
         print(usestr, flush=True)
@@ -1574,6 +1580,8 @@ Optional command line arguments:
             plotPhaseFlag = True
         elif arg == '-title':
             plotTitleFlag = True
+        elif arg == '-print':
+            printDataFlag = True
 
     gapps = GridAPPSD()
 
