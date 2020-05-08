@@ -845,7 +845,7 @@ def yAxisLimits(yMin, yMax, zoomVal, panVal):
     # check for yMin > yMax, which indicates there was no data to drive the
     # min/max determination
     if yMin > yMax:
-        print(appName + ': WARNING: y-axis minimum and maximum values were not set due to lack of data--defaulting to avoid Matplotlib error!\n', flush=True)
+        print(appName + ': NOTE: y-axis minimum and maximum values were not set due to lack of data--defaulting to 0-100\n', flush=True)
         yMin = 0.0
         yMax = 100.0
     elif yMin!=0.0 and abs((yMax-yMin)/yMin)<0.05:
@@ -1113,14 +1113,14 @@ def vvalPlotData(event):
 
     # simulation voltage value plot y-axis zoom and pan calculation
     if not vvalSimDataFlag:
-        print(appName + ': WARNING: no simulation voltage value data to plot!\n', flush=True)
+        print(appName + ': NOTE: no simulation voltage value data to plot yet\n', flush=True)
     #print(appName + ': simulator voltage value y-axis limits...', flush=True)
     newvvalSimYmin, newvvalSimYmax = yAxisLimits(vvalSimYmin, vvalSimYmax, vvalSimZoomSldr.val, vvalSimPanSldr.val)
     vvalSimAx.set_ylim(newvvalSimYmin, newvvalSimYmax)
 
     # voltage value difference plot y-axis zoom and pan calculation
     if not plotOverlayFlag and not vvalDiffDataFlag:
-        print(appName + ': WARNING: no voltage value difference data to plot!\n', flush=True)
+        print(appName + ': NOTE: no voltage value difference data to plot yet\n', flush=True)
     #print(appName + ': voltage value difference y-axis limits...', flush=True)
     newvvalDiffYmin, newvvalDiffYmax = yAxisLimits(vvalDiffYmin, vvalDiffYmax, vvalDiffZoomSldr.val, vvalDiffPanSldr.val)
     vvalDiffAx.set_ylim(newvvalDiffYmin, newvvalDiffYmax)
