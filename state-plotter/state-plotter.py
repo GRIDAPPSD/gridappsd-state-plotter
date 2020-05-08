@@ -794,17 +794,18 @@ def measurementStatsCallback(header, message):
     vvalSEDataPausedDict['Stdev Low'].append(semean-sestdev) if vvalPausedFlag else vvalSEDataDict['Stdev Low'].append(semean-sestdev)
     vvalSEDataPausedDict['Stdev High'].append(semean+sestdev) if vvalPausedFlag else vvalSEDataDict['Stdev High'].append(semean+sestdev)
 
-    simmin = min(simlist)
-    simmax = max(simlist)
-    simmean = statistics.mean(simlist)
-    simstdev = statistics.pstdev(simlist, simmean)
-    vvalSimDataPausedDict['Min'].append(simmin) if vvalPausedFlag else vvalSimDataDict['Min'].append(simmin)
-    vvalSimDataPausedDict['Max'].append(simmax) if vvalPausedFlag else vvalSimDataDict['Max'].append(simmax)
-    vvalSimDataPausedDict['Mean'].append(simmean) if vvalPausedFlag else vvalSimDataDict['Mean'].append(simmean)
-    vvalSimDataPausedDict['Stdev Low'].append(simmean-simstdev) if vvalPausedFlag else vvalSimDataDict['Stdev Low'].append(simmean-simstdev)
-    vvalSimDataPausedDict['Stdev High'].append(simmean+simstdev) if vvalPausedFlag else vvalSimDataDict['Stdev High'].append(simmean+simstdev)
+    if len(simlist) > 0:
+        simmin = min(simlist)
+        simmax = max(simlist)
+        simmean = statistics.mean(simlist)
+        simstdev = statistics.pstdev(simlist, simmean)
+        vvalSimDataPausedDict['Min'].append(simmin) if vvalPausedFlag else vvalSimDataDict['Min'].append(simmin)
+        vvalSimDataPausedDict['Max'].append(simmax) if vvalPausedFlag else vvalSimDataDict['Max'].append(simmax)
+        vvalSimDataPausedDict['Mean'].append(simmean) if vvalPausedFlag else vvalSimDataDict['Mean'].append(simmean)
+        vvalSimDataPausedDict['Stdev Low'].append(simmean-simstdev) if vvalPausedFlag else vvalSimDataDict['Stdev Low'].append(simmean-simstdev)
+        vvalSimDataPausedDict['Stdev High'].append(simmean+simstdev) if vvalPausedFlag else vvalSimDataDict['Stdev High'].append(simmean+simstdev)
 
-    if not plotOverlayFlag:
+    if not plotOverlayFlag and len(difflist)>0:
         diffmean = statistics.mean(difflist)
         vvalDiffDataPausedDict['Mean'].append(diffmean) if vvalPausedFlag else vvalDiffDataDict['Mean'].append(diffmean)
         if plotMagFlag:
@@ -820,8 +821,9 @@ def simulationOutputCallback(header, message):
     msgdict = message['message']
     ts = msgdict['timestamp']
 
-    # some debug printing
-    print(appName + ': simulation output message timestamp: ' + str(ts), flush=True)
+    #print(appName + ': simulation output message timestamp: ' + str(ts), flush=True)
+    # a single dot per measurement to match how state-estimator does it
+    print('.', end='', flush=True)
     #pprint.pprint(msgdict)
 
     # because we require Python 3.6, we can count on insertion ordered
@@ -996,8 +998,8 @@ def vvalPlotData(event):
             #    vvalXmax = vvalTSZoom
 
         vvalSEAx.set_xlim(vvalXmin, vvalXmax)
-        print(appName + ': vvalXmin: ' + str(vvalXmin), flush=True)
-        print(appName + ': vvalXmax: ' + str(vvalXmax), flush=True)
+        #print(appName + ': vvalXmin: ' + str(vvalXmin), flush=True)
+        #print(appName + ': vvalXmax: ' + str(vvalXmax), flush=True)
 
         vvalStartpt = 0
         if vvalXmin > 0:
@@ -1030,8 +1032,8 @@ def vvalPlotData(event):
 
         # always add 1 to endpt because array slice uses -1 for upper bound
         vvalEndpt += 1
-        print(appName + ': vvalStartpt: ' + str(vvalStartpt), flush=True)
-        print(appName + ': vvalEndpt: ' + str(vvalEndpt) + '\n', flush=True)
+        #print(appName + ': vvalStartpt: ' + str(vvalStartpt), flush=True)
+        #print(appName + ': vvalEndpt: ' + str(vvalEndpt) + '\n', flush=True)
 
         vvalSEYmax = -sys.float_info.max
         vvalSEYmin = sys.float_info.max
