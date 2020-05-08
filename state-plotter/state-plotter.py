@@ -313,9 +313,10 @@ def estimateConfigCallback(header, message):
     # update the timestamp zoom slider upper limit and default value
     if firstPassFlag:
         # scale based on cube root of number of node/phase pairs
-        # 18 is just a magic number that seems to produce reasonable values
-        # for the 3 models used as test cases--20 is a bit too big, 15 too small
-        upper = 18 * (sepairCount**(1./3))
+        # The multiplier is just a magic scaling factor that seems to produce
+        # reasonable values for the 3 models used as test cases
+        upper = 100 * (sepairCount**(1./3))
+        #upper = 18 * (sepairCount**(1./3))
         # round to the nearest 10 to keep the slider from looking odd
         upper = int(round(upper/10.0)) * 10;
         # sanity check just in case
@@ -446,9 +447,10 @@ def estimateNoConfigCallback(header, message):
     if firstPassFlag:
         # update the timestamp zoom slider upper limit and default value
         # scale based on cube root of number of node/phase pairs
-        # 18 is just a magic number that seems to produce reasonable values
-        # for the 3 models used as test cases--20 is a bit too big, 15 too small
-        upper = 18 * (sepairCount**(1./3))
+        # The multiplier is just a magic scaling factor that seems to produce
+        # reasonable values for the 3 models used as test cases
+        upper = 100 * (sepairCount**(1./3))
+        #upper = 18 * (sepairCount**(1./3))
         # round to the nearest 10 to keep the slider from looking odd
         upper = int(round(upper/10.0)) * 10;
         # sanity check just in case
@@ -615,14 +617,16 @@ def estimateStatsCallback(header, message):
     if firstPassFlag:
         # update the timestamp zoom slider upper limit and default value
         # scale based on cube root of number of node/phase pairs
-        # 18 is just a magic number that seems to produce reasonable values
-        # for the 3 models used as test cases--20 is a bit too big, 15 too small
-        upper = 18 * (sepairCount**(1./3))
+        # The multiplier is just a magic scaling factor that seems to produce
+        # reasonable values for the 3 models used as test cases
+        upper = 100 * (sepairCount**(1./3))
+        #upper = 18 * (sepairCount**(1./3))
         # round to the nearest 10 to keep the slider from looking odd
         upper = int(round(upper/10.0)) * 10;
         # sanity check just in case
         upper = max(upper, 60)
         # // is integer floor division operator
+        #default = upper // 2;
         default = upper // 2;
         #print('setting slider upper limit: ' + str(upper) + ', default value: ' + str(default) + ', matchCount: ' + str(matchCount), flush=True)
         vvalTSZoomSldr.valmin = 1
@@ -829,6 +833,7 @@ def simulationOutputCallback(header, message):
     #print(appName + ': simulation output message timestamp: ' + str(ts), flush=True)
     # a single dot per measurement to match how state-estimator does it
     print('.', end='', flush=True)
+    #print('('+str(ts)+')', end='', flush=True)
     #pprint.pprint(msgdict)
 
     # because we require Python 3.6, we can count on insertion ordered
