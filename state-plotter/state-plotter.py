@@ -298,12 +298,12 @@ def calcVNom(vval, sepair):
     return vval
 
 
-def measurementConfigCallback(header, message):
+def estimateConfigCallback(header, message):
     global firstPassFlag, tsInit
 
     msgdict = message['message']
     ts = msgdict['timestamp']
-    print(appName + ': measurement timestamp: ' + str(ts), flush=True)
+    print(appName + ': estimate timestamp: ' + str(ts), flush=True)
 
     estVolt = msgdict['Estimate']['SvEstVoltages']
     matchCount = 0
@@ -431,12 +431,12 @@ def measurementConfigCallback(header, message):
     vvalPlotData(None)
 
 
-def measurementNoConfigCallback(header, message):
+def estimateNoConfigCallback(header, message):
     global firstPassFlag, tsInit
 
     msgdict = message['message']
     ts = msgdict['timestamp']
-    print(appName + ': measurement timestamp: ' + str(ts), flush=True)
+    print(appName + ': estimate timestamp: ' + str(ts), flush=True)
 
     estVolt = msgdict['Estimate']['SvEstVoltages']
     matchCount = 0
@@ -602,12 +602,12 @@ def measurementNoConfigCallback(header, message):
     vvalPlotData(None)
 
 
-def measurementStatsCallback(header, message):
+def estimateStatsCallback(header, message):
     global firstPassFlag, tsInit
 
     msgdict = message['message']
     ts = msgdict['timestamp']
-    print(appName + ': measurement timestamp: ' + str(ts), flush=True)
+    print(appName + ': estimate timestamp: ' + str(ts), flush=True)
 
     estVolt = msgdict['Estimate']['SvEstVoltages']
     sepairCount = len(estVolt)
@@ -1605,20 +1605,20 @@ Optional command line arguments:
         # and finish plot initialization
         configPlot(plotBusList)
 
-        # subscribe to state-estimator measurement output--with config file
+        # subscribe to state-estimator output--with config file
         gapps.subscribe('/topic/goss.gridappsd.state-estimator.out.' +
-                        simID, measurementConfigCallback)
+                        simID, estimateConfigCallback)
     else:
-        # subscribe to state-estimator measurement output--one of two methods
+        # subscribe to state-estimator output--one of two methods
         # without config file
         if plotStatsFlag:
             gapps.subscribe('/topic/goss.gridappsd.state-estimator.out.' +
-                            simID, measurementStatsCallback)
+                            simID, estimateStatsCallback)
         else:
             gapps.subscribe('/topic/goss.gridappsd.state-estimator.out.' +
-                            simID, measurementNoConfigCallback)
+                            simID, estimateNoConfigCallback)
 
-    # subscribe to simulation output for comparison with measurements
+    # subscribe to simulation output for comparison with estimates
     gapps.subscribe('/topic/goss.gridappsd.simulation.output.' +
                     simID, simulationOutputCallback)
 
