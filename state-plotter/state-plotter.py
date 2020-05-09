@@ -293,7 +293,12 @@ def calcVNom(vval, sepair):
             return vval / SEToVnomMagDict[sepair]
     else:
         if plotCompFlag and sepair in SEToVnomAngDict:
-            return vval - SEToVnomAngDict[sepair]
+            vval -= SEToVnomAngDict[sepair]
+            # -165 <= vval <= 195.0
+            while vval > 195.0:
+                vval -= 360.0
+            while vval < -165.0:
+                vval += 360.0
 
     return vval
 
