@@ -310,6 +310,23 @@ def estimateConfigCallback(header, message):
     ts = msgdict['timestamp']
     print(appName + ': estimate timestamp: ' + str(ts), flush=True)
 
+    # to account for state estimator work queue draining design, iterate over
+    # simDataDict and toss all measurements until we reach the current timestamp
+    # since they won't be referenced again and will just drain memory
+    simDataTS = None
+    for tskey in list(simDataDict):
+        if tskey < ts:
+            del simDataDict[tskey]
+        elif tskey == ts:
+            simDataTS = simDataDict[tskey]
+            break
+        else:
+            break
+
+    if not simDataTS:
+        print(appName + ': NOTE: No simulation measurement for timestamp: ' + str(ts) + ', disregarding estimate', flush=True)
+        return
+
     estVolt = msgdict['Estimate']['SvEstVoltages']
     matchCount = 0
     diffMatchCount = 0
@@ -340,19 +357,6 @@ def estimateConfigCallback(header, message):
 
         # clear flag that sets zoom slider values
         firstPassFlag = False
-
-    # to account for state estimator work queue draining design, iterate over
-    # simDataDict and toss all measurements until we reach the current timestamp
-    # since they won't need referenced again and will just grow memory use
-    for tskey in list(simDataDict):
-        if tskey < ts:
-            del simDataDict[tskey]
-        else:
-            break
-
-    # the current timestamp should be the first entry in simDataDict, but
-    # just do a regular dictionary lookup
-    simDataTS = simDataDict[ts] if ts in simDataDict else None
 
     # set the data element keys we want to extract
     if plotMagFlag:
@@ -438,6 +442,23 @@ def estimateNoConfigCallback(header, message):
     ts = msgdict['timestamp']
     print(appName + ': estimate timestamp: ' + str(ts), flush=True)
 
+    # to account for state estimator work queue draining design, iterate over
+    # simDataDict and toss all measurements until we reach the current timestamp
+    # since they won't be referenced again and will just drain memory
+    simDataTS = None
+    for tskey in list(simDataDict):
+        if tskey < ts:
+            del simDataDict[tskey]
+        elif tskey == ts:
+            simDataTS = simDataDict[tskey]
+            break
+        else:
+            break
+
+    if not simDataTS:
+        print(appName + ': NOTE: No simulation measurement for timestamp: ' + str(ts) + ', disregarding estimate', flush=True)
+        return
+
     estVolt = msgdict['Estimate']['SvEstVoltages']
     matchCount = 0
     diffMatchCount = 0
@@ -463,19 +484,6 @@ def estimateNoConfigCallback(header, message):
         vvalTSZoomSldr.ax.set_xlim(vvalTSZoomSldr.valmin, vvalTSZoomSldr.valmax)
         vvalTSZoomSldr.set_val(vvalTSZoomSldr.val)
         vvalTSZoomSldr.valmin = 1
-
-    # to account for state estimator work queue draining design, iterate over
-    # simDataDict and toss all measurements until we reach the current timestamp
-    # since they won't need referenced again and will just grow memory use
-    for tskey in list(simDataDict):
-        if tskey < ts:
-            del simDataDict[tskey]
-        else:
-            break
-
-    # the current timestamp should be the first entry in simDataDict, but
-    # just do a regular dictionary lookup
-    simDataTS = simDataDict[ts] if ts in simDataDict else None
 
     if firstPassFlag:
         # save first timestamp so what we plot is an offset from this
@@ -604,6 +612,23 @@ def estimateStatsCallback(header, message):
     ts = msgdict['timestamp']
     print(appName + ': estimate timestamp: ' + str(ts), flush=True)
 
+    # to account for state estimator work queue draining design, iterate over
+    # simDataDict and toss all measurements until we reach the current timestamp
+    # since they won't be referenced again and will just drain memory
+    simDataTS = None
+    for tskey in list(simDataDict):
+        if tskey < ts:
+            del simDataDict[tskey]
+        elif tskey == ts:
+            simDataTS = simDataDict[tskey]
+            break
+        else:
+            break
+
+    if not simDataTS:
+        print(appName + ': NOTE: No simulation measurement for timestamp: ' + str(ts) + ', disregarding estimate', flush=True)
+        return
+
     estVolt = msgdict['Estimate']['SvEstVoltages']
     sepairCount = len(estVolt)
 
@@ -695,19 +720,6 @@ def estimateStatsCallback(header, message):
         vvalSimLinesDict['Stdev Low'], = vvalSimAx.plot([], [], label='Std. Dev. Low', color='blue')
         vvalSimLinesDict['Stdev High'], = vvalSimAx.plot([], [], label='Std. Dev. High', color='blue')
         vvalSimLinesDict['Mean'], = vvalSimAx.plot([], [], label='Mean', color='red')
-
-    # to account for state estimator work queue draining design, iterate over
-    # simDataDict and toss all measurements until we reach the current timestamp
-    # since they won't need referenced again and will just grow memory use
-    for tskey in list(simDataDict):
-        if tskey < ts:
-            del simDataDict[tskey]
-        else:
-            break
-
-    # the current timestamp should be the first entry in simDataDict, but
-    # just do a regular dictionary lookup
-    simDataTS = simDataDict[ts] if ts in simDataDict else None
 
     if firstPassFlag:
         # save first timestamp so what we plot is an offset from this
@@ -1641,6 +1653,12 @@ Optional command line arguments:
 
     gapps = GridAPPSD()
 
+    # subscribe to simulation output for comparison with estimates
+    # subscribe as early as possible to avoid getting any estimates
+    # without corresponding simulation measurements for a timestamp
+    gapps.subscribe('/topic/goss.gridappsd.simulation.output.' +
+                    simID, simulationOutputCallback)
+
     # query to get connectivity node,phase pairs
     queryBusToSE()
 
@@ -1673,10 +1691,6 @@ Optional command line arguments:
         else:
             gapps.subscribe('/topic/goss.gridappsd.state-estimator.out.' +
                             simID, estimateNoConfigCallback)
-
-    # subscribe to simulation output for comparison with estimates
-    gapps.subscribe('/topic/goss.gridappsd.simulation.output.' +
-                    simID, simulationOutputCallback)
 
     # interactive plot event loop allows both the ActiveMQ messages to be
     # received and plot GUI events
