@@ -341,24 +341,18 @@ def estimateConfigCallback(header, message):
         # clear flag that sets zoom slider values
         firstPassFlag = False
 
-    # simulation data processing setup
     # to account for state estimator work queue draining design, iterate over
     # simDataDict and toss all measurements until we reach the current timestamp
+    # since they won't need referenced again and will just grow memory use
     for tskey in list(simDataDict):
         if tskey < ts:
             del simDataDict[tskey]
         else:
             break
 
-    # verify the first key is the current timestamp after tossing the ones
-    # before the current timestamp
-    if simDataDict and next(iter(simDataDict)) == ts:
-        simDataTS = simDataDict[ts]
-        # now that we have a copy, won't need this timestamp any longer either
-        del simDataDict[ts]
-    else:
-        simDataTS = None
-    # end simulation data processing setup
+    # the current timestamp should be the first entry in simDataDict, but
+    # just do a regular dictionary lookup
+    simDataTS = simDataDict[ts] if ts in simDataDict else None
 
     # set the data element keys we want to extract
     if plotMagFlag:
@@ -470,24 +464,18 @@ def estimateNoConfigCallback(header, message):
         vvalTSZoomSldr.set_val(vvalTSZoomSldr.val)
         vvalTSZoomSldr.valmin = 1
 
-    # simulation data processing setup
     # to account for state estimator work queue draining design, iterate over
     # simDataDict and toss all measurements until we reach the current timestamp
+    # since they won't need referenced again and will just grow memory use
     for tskey in list(simDataDict):
         if tskey < ts:
             del simDataDict[tskey]
         else:
             break
 
-    # verify the first key is the current timestamp after tossing the ones
-    # before the current timestamp
-    if simDataDict and next(iter(simDataDict)) == ts:
-        simDataTS = simDataDict[ts]
-        # now that we have a copy, won't need this timestamp any longer either
-        del simDataDict[ts]
-    else:
-        simDataTS = None
-    # end simulation data processing setup
+    # the current timestamp should be the first entry in simDataDict, but
+    # just do a regular dictionary lookup
+    simDataTS = simDataDict[ts] if ts in simDataDict else None
 
     if firstPassFlag:
         # save first timestamp so what we plot is an offset from this
@@ -708,24 +696,18 @@ def estimateStatsCallback(header, message):
         vvalSimLinesDict['Stdev High'], = vvalSimAx.plot([], [], label='Std. Dev. High', color='blue')
         vvalSimLinesDict['Mean'], = vvalSimAx.plot([], [], label='Mean', color='red')
 
-    # simulation data processing setup
     # to account for state estimator work queue draining design, iterate over
     # simDataDict and toss all measurements until we reach the current timestamp
+    # since they won't need referenced again and will just grow memory use
     for tskey in list(simDataDict):
         if tskey < ts:
             del simDataDict[tskey]
         else:
             break
 
-    # verify the first key is the current timestamp after tossing the ones
-    # before the current timestamp
-    if simDataDict and next(iter(simDataDict)) == ts:
-        simDataTS = simDataDict[ts]
-        # now that we have a copy, won't need this timestamp any longer either
-        del simDataDict[ts]
-    else:
-        simDataTS = None
-    # end simulation data processing setup
+    # the current timestamp should be the first entry in simDataDict, but
+    # just do a regular dictionary lookup
+    simDataTS = simDataDict[ts] if ts in simDataDict else None
 
     if firstPassFlag:
         # save first timestamp so what we plot is an offset from this
@@ -917,13 +899,13 @@ def vvalPlotData(event):
         for pair in vvalSEDataDict:
             septs = len(vvalSEDataDict[pair])
             if septs > 0:
-                newstart = len(vvalTSDataList) - septs
-                vvalSELinesDict[pair].set_xdata(vvalTSDataList[newstart:])
+                tsStartpt = len(vvalTSDataList) - septs
+                vvalSELinesDict[pair].set_xdata(vvalTSDataList[tsStartpt:])
                 vvalSELinesDict[pair].set_ydata(vvalSEDataDict[pair])
                 vvalSEYmin = min(vvalSEYmin, min(vvalSEDataDict[pair]))
                 vvalSEYmax = max(vvalSEYmax, max(vvalSEDataDict[pair]))
-                if newstart != 0:
-                    print('***MISMATCH Estimate pair: ' + pair + ', xdata #: ' + str(len(vvalTSDataList)) + ', ydata #: ' + str(septs) + ', show all newstart: ' + str(newstart), flush=True)
+                if tsStartpt != 0:
+                    print('***MISMATCH Estimate pair: ' + pair + ', xdata #: ' + str(len(vvalTSDataList)) + ', ydata #: ' + str(septs) + ', show all tsStartpt: ' + str(tsStartpt), flush=True)
                 if firstPlotFlag and len(plotPairDict)>0:
                     seLegendLineList.append(vvalSELinesDict[pair])
                     seLegendLabelList.append(plotPairDict[pair])
@@ -932,27 +914,28 @@ def vvalPlotData(event):
         if plotStatsFlag:
             plt.sca(vvalSEAx)
             septs = len(vvalSEDataDict['Mean'])
-            newstart = len(vvalTSDataList) - septs
-            plt.fill_between(x=vvalTSDataList[newstart:], y1=vvalSEDataDict['Mean'], y2=vvalSEDataDict['Stdev Low'], color=stdevBlue)
-            plt.fill_between(x=vvalTSDataList[newstart:], y1=vvalSEDataDict['Mean'], y2=vvalSEDataDict['Stdev High'], color=stdevBlue)
-            plt.fill_between(x=vvalTSDataList[newstart:], y1=vvalSEDataDict['Stdev Low'], y2=vvalSEDataDict['Min'], color=minmaxBlue)
-            plt.fill_between(x=vvalTSDataList[newstart:], y1=vvalSEDataDict['Stdev High'], y2=vvalSEDataDict['Max'], color=minmaxBlue)
-            if newstart != 0:
-                print('***MISMATCH Estimate statistics, xdata #: ' + str(len(vvalTSDataList)) + ', ydata #: ' + str(septs) + ', show all newstart: ' + str(newstart), flush=True)
+            tsStartpt = len(vvalTSDataList) - septs
+            if septs > 0:
+                plt.fill_between(x=vvalTSDataList[tsStartpt:], y1=vvalSEDataDict['Mean'], y2=vvalSEDataDict['Stdev Low'], color=stdevBlue)
+                plt.fill_between(x=vvalTSDataList[tsStartpt:], y1=vvalSEDataDict['Mean'], y2=vvalSEDataDict['Stdev High'], color=stdevBlue)
+                plt.fill_between(x=vvalTSDataList[tsStartpt:], y1=vvalSEDataDict['Stdev Low'], y2=vvalSEDataDict['Min'], color=minmaxBlue)
+                plt.fill_between(x=vvalTSDataList[tsStartpt:], y1=vvalSEDataDict['Stdev High'], y2=vvalSEDataDict['Max'], color=minmaxBlue)
+                if tsStartpt != 0:
+                    print('***MISMATCH Estimate statistics, xdata #: ' + str(len(vvalTSDataList)) + ', ydata #: ' + str(septs) + ', show all tsStartpt: ' + str(tsStartpt), flush=True)
 
         vvalSimYmax = -sys.float_info.max
         vvalSimYmin = sys.float_info.max
         for pair in vvalSimDataDict:
             simpts = len(vvalSimDataDict[pair])
             if simpts > 0:
-                newstart = len(vvalTSDataList) - simpts
+                tsStartpt = len(vvalTSDataList) - simpts
                 vvalSimDataFlag = True
-                vvalSimLinesDict[pair].set_xdata(vvalTSDataList[newstart:])
+                vvalSimLinesDict[pair].set_xdata(vvalTSDataList[tsStartpt:])
                 vvalSimLinesDict[pair].set_ydata(vvalSimDataDict[pair])
                 vvalSimYmin = min(vvalSimYmin, min(vvalSimDataDict[pair]))
                 vvalSimYmax = max(vvalSimYmax, max(vvalSimDataDict[pair]))
-                if newstart != 0:
-                    print('***MISMATCH Simulation pair: ' + pair + ', xdata #: ' + str(len(vvalTSDataList)) + ', ydata #: ' + str(simpts) + ', show all newstart: ' + str(newstart), flush=True)
+                if tsStartpt != 0:
+                    print('***MISMATCH Simulation pair: ' + pair + ', xdata #: ' + str(len(vvalTSDataList)) + ', ydata #: ' + str(simpts) + ', show all tsStartpt: ' + str(tsStartpt), flush=True)
                 if firstPlotFlag and len(plotPairDict)>0:
                     simLegendLineList.append(vvalSimLinesDict[pair])
                     simLegendLabelList.append(plotPairDict[pair])
@@ -961,13 +944,14 @@ def vvalPlotData(event):
         if plotStatsFlag:
             plt.sca(vvalSimAx)
             simpts = len(vvalSimDataDict['Mean'])
-            newstart = len(vvalTSDataList) - simpts
-            plt.fill_between(x=vvalTSDataList[newstart:], y1=vvalSimDataDict['Mean'], y2=vvalSimDataDict['Stdev Low'], color=stdevBlue)
-            plt.fill_between(x=vvalTSDataList[newstart:], y1=vvalSimDataDict['Mean'], y2=vvalSimDataDict['Stdev High'], color=stdevBlue)
-            plt.fill_between(x=vvalTSDataList[newstart:], y1=vvalSimDataDict['Stdev Low'], y2=vvalSimDataDict['Min'], color=minmaxBlue)
-            plt.fill_between(x=vvalTSDataList[newstart:], y1=vvalSimDataDict['Stdev High'], y2=vvalSimDataDict['Max'], color=minmaxBlue)
-            if newstart != 0:
-                print('***MISMATCH Simulation statistics, xdata #: ' + str(len(vvalTSDataList)) + ', ydata #: ' + str(simpts) + ', show all newstart: ' + str(newstart), flush=True)
+            tsStartpt = len(vvalTSDataList) - simpts
+            if simpts > 0:
+                plt.fill_between(x=vvalTSDataList[tsStartpt:], y1=vvalSimDataDict['Mean'], y2=vvalSimDataDict['Stdev Low'], color=stdevBlue)
+                plt.fill_between(x=vvalTSDataList[tsStartpt:], y1=vvalSimDataDict['Mean'], y2=vvalSimDataDict['Stdev High'], color=stdevBlue)
+                plt.fill_between(x=vvalTSDataList[tsStartpt:], y1=vvalSimDataDict['Stdev Low'], y2=vvalSimDataDict['Min'], color=minmaxBlue)
+                plt.fill_between(x=vvalTSDataList[tsStartpt:], y1=vvalSimDataDict['Stdev High'], y2=vvalSimDataDict['Max'], color=minmaxBlue)
+                if tsStartpt != 0:
+                    print('***MISMATCH Simulation statistics, xdata #: ' + str(len(vvalTSDataList)) + ', ydata #: ' + str(simpts) + ', show all tsStartpt: ' + str(tsStartpt), flush=True)
 
         vvalDiffYmax = -sys.float_info.max
         vvalDiffYmin = sys.float_info.max
@@ -975,36 +959,36 @@ def vvalPlotData(event):
             for pair in vvalSEDataDict:
                 septs = len(vvalSEDataDict[pair])
                 if septs > 0:
-                    newstart = len(vvalTSDataList) - septs
-                    vvalDiffLinesDict[pair+' Est'].set_xdata(vvalTSDataList[newstart:])
+                    tsStartpt = len(vvalTSDataList) - septs
+                    vvalDiffLinesDict[pair+' Est'].set_xdata(vvalTSDataList[tsStartpt:])
                     vvalDiffLinesDict[pair+' Est'].set_ydata(vvalSEDataDict[pair])
                     vvalDiffYmin = min(vvalDiffYmin, min(vvalSEDataDict[pair]))
                     vvalDiffYmax = max(vvalDiffYmax, max(vvalSEDataDict[pair]))
-                    if newstart != 0:
-                        print('***MISMATCH Difference Estimate pair: ' + pair + ', xdata #: ' + str(len(vvalTSDataList)) + ', ydata #: ' + str(septs) + ', show all newstart: ' + str(newstart), flush=True)
+                    if tsStartpt != 0:
+                        print('***MISMATCH Difference Estimate pair: ' + pair + ', xdata #: ' + str(len(vvalTSDataList)) + ', ydata #: ' + str(septs) + ', show all tsStartpt: ' + str(tsStartpt), flush=True)
 
                 simpts = len(vvalSimDataDict[pair])
                 if simpts > 0:
-                    newstart = len(vvalTSDataList) - simpts
-                    vvalDiffLinesDict[pair+' Actual'].set_xdata(vvalTSDataList[newstart:])
+                    tsStartpt = len(vvalTSDataList) - simpts
+                    vvalDiffLinesDict[pair+' Actual'].set_xdata(vvalTSDataList[tsStartpt:])
                     vvalDiffLinesDict[pair+' Actual'].set_ydata(vvalSimDataDict[pair])
                     vvalDiffYmin = min(vvalDiffYmin, min(vvalSimDataDict[pair]))
                     vvalDiffYmax = max(vvalDiffYmax, max(vvalSimDataDict[pair]))
-                    if newstart != 0:
-                        print('***MISMATCH Difference Simulation pair: ' + pair + ', xdata #: ' + str(len(vvalTSDataList)) + ', ydata #: ' + str(simpts) + ', show all newstart: ' + str(newstart), flush=True)
+                    if tsStartpt != 0:
+                        print('***MISMATCH Difference Simulation pair: ' + pair + ', xdata #: ' + str(len(vvalTSDataList)) + ', ydata #: ' + str(simpts) + ', show all tsStartpt: ' + str(tsStartpt), flush=True)
 
         else:
             for pair in vvalDiffDataDict:
                 diffpts = len(vvalDiffDataDict[pair])
                 if diffpts > 0:
-                    newstart = len(vvalTSDataList) - diffpts
+                    tsStartpt = len(vvalTSDataList) - diffpts
                     vvalDiffDataFlag = True
-                    vvalDiffLinesDict[pair].set_xdata(vvalTSDataList[newstart:])
+                    vvalDiffLinesDict[pair].set_xdata(vvalTSDataList[tsStartpt:])
                     vvalDiffLinesDict[pair].set_ydata(vvalDiffDataDict[pair])
                     vvalDiffYmin = min(vvalDiffYmin, min(vvalDiffDataDict[pair]))
                     vvalDiffYmax = max(vvalDiffYmax, max(vvalDiffDataDict[pair]))
-                    if newstart != 0:
-                        print('***MISMATCH Difference pair: ' + pair + ', xdata #: ' + str(len(vvalTSDataList)) + ', ydata #: ' + str(diffpts) + ', show all newstart: ' + str(newstart), flush=True)
+                    if tsStartpt != 0:
+                        print('***MISMATCH Difference pair: ' + pair + ', xdata #: ' + str(len(vvalTSDataList)) + ', ydata #: ' + str(diffpts) + ', show all tsStartpt: ' + str(tsStartpt), flush=True)
         #print(appName + ': vvalDiffYmin: ' + str(vvalDiffYmin) + ', vvalDiffYmax: ' + str(vvalDiffYmax), flush=True)
 
     else:
@@ -1085,13 +1069,13 @@ def vvalPlotData(event):
         for pair in vvalSEDataDict:
             septs = len(vvalSEDataDict[pair][vvalStartpt:vvalEndpt])
             if septs > 0:
-                newstart = vvalEndpt - septs
-                vvalSELinesDict[pair].set_xdata(vvalTSDataList[newstart:vvalEndpt])
-                vvalSELinesDict[pair].set_ydata(vvalSEDataDict[pair][newstart:vvalEndpt])
-                vvalSEYmin = min(vvalSEYmin, min(vvalSEDataDict[pair][newstart:vvalEndpt]))
-                vvalSEYmax = max(vvalSEYmax, max(vvalSEDataDict[pair][newstart:vvalEndpt]))
-                if newstart != vvalStartpt:
-                    print('***MISMATCH Estimate pair: ' + pair + ', xdata #: ' + str(len(vvalTSDataList[vvalStartpt:vvalEndpt])) + ', ydata #: ' + str(septs) + ', vvalStartpt: ' + str(vvalStartpt) + ', newstart: ' + str(newstart), flush=True)
+                tsStartpt = vvalEndpt - septs
+                vvalSELinesDict[pair].set_xdata(vvalTSDataList[tsStartpt:vvalEndpt])
+                vvalSELinesDict[pair].set_ydata(vvalSEDataDict[pair][vvalStartpt:vvalEndpt])
+                vvalSEYmin = min(vvalSEYmin, min(vvalSEDataDict[pair][vvalStartpt:vvalEndpt]))
+                vvalSEYmax = max(vvalSEYmax, max(vvalSEDataDict[pair][vvalStartpt:vvalEndpt]))
+                if tsStartpt != vvalStartpt:
+                    print('***MISMATCH Estimate pair: ' + pair + ', xdata #: ' + str(len(vvalTSDataList[vvalStartpt:vvalEndpt])) + ', ydata #: ' + str(septs) + ', vvalStartpt: ' + str(vvalStartpt) + ', tsStartpt: ' + str(tsStartpt), flush=True)
                 if firstPlotFlag and len(plotPairDict)>0:
                     seLegendLineList.append(vvalSELinesDict[pair])
                     seLegendLabelList.append(plotPairDict[pair])
@@ -1100,13 +1084,14 @@ def vvalPlotData(event):
         if plotStatsFlag:
             plt.sca(vvalSEAx)
             septs = len(vvalSEDataDict['Mean'][vvalStartpt:vvalEndpt])
-            newstart = vvalEndpt - septs
-            plt.fill_between(x=vvalTSDataList[newstart:vvalEndpt], y1=vvalSEDataDict['Mean'][newstart:vvalEndpt], y2=vvalSEDataDict['Stdev Low'][newstart:vvalEndpt], color=stdevBlue)
-            plt.fill_between(x=vvalTSDataList[newstart:vvalEndpt], y1=vvalSEDataDict['Mean'][newstart:vvalEndpt], y2=vvalSEDataDict['Stdev High'][newstart:vvalEndpt], color=stdevBlue)
-            plt.fill_between(x=vvalTSDataList[newstart:vvalEndpt], y1=vvalSEDataDict['Stdev Low'][newstart:vvalEndpt], y2=vvalSEDataDict['Min'][newstart:vvalEndpt], color=minmaxBlue)
-            plt.fill_between(x=vvalTSDataList[newstart:vvalEndpt], y1=vvalSEDataDict['Stdev High'][newstart:vvalEndpt], y2=vvalSEDataDict['Max'][newstart:vvalEndpt], color=minmaxBlue)
-            if newstart != vvalStartpt:
-                print('***MISMATCH Estimate statistics, xdata #: ' + str(len(vvalTSDataList[vvalStartpt:vvalEndpt])) + ', ydata #: ' + str(septs) + ', vvalStartpt: ' + str(vvalStartpt) + ', newstart: ' + str(newstart), flush=True)
+            if septs > 0:
+                tsStartpt = vvalEndpt - septs
+                plt.fill_between(x=vvalTSDataList[tsStartpt:vvalEndpt], y1=vvalSEDataDict['Mean'][vvalStartpt:vvalEndpt], y2=vvalSEDataDict['Stdev Low'][vvalStartpt:vvalEndpt], color=stdevBlue)
+                plt.fill_between(x=vvalTSDataList[tsStartpt:vvalEndpt], y1=vvalSEDataDict['Mean'][vvalStartpt:vvalEndpt], y2=vvalSEDataDict['Stdev High'][vvalStartpt:vvalEndpt], color=stdevBlue)
+                plt.fill_between(x=vvalTSDataList[tsStartpt:vvalEndpt], y1=vvalSEDataDict['Stdev Low'][vvalStartpt:vvalEndpt], y2=vvalSEDataDict['Min'][vvalStartpt:vvalEndpt], color=minmaxBlue)
+                plt.fill_between(x=vvalTSDataList[tsStartpt:vvalEndpt], y1=vvalSEDataDict['Stdev High'][vvalStartpt:vvalEndpt], y2=vvalSEDataDict['Max'][vvalStartpt:vvalEndpt], color=minmaxBlue)
+                if tsStartpt != vvalStartpt:
+                    print('***MISMATCH Estimate statistics, xdata #: ' + str(len(vvalTSDataList[vvalStartpt:vvalEndpt])) + ', ydata #: ' + str(septs) + ', vvalStartpt: ' + str(vvalStartpt) + ', tsStartpt: ' + str(tsStartpt), flush=True)
 
         vvalSimYmax = -sys.float_info.max
         vvalSimYmin = sys.float_info.max
@@ -1114,13 +1099,13 @@ def vvalPlotData(event):
             simpts = len(vvalSimDataDict[pair][vvalStartpt:vvalEndpt])
             if simpts > 0:
                 vvalSimDataFlag = True
-                newstart = vvalEndpt - simpts
-                vvalSimLinesDict[pair].set_xdata(vvalTSDataList[newstart:vvalEndpt])
-                vvalSimLinesDict[pair].set_ydata(vvalSimDataDict[pair][newstart:vvalEndpt])
-                vvalSimYmin = min(vvalSimYmin, min(vvalSimDataDict[pair][newstart:vvalEndpt]))
-                vvalSimYmax = max(vvalSimYmax, max(vvalSimDataDict[pair][newstart:vvalEndpt]))
-                if newstart != vvalStartpt:
-                    print('***MISMATCH Simulation pair: ' + pair + ', xdata #: ' + str(len(vvalTSDataList[vvalStartpt:vvalEndpt])) + ', ydata #: ' + str(simpts) + ', vvalStartpt: ' + str(vvalStartpt) + ', newstart: ' + str(newstart), flush=True)
+                tsStartpt = vvalEndpt - simpts
+                vvalSimLinesDict[pair].set_xdata(vvalTSDataList[tsStartpt:vvalEndpt])
+                vvalSimLinesDict[pair].set_ydata(vvalSimDataDict[pair][vvalStartpt:vvalEndpt])
+                vvalSimYmin = min(vvalSimYmin, min(vvalSimDataDict[pair][vvalStartpt:vvalEndpt]))
+                vvalSimYmax = max(vvalSimYmax, max(vvalSimDataDict[pair][vvalStartpt:vvalEndpt]))
+                if tsStartpt != vvalStartpt:
+                    print('***MISMATCH Simulation pair: ' + pair + ', xdata #: ' + str(len(vvalTSDataList[vvalStartpt:vvalEndpt])) + ', ydata #: ' + str(simpts) + ', vvalStartpt: ' + str(vvalStartpt) + ', tsStartpt: ' + str(tsStartpt), flush=True)
                 if firstPlotFlag and len(plotPairDict)>0:
                     simLegendLineList.append(vvalSimLinesDict[pair])
                     simLegendLabelList.append(plotPairDict[pair])
@@ -1129,13 +1114,14 @@ def vvalPlotData(event):
         if plotStatsFlag:
             plt.sca(vvalSimAx)
             simpts = len(vvalSimDataDict['Mean'][vvalStartpt:vvalEndpt])
-            newstart = vvalEndpt - simpts
-            plt.fill_between(x=vvalTSDataList[newstart:vvalEndpt], y1=vvalSimDataDict['Mean'][newstart:vvalEndpt], y2=vvalSimDataDict['Stdev Low'][newstart:vvalEndpt], color=stdevBlue)
-            plt.fill_between(x=vvalTSDataList[newstart:vvalEndpt], y1=vvalSimDataDict['Mean'][newstart:vvalEndpt], y2=vvalSimDataDict['Stdev High'][newstart:vvalEndpt], color=stdevBlue)
-            plt.fill_between(x=vvalTSDataList[newstart:vvalEndpt], y1=vvalSimDataDict['Stdev Low'][newstart:vvalEndpt], y2=vvalSimDataDict['Min'][newstart:vvalEndpt], color=minmaxBlue)
-            plt.fill_between(x=vvalTSDataList[newstart:vvalEndpt], y1=vvalSimDataDict['Stdev High'][newstart:vvalEndpt], y2=vvalSimDataDict['Max'][newstart:vvalEndpt], color=minmaxBlue)
-            if newstart != vvalStartpt:
-                print('***MISMATCH Simulation statistics, xdata #: ' + str(len(vvalTSDataList[vvalStartpt:vvalEndpt])) + ', ydata #: ' + str(simpts) + ', vvalStartpt: ' + str(vvalStartpt) + ', newstart: ' + str(newstart), flush=True)
+            if simpts > 0:
+                tsStartpt = vvalEndpt - simpts
+                plt.fill_between(x=vvalTSDataList[tsStartpt:vvalEndpt], y1=vvalSimDataDict['Mean'][vvalStartpt:vvalEndpt], y2=vvalSimDataDict['Stdev Low'][vvalStartpt:vvalEndpt], color=stdevBlue)
+                plt.fill_between(x=vvalTSDataList[tsStartpt:vvalEndpt], y1=vvalSimDataDict['Mean'][vvalStartpt:vvalEndpt], y2=vvalSimDataDict['Stdev High'][vvalStartpt:vvalEndpt], color=stdevBlue)
+                plt.fill_between(x=vvalTSDataList[tsStartpt:vvalEndpt], y1=vvalSimDataDict['Stdev Low'][vvalStartpt:vvalEndpt], y2=vvalSimDataDict['Min'][vvalStartpt:vvalEndpt], color=minmaxBlue)
+                plt.fill_between(x=vvalTSDataList[tsStartpt:vvalEndpt], y1=vvalSimDataDict['Stdev High'][vvalStartpt:vvalEndpt], y2=vvalSimDataDict['Max'][vvalStartpt:vvalEndpt], color=minmaxBlue)
+                if tsStartpt != vvalStartpt:
+                    print('***MISMATCH Simulation statistics, xdata #: ' + str(len(vvalTSDataList[vvalStartpt:vvalEndpt])) + ', ydata #: ' + str(simpts) + ', vvalStartpt: ' + str(vvalStartpt) + ', tsStartpt: ' + str(tsStartpt), flush=True)
 
         vvalDiffYmax = -sys.float_info.max
         vvalDiffYmin = sys.float_info.max
@@ -1143,36 +1129,36 @@ def vvalPlotData(event):
             for pair in vvalSEDataDict:
                 septs = len(vvalSEDataDict[pair][vvalStartpt:vvalEndpt])
                 if septs > 0:
-                    newstart = vvalEndPt - septs
-                    vvalDiffLinesDict[pair+' Est'].set_xdata(vvalTSDataList[newstart:vvalEndpt])
-                    vvalDiffLinesDict[pair+' Est'].set_ydata(vvalSEDataDict[pair][newstart:vvalEndpt])
-                    vvalDiffYmin = min(vvalDiffYmin, min(vvalSEDataDict[pair][newstart:vvalEndpt]))
-                    vvalDiffYmax = max(vvalDiffYmax, max(vvalSEDataDict[pair][newstart:vvalEndpt]))
-                    if newstart != vvalStartpt:
-                        print('***MISMATCH Difference Estimate pair: ' + pair + ', xdata #: ' + str(len(vvalTSDataList[vvalStartpt:vvalEndpt])) + ', ydata #: ' + str(septs) + ', vvalStartpt: ' + str(vvalStartpt) + ', newstart: ' + str(newstart), flush=True)
+                    tsStartpt = vvalEndPt - septs
+                    vvalDiffLinesDict[pair+' Est'].set_xdata(vvalTSDataList[tsStartpt:vvalEndpt])
+                    vvalDiffLinesDict[pair+' Est'].set_ydata(vvalSEDataDict[pair][vvalStartpt:vvalEndpt])
+                    vvalDiffYmin = min(vvalDiffYmin, min(vvalSEDataDict[pair][vvalStartpt:vvalEndpt]))
+                    vvalDiffYmax = max(vvalDiffYmax, max(vvalSEDataDict[pair][vvalStartpt:vvalEndpt]))
+                    if tsStartpt != vvalStartpt:
+                        print('***MISMATCH Difference Estimate pair: ' + pair + ', xdata #: ' + str(len(vvalTSDataList[vvalStartpt:vvalEndpt])) + ', ydata #: ' + str(septs) + ', vvalStartpt: ' + str(vvalStartpt) + ', tsStartpt: ' + str(tsStartpt), flush=True)
 
                 simpts = len(vvalSimDataDict[pair][vvalStartpt:vvalEndpt])
                 if simpts > 0:
-                    newstart = vvalEndPt - simpts
-                    vvalDiffLinesDict[pair+' Actual'].set_xdata(vvalTSDataList[newstart:vvalEndpt])
-                    vvalDiffLinesDict[pair+' Actual'].set_ydata(vvalSimDataDict[pair][newstart:vvalEndpt])
-                    vvalDiffYmin = min(vvalDiffYmin, min(vvalSimDataDict[pair][newstart:vvalEndpt]))
-                    vvalDiffYmax = max(vvalDiffYmax, max(vvalSimDataDict[pair][newstart:vvalEndpt]))
-                    if newstart != vvalStartpt:
-                        print('***MISMATCH Difference Simulation pair: ' + pair + ', xdata #: ' + str(len(vvalTSDataList[vvalStartpt:vvalEndpt])) + ', ydata #: ' + str(simpts) + ', vvalStartpt: ' + str(vvalStartpt) + ', newstart: ' + str(newstart), flush=True)
+                    tsStartpt = vvalEndPt - simpts
+                    vvalDiffLinesDict[pair+' Actual'].set_xdata(vvalTSDataList[tsStartpt:vvalEndpt])
+                    vvalDiffLinesDict[pair+' Actual'].set_ydata(vvalSimDataDict[pair][vvalStartpt:vvalEndpt])
+                    vvalDiffYmin = min(vvalDiffYmin, min(vvalSimDataDict[pair][vvalStartpt:vvalEndpt]))
+                    vvalDiffYmax = max(vvalDiffYmax, max(vvalSimDataDict[pair][vvalStartpt:vvalEndpt]))
+                    if tsStartpt != vvalStartpt:
+                        print('***MISMATCH Difference Simulation pair: ' + pair + ', xdata #: ' + str(len(vvalTSDataList[vvalStartpt:vvalEndpt])) + ', ydata #: ' + str(simpts) + ', vvalStartpt: ' + str(vvalStartpt) + ', tsStartpt: ' + str(tsStartpt), flush=True)
 
         else:
             for pair in vvalDiffDataDict:
                 diffpts =  len(vvalDiffDataDict[pair][vvalStartpt:vvalEndpt])
                 if diffpts > 0:
                     vvalDiffDataFlag = True
-                    newstart = vvalEndpt - diffpts
-                    vvalDiffLinesDict[pair].set_xdata(vvalTSDataList[newstart:vvalEndpt])
-                    vvalDiffLinesDict[pair].set_ydata(vvalDiffDataDict[pair][newstart:vvalEndpt])
-                    vvalDiffYmin = min(vvalDiffYmin, min(vvalDiffDataDict[pair][newstart:vvalEndpt]))
-                    vvalDiffYmax = max(vvalDiffYmax, max(vvalDiffDataDict[pair][newstart:vvalEndpt]))
-                    if newstart != vvalStartpt:
-                        print('***MISMATCH Difference pair: ' + pair + ', xdata #: ' + str(len(vvalTSDataList[vvalStartpt:vvalEndpt])) + ', ydata #: ' + str(diffpts) + ', vvalStartpt: ' + str(vvalStartpt) + ', newstart: ' + str(newstart), flush=True)
+                    tsStartpt = vvalEndpt - diffpts
+                    vvalDiffLinesDict[pair].set_xdata(vvalTSDataList[tsStartpt:vvalEndpt])
+                    vvalDiffLinesDict[pair].set_ydata(vvalDiffDataDict[pair][vvalStartpt:vvalEndpt])
+                    vvalDiffYmin = min(vvalDiffYmin, min(vvalDiffDataDict[pair][vvalStartpt:vvalEndpt]))
+                    vvalDiffYmax = max(vvalDiffYmax, max(vvalDiffDataDict[pair][vvalStartpt:vvalEndpt]))
+                    if tsStartpt != vvalStartpt:
+                        print('***MISMATCH Difference pair: ' + pair + ', xdata #: ' + str(len(vvalTSDataList[vvalStartpt:vvalEndpt])) + ', ydata #: ' + str(diffpts) + ', vvalStartpt: ' + str(vvalStartpt) + ', tsStartpt: ' + str(tsStartpt), flush=True)
 
         #print(appName + ': vvalDiffYmin: ' + str(vvalDiffYmin) + ', vvalDiffYmax: ' + str(vvalDiffYmax), flush=True)
 
