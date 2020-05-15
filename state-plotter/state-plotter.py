@@ -308,7 +308,7 @@ def estimateConfigCallback(header, message):
 
     msgdict = message['message']
     ts = msgdict['timestamp']
-    print(appName + ': estimate timestamp: ' + str(ts), flush=True)
+    #print(appName + ': estimate timestamp: ' + str(ts), flush=True)
 
     # to account for state estimator work queue draining design, iterate over
     # simDataDict and toss all measurements until we reach the current timestamp
@@ -429,7 +429,7 @@ def estimateConfigCallback(header, message):
             elif plotMatchesFlag and diffMatchCount==len(plotPairDict):
                 break
 
-    print(appName + ': ' + str(sepairCount) + ' state-estimator measurements, ' + str(matchCount) + ' configuration file node,phase pair matches, ' + str(diffMatchCount) + ' matches to simulation data', flush=True)
+    #print(appName + ': ' + str(sepairCount) + ' state-estimator measurements, ' + str(matchCount) + ' configuration file node,phase pair matches, ' + str(diffMatchCount) + ' matches to simulation data', flush=True)
 
     # update plots with the new data
     vvalPlotData(None)
@@ -440,7 +440,7 @@ def estimateNoConfigCallback(header, message):
 
     msgdict = message['message']
     ts = msgdict['timestamp']
-    print(appName + ': estimate timestamp: ' + str(ts), flush=True)
+    #print(appName + ': estimate timestamp: ' + str(ts), flush=True)
 
     # to account for state estimator work queue draining design, iterate over
     # simDataDict and toss all measurements until we reach the current timestamp
@@ -596,10 +596,10 @@ def estimateNoConfigCallback(header, message):
 
     firstPassFlag = False
 
-    if plotNumber > 0:
-        print(appName + ': ' + str(sepairCount) + ' state-estimator measurements, ' + str(matchCount) + ' node,phase pair matches (matching first ' + str(plotNumber) + '), ' + str(diffMatchCount) + ' matches to simulation data', flush=True)
-    else:
-        print(appName + ': ' + str(sepairCount) + ' state-estimator measurements, ' + str(matchCount) + ' node,phase pair matches (matching all), ' + str(diffMatchCount) + ' matches to simulation data', flush=True)
+    #if plotNumber > 0:
+    #    print(appName + ': ' + str(sepairCount) + ' state-estimator measurements, ' + str(matchCount) + ' node,phase pair matches (matching first ' + str(plotNumber) + '), ' + str(diffMatchCount) + ' matches to simulation data', flush=True)
+    #else:
+    #    print(appName + ': ' + str(sepairCount) + ' state-estimator measurements, ' + str(matchCount) + ' node,phase pair matches (matching all), ' + str(diffMatchCount) + ' matches to simulation data', flush=True)
 
     # update plots with the new data
     vvalPlotData(None)
@@ -610,7 +610,7 @@ def estimateStatsCallback(header, message):
 
     msgdict = message['message']
     ts = msgdict['timestamp']
-    print(appName + ': estimate timestamp: ' + str(ts), flush=True)
+    #print(appName + ': estimate timestamp: ' + str(ts), flush=True)
 
     # to account for state estimator work queue draining design, iterate over
     # simDataDict and toss all measurements until we reach the current timestamp
@@ -1227,6 +1227,28 @@ def vvalShowCallback(event):
     vvalPlotData(None)
 
 
+def vvalButtonPressCallback(event):
+    lineFlag = False
+
+    for line in vvalSEAx.get_lines():
+        if line.contains(event)[0]:
+            lineFlag = True
+            print(appName + ': clicked on estimate plot node: ' + line.get_label(), flush=True)
+
+    for line in vvalSimAx.get_lines():
+        if line.contains(event)[0]:
+            lineFlag = True
+            print(appName + ': clicked on simulation plot node: ' + line.get_label(), flush=True)
+
+    for line in vvalDiffAx.get_lines():
+        if line.contains(event)[0]:
+            lineFlag = True
+            print(appName + ': clicked on difference plot node: ' + line.get_label(), flush=True)
+
+    if lineFlag:
+        # separate clicks with a blank line
+        print('', flush=True)
+
 #def closeWindowCallback(event):
 #    gapps.disconnect()
 #    exit()
@@ -1421,6 +1443,8 @@ def initPlot(configFlag):
     vvalDiffPanAx = plt.axes([0.97, 0.11, 0.012, 0.09])
     vvalDiffPanSldr = Slider(vvalDiffPanAx, 'pan', 0, 100, valinit=50, valfmt='%d', valstep=1.0, orientation='vertical')
     vvalDiffPanSldr.on_changed(vvalPlotData)
+
+    vvalFig.canvas.mpl_connect('button_press_event', vvalButtonPressCallback)
 
 
 def configPlot(busList):
