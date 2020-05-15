@@ -100,8 +100,9 @@ tsInit = 0
 plotMagFlag = True
 plotCompFlag = True
 plotStatsFlag = True
-vvalPausedFlag = False
-vvalShowFlag = False
+plotSimAllFlag = False
+plotPausedFlag = False
+plotShowAllFlag = False
 firstPassFlag = True
 firstPlotFlag = True
 plotOverlayFlag = False
@@ -387,8 +388,8 @@ def estimateConfigCallback(header, message):
             simvval = None
             if not plotMatchesFlag:
                 if matchCount == 1:
-                    vvalTSDataPausedList.append(ts - tsInit) if vvalPausedFlag else vvalTSDataList.append(ts - tsInit)
-                vvalSEDataPausedDict[sepair].append(sevval) if vvalPausedFlag else vvalSEDataDict[sepair].append(sevval)
+                    vvalTSDataPausedList.append(ts - tsInit) if plotPausedFlag else vvalTSDataList.append(ts - tsInit)
+                vvalSEDataPausedDict[sepair].append(sevval) if plotPausedFlag else vvalSEDataDict[sepair].append(sevval)
             if simDataTS is not None and sepair in SEToSimDict:
                 for simmrid in SEToSimDict[sepair]:
                     if simmrid in simDataTS:
@@ -397,11 +398,11 @@ def estimateConfigCallback(header, message):
                             diffMatchCount += 1
                             if plotMatchesFlag:
                                 if diffMatchCount == 1:
-                                    vvalTSDataPausedList.append(ts - tsInit) if vvalPausedFlag else vvalTSDataList.append(ts - tsInit)
-                                vvalSEDataPausedDict[sepair].append(sevval) if vvalPausedFlag else vvalSEDataDict[sepair].append(sevval)
+                                    vvalTSDataPausedList.append(ts - tsInit) if plotPausedFlag else vvalTSDataList.append(ts - tsInit)
+                                vvalSEDataPausedDict[sepair].append(sevval) if plotPausedFlag else vvalSEDataDict[sepair].append(sevval)
                             simvval = simmeas[simkey]
                             simvval = calcVNom(simvval, sepair)
-                            vvalSimDataPausedDict[sepair].append(simvval) if vvalPausedFlag else vvalSimDataDict[sepair].append(simvval)
+                            vvalSimDataPausedDict[sepair].append(simvval) if plotPausedFlag else vvalSimDataDict[sepair].append(simvval)
 
                             if not plotMagFlag:
                                 diffvval = sevval - simvval
@@ -410,7 +411,7 @@ def estimateConfigCallback(header, message):
                             else:
                                 diffvval = 0.0
                             if not plotOverlayFlag:
-                                vvalDiffDataPausedDict[sepair].append(diffvval) if vvalPausedFlag else vvalDiffDataDict[sepair].append(diffvval)
+                                vvalDiffDataPausedDict[sepair].append(diffvval) if plotPausedFlag else vvalDiffDataDict[sepair].append(diffvval)
                             if plotMagFlag:
                                 vmagPrintWithSim(ts, sepair, sevval, simvval, diffvval)
                             else:
@@ -550,8 +551,8 @@ def estimateNoConfigCallback(header, message):
         simvval = None
         if not plotMatchesFlag:
             if matchCount == 1:
-                vvalTSDataPausedList.append(ts - tsInit) if vvalPausedFlag else vvalTSDataList.append(ts - tsInit)
-            vvalSEDataPausedDict[sepair].append(sevval) if vvalPausedFlag else vvalSEDataDict[sepair].append(sevval)
+                vvalTSDataPausedList.append(ts - tsInit) if plotPausedFlag else vvalTSDataList.append(ts - tsInit)
+            vvalSEDataPausedDict[sepair].append(sevval) if plotPausedFlag else vvalSEDataDict[sepair].append(sevval)
         if simDataTS is not None and sepair in SEToSimDict:
             for simmrid in SEToSimDict[sepair]:
                 if simmrid in simDataTS:
@@ -560,12 +561,12 @@ def estimateNoConfigCallback(header, message):
                         diffMatchCount += 1
                         if plotMatchesFlag:
                             if diffMatchCount == 1:
-                                vvalTSDataPausedList.append(ts - tsInit) if vvalPausedFlag else vvalTSDataList.append(ts - tsInit)
-                            vvalSEDataPausedDict[sepair].append(sevval) if vvalPausedFlag else vvalSEDataDict[sepair].append(sevval)
+                                vvalTSDataPausedList.append(ts - tsInit) if plotPausedFlag else vvalTSDataList.append(ts - tsInit)
+                            vvalSEDataPausedDict[sepair].append(sevval) if plotPausedFlag else vvalSEDataDict[sepair].append(sevval)
 
                         simvval = simmeas[simkey]
                         simvval = calcVNom(simvval, sepair)
-                        vvalSimDataPausedDict[sepair].append(simvval) if vvalPausedFlag else vvalSimDataDict[sepair].append(simvval)
+                        vvalSimDataPausedDict[sepair].append(simvval) if plotPausedFlag else vvalSimDataDict[sepair].append(simvval)
 
                         if not plotMagFlag:
                             diffvval = sevval - simvval
@@ -574,7 +575,7 @@ def estimateNoConfigCallback(header, message):
                         else:
                             diffvval = 0.0
                         if not plotOverlayFlag:
-                            vvalDiffDataPausedDict[sepair].append(diffvval) if vvalPausedFlag else vvalDiffDataDict[sepair].append(diffvval)
+                            vvalDiffDataPausedDict[sepair].append(diffvval) if plotPausedFlag else vvalDiffDataDict[sepair].append(diffvval)
 
                         if plotMagFlag:
                             vmagPrintWithSim(ts, sepair, sevval, simvval, diffvval)
@@ -790,32 +791,32 @@ def estimateStatsCallback(header, message):
             else:
                 vangPrintWithoutSim(ts, sepair, sevval)
 
-    vvalTSDataPausedList.append(ts - tsInit) if vvalPausedFlag else vvalTSDataList.append(ts - tsInit)
+    vvalTSDataPausedList.append(ts - tsInit) if plotPausedFlag else vvalTSDataList.append(ts - tsInit)
 
     semin = min(selist)
     semax = max(selist)
     semean = statistics.mean(selist)
     sestdev = statistics.pstdev(selist, semean)
-    vvalSEDataPausedDict['Min'].append(semin) if vvalPausedFlag else vvalSEDataDict['Min'].append(semin)
-    vvalSEDataPausedDict['Max'].append(semax) if vvalPausedFlag else vvalSEDataDict['Max'].append(semax)
-    vvalSEDataPausedDict['Mean'].append(semean) if vvalPausedFlag else vvalSEDataDict['Mean'].append(semean)
-    vvalSEDataPausedDict['Stdev Low'].append(semean-sestdev) if vvalPausedFlag else vvalSEDataDict['Stdev Low'].append(semean-sestdev)
-    vvalSEDataPausedDict['Stdev High'].append(semean+sestdev) if vvalPausedFlag else vvalSEDataDict['Stdev High'].append(semean+sestdev)
+    vvalSEDataPausedDict['Min'].append(semin) if plotPausedFlag else vvalSEDataDict['Min'].append(semin)
+    vvalSEDataPausedDict['Max'].append(semax) if plotPausedFlag else vvalSEDataDict['Max'].append(semax)
+    vvalSEDataPausedDict['Mean'].append(semean) if plotPausedFlag else vvalSEDataDict['Mean'].append(semean)
+    vvalSEDataPausedDict['Stdev Low'].append(semean-sestdev) if plotPausedFlag else vvalSEDataDict['Stdev Low'].append(semean-sestdev)
+    vvalSEDataPausedDict['Stdev High'].append(semean+sestdev) if plotPausedFlag else vvalSEDataDict['Stdev High'].append(semean+sestdev)
 
     if len(simlist) > 0:
         simmin = min(simlist)
         simmax = max(simlist)
         simmean = statistics.mean(simlist)
         simstdev = statistics.pstdev(simlist, simmean)
-        vvalSimDataPausedDict['Min'].append(simmin) if vvalPausedFlag else vvalSimDataDict['Min'].append(simmin)
-        vvalSimDataPausedDict['Max'].append(simmax) if vvalPausedFlag else vvalSimDataDict['Max'].append(simmax)
-        vvalSimDataPausedDict['Mean'].append(simmean) if vvalPausedFlag else vvalSimDataDict['Mean'].append(simmean)
-        vvalSimDataPausedDict['Stdev Low'].append(simmean-simstdev) if vvalPausedFlag else vvalSimDataDict['Stdev Low'].append(simmean-simstdev)
-        vvalSimDataPausedDict['Stdev High'].append(simmean+simstdev) if vvalPausedFlag else vvalSimDataDict['Stdev High'].append(simmean+simstdev)
+        vvalSimDataPausedDict['Min'].append(simmin) if plotPausedFlag else vvalSimDataDict['Min'].append(simmin)
+        vvalSimDataPausedDict['Max'].append(simmax) if plotPausedFlag else vvalSimDataDict['Max'].append(simmax)
+        vvalSimDataPausedDict['Mean'].append(simmean) if plotPausedFlag else vvalSimDataDict['Mean'].append(simmean)
+        vvalSimDataPausedDict['Stdev Low'].append(simmean-simstdev) if plotPausedFlag else vvalSimDataDict['Stdev Low'].append(simmean-simstdev)
+        vvalSimDataPausedDict['Stdev High'].append(simmean+simstdev) if plotPausedFlag else vvalSimDataDict['Stdev High'].append(simmean+simstdev)
 
     if not plotOverlayFlag and len(difflist)>0:
         diffmean = statistics.mean(difflist)
-        vvalDiffDataPausedDict['Mean'].append(diffmean) if vvalPausedFlag else vvalDiffDataDict['Mean'].append(diffmean)
+        vvalDiffDataPausedDict['Mean'].append(diffmean) if plotPausedFlag else vvalDiffDataDict['Mean'].append(diffmean)
         if plotMagFlag:
             print(appName + ': mean magnitude % diff: ' + str(diffmean), flush=True)
         else:
@@ -901,7 +902,7 @@ def vvalPlotData(event):
     vvalSimDataFlag = False
     vvalDiffDataFlag = False
 
-    if vvalShowFlag:
+    if plotShowAllFlag:
         xupper = int(vvalTSDataList[-1])
         if xupper > 0:
             vvalSEAx.set_xlim(0, xupper)
@@ -1185,16 +1186,16 @@ def vvalPlotData(event):
     plt.draw()
 
 
-def vvalPauseCallback(event):
-    global vvalPausedFlag
+def plotPauseCallback(event):
+    global plotPausedFlag
     # toggle whether plot is paused
-    vvalPausedFlag = not vvalPausedFlag
+    plotPausedFlag = not plotPausedFlag
 
     # update the button icon
-    vvalPauseAx.images[0].set_data(playIcon if vvalPausedFlag else pauseIcon)
+    vvalPauseAx.images[0].set_data(playIcon if plotPausedFlag else pauseIcon)
     plt.draw()
 
-    if not vvalPausedFlag:
+    if not plotPausedFlag:
         # add all the data that came in since the pause button was hit
         vvalTSDataList.extend(vvalTSDataPausedList)
         # clear the "paused" data so we build from scratch with the next pause
@@ -1215,13 +1216,13 @@ def vvalPauseCallback(event):
     vvalPlotData(None)
 
 
-def vvalShowCallback(event):
-    global vvalShowFlag
+def plotShowAllCallback(event):
+    global plotShowAllFlag
     # toggle whether to show all timestamps
-    vvalShowFlag = not vvalShowFlag
+    plotShowAllFlag = not plotShowAllFlag
 
     # update the button icon
-    vvalShowAx.images[0].set_data(checkedIcon if vvalShowFlag else uncheckedIcon)
+    vvalShowAx.images[0].set_data(checkedIcon if plotShowAllFlag else uncheckedIcon)
     plt.draw()
 
     vvalPlotData(None)
@@ -1394,7 +1395,7 @@ def initPlot(configFlag):
     pauseIcon = plt.imread('icons/pausebtn.png')
     playIcon = plt.imread('icons/playbtn.png')
     vvalPauseBtn = Button(vvalPauseAx, '', image=pauseIcon, color='1.0')
-    vvalPauseBtn.on_clicked(vvalPauseCallback)
+    vvalPauseBtn.on_clicked(plotPauseCallback)
 
     # timestamp slice zoom slider
     vvalTSZoomAx = plt.axes([0.32, 0.01, 0.1, 0.02])
@@ -1410,7 +1411,7 @@ def initPlot(configFlag):
     uncheckedIcon = plt.imread('icons/uncheckedbtn.png')
     checkedIcon = plt.imread('icons/checkedbtn.png')
     vvalShowBtn = Button(vvalShowAx, '', image=uncheckedIcon, color='1.0')
-    vvalShowBtn.on_clicked(vvalShowCallback)
+    vvalShowBtn.on_clicked(plotShowAllCallback)
 
     # timestamp slice pan slider
     vvalTSPanAx = plt.axes([0.63, 0.01, 0.1, 0.02])
@@ -1570,6 +1571,8 @@ Optional command line arguments:
          state-plotter-config.csv or the -bus option are disregarded when
          using this option. If there are fewer pairs than #, all pairs are
          plotted.
+        -sim[all]: plots all simulation measurements, not just those for
+         for timestamps where there is an estimated state
         -phase: plots only the specified phase (A, B, or C) given as the
          argument that follows. Combinations of phases in the same plot are
          done by repeating the -phase option, e.g., "-phase A -phase B" to
@@ -1630,6 +1633,8 @@ Optional command line arguments:
             plotCompFlag = False
         elif arg.startswith('-comp'):
             plotCompFlag = True
+        elif arg.startswith('-sim'):
+            plotSimAllFlag = True
         elif arg[0]=='-' and arg[1:].isdigit():
             plotNumber = int(arg[1:])
             plotStatsFlag = False
