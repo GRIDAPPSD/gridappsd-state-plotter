@@ -1343,11 +1343,23 @@ def initPlot(configFlag):
     # if plt.show() doesn't consistently exit when the window is closed
     #plotFig.canvas.mpl_connect('close_event', closeWindowCallback)
 
-    uiSEAx = plotFig.add_subplot(311)
-    uiSEAx.xaxis.set_major_locator(MaxNLocator(integer=True))
-    uiSEAx.grid()
+    uiSimAx = plotFig.add_subplot(311)
+    uiSimAx.xaxis.set_major_locator(MaxNLocator(integer=True))
+    uiSimAx.grid()
     # shrink the margins, especially the top since we don't want a label
     plt.subplots_adjust(bottom=0.09, left=0.08, right=0.96, top=0.98, hspace=0.1)
+    # simulation measurement y-axis labels
+    if plotMagFlag:
+        if plotCompFlag:
+            plt.ylabel('Field Volt. Mag. (p.u.)')
+        else:
+            plt.ylabel('Field Volt. Magnitude (V)')
+    else:
+        plt.ylabel('Field Volt. Angle (deg.)')
+    plt.setp(uiSimAx.get_xticklabels(), visible=False)
+
+    uiSEAx = plotFig.add_subplot(312, sharex=uiSimAx)
+    uiSEAx.grid()
     # state estimator y-axis labels
     if plotMagFlag:
         if plotCompFlag:
@@ -1359,19 +1371,7 @@ def initPlot(configFlag):
     # make time axis numbers invisible because the bottom plot will have them
     plt.setp(uiSEAx.get_xticklabels(), visible=False)
 
-    uiSimAx = plotFig.add_subplot(312, sharex=uiSEAx)
-    uiSimAx.grid()
-    # simulation measurement y-axis labels
-    if plotMagFlag:
-        if plotCompFlag:
-            plt.ylabel('Field Volt. Mag. (p.u.)')
-        else:
-            plt.ylabel('Field Volt. Magnitude (V)')
-    else:
-        plt.ylabel('Field Volt. Angle (deg.)')
-    plt.setp(uiSimAx.get_xticklabels(), visible=False)
-
-    uiDiffAx = plotFig.add_subplot(313, sharex=uiSEAx)
+    uiDiffAx = plotFig.add_subplot(313, sharex=uiSimAx)
     uiDiffAx.grid()
     plt.xlabel('Time (s)')
     if plotOverlayFlag:
@@ -1418,15 +1418,6 @@ def initPlot(configFlag):
     uiTSPanSldr = Slider(uiTSPanAx, 'pan', 0, 100, valinit=100, valfmt='%d', valstep=1.0)
     uiTSPanSldr.on_changed(plotData)
 
-    # state-estimator voltage value slice zoom and pan sliders
-    uiSEZoomAx = plt.axes([0.97, 0.87, 0.012, 0.09])
-    uiSEZoomSldr = Slider(uiSEZoomAx, '  zoom', 1, 100, valinit=100, valfmt='%d', valstep=1.0, orientation='vertical')
-    uiSEZoomSldr.on_changed(plotData)
-
-    uiSEPanAx = plt.axes([0.97, 0.72, 0.012, 0.09])
-    uiSEPanSldr = Slider(uiSEPanAx, 'pan', 0, 100, valinit=50, valfmt='%d', valstep=1.0, orientation='vertical')
-    uiSEPanSldr.on_changed(plotData)
-
     # simulation voltage value slice zoom and pan sliders
     uiSimZoomAx = plt.axes([0.97, 0.56, 0.012, 0.09])
     uiSimZoomSldr = Slider(uiSimZoomAx, '  zoom', 1, 100, valinit=100, valfmt='%d', valstep=1.0, orientation='vertical')
@@ -1435,6 +1426,15 @@ def initPlot(configFlag):
     uiSimPanAx = plt.axes([0.97, 0.41, 0.012, 0.09])
     uiSimPanSldr = Slider(uiSimPanAx, 'pan', 0, 100, valinit=50, valfmt='%d', valstep=1.0, orientation='vertical')
     uiSimPanSldr.on_changed(plotData)
+
+    # state-estimator voltage value slice zoom and pan sliders
+    uiSEZoomAx = plt.axes([0.97, 0.87, 0.012, 0.09])
+    uiSEZoomSldr = Slider(uiSEZoomAx, '  zoom', 1, 100, valinit=100, valfmt='%d', valstep=1.0, orientation='vertical')
+    uiSEZoomSldr.on_changed(plotData)
+
+    uiSEPanAx = plt.axes([0.97, 0.72, 0.012, 0.09])
+    uiSEPanSldr = Slider(uiSEPanAx, 'pan', 0, 100, valinit=50, valfmt='%d', valstep=1.0, orientation='vertical')
+    uiSEPanSldr.on_changed(plotData)
 
     # voltage value difference slice zoom and pan sliders
     uiDiffZoomAx = plt.axes([0.97, 0.26, 0.012, 0.09])
