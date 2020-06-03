@@ -895,8 +895,9 @@ def yAxisLimits(yMin, yMax, zoomVal, panVal):
 def plotData(event):
     global firstPlotFlag
 
-    # avoid error by making sure there is data to plot
-    if len(tsDataList)==0:
+    # avoid error by making sure there is data to plot, which really means
+    # lines, or 2 points, since single points don't show up
+    if len(tsDataList) < 2:
         return
 
     simDataFlag = False
