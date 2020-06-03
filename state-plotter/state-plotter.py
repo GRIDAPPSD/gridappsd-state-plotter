@@ -1224,7 +1224,11 @@ def plotShowAllCallback(event):
     # update the button icon
     uiShowAx.images[0].set_data(checkedIcon if plotShowAllFlag else uncheckedIcon)
     plt.draw()
+    plotData(None)
 
+
+def plotDataCallback(event):
+    plt.draw()
     plotData(None)
 
 
@@ -1404,7 +1408,7 @@ def initPlot(configFlag):
     # can't use both an image and a label with a button so this is a clever way
     # to get that behavior since matplotlib doesn't have a simple label widget
     uiTSZoomSldr = Slider(uiTSZoomAx, 'show all              zoom', 0, 1, valfmt='%d', valstep=1.0)
-    uiTSZoomSldr.on_changed(plotData)
+    uiTSZoomSldr.on_changed(plotDataCallback)
 
     # show all button that's embedded in the middle of the slider above
     uiShowAx = plt.axes([0.14, 0.01, 0.02, 0.02])
@@ -1416,34 +1420,34 @@ def initPlot(configFlag):
     # timestamp slice pan slider
     uiTSPanAx = plt.axes([0.63, 0.01, 0.1, 0.02])
     uiTSPanSldr = Slider(uiTSPanAx, 'pan', 0, 100, valinit=100, valfmt='%d', valstep=1.0)
-    uiTSPanSldr.on_changed(plotData)
+    uiTSPanSldr.on_changed(plotDataCallback)
 
     # simulation voltage value slice zoom and pan sliders
-    uiSimZoomAx = plt.axes([0.97, 0.56, 0.012, 0.09])
+    uiSimZoomAx = plt.axes([0.97, 0.87, 0.012, 0.09])
     uiSimZoomSldr = Slider(uiSimZoomAx, '  zoom', 1, 100, valinit=100, valfmt='%d', valstep=1.0, orientation='vertical')
-    uiSimZoomSldr.on_changed(plotData)
+    uiSimZoomSldr.on_changed(plotDataCallback)
 
-    uiSimPanAx = plt.axes([0.97, 0.41, 0.012, 0.09])
+    uiSimPanAx = plt.axes([0.97, 0.72, 0.012, 0.09])
     uiSimPanSldr = Slider(uiSimPanAx, 'pan', 0, 100, valinit=50, valfmt='%d', valstep=1.0, orientation='vertical')
-    uiSimPanSldr.on_changed(plotData)
+    uiSimPanSldr.on_changed(plotDataCallback)
 
     # state-estimator voltage value slice zoom and pan sliders
-    uiSEZoomAx = plt.axes([0.97, 0.87, 0.012, 0.09])
+    uiSEZoomAx = plt.axes([0.97, 0.56, 0.012, 0.09])
     uiSEZoomSldr = Slider(uiSEZoomAx, '  zoom', 1, 100, valinit=100, valfmt='%d', valstep=1.0, orientation='vertical')
-    uiSEZoomSldr.on_changed(plotData)
+    uiSEZoomSldr.on_changed(plotDataCallback)
 
-    uiSEPanAx = plt.axes([0.97, 0.72, 0.012, 0.09])
+    uiSEPanAx = plt.axes([0.97, 0.41, 0.012, 0.09])
     uiSEPanSldr = Slider(uiSEPanAx, 'pan', 0, 100, valinit=50, valfmt='%d', valstep=1.0, orientation='vertical')
-    uiSEPanSldr.on_changed(plotData)
+    uiSEPanSldr.on_changed(plotDataCallback)
 
     # voltage value difference slice zoom and pan sliders
     uiDiffZoomAx = plt.axes([0.97, 0.26, 0.012, 0.09])
     uiDiffZoomSldr = Slider(uiDiffZoomAx, '  zoom', 1, 100, valinit=100, valfmt='%d', valstep=1.0, orientation='vertical')
-    uiDiffZoomSldr.on_changed(plotData)
+    uiDiffZoomSldr.on_changed(plotDataCallback)
 
     uiDiffPanAx = plt.axes([0.97, 0.11, 0.012, 0.09])
     uiDiffPanSldr = Slider(uiDiffPanAx, 'pan', 0, 100, valinit=50, valfmt='%d', valstep=1.0, orientation='vertical')
-    uiDiffPanSldr.on_changed(plotData)
+    uiDiffPanSldr.on_changed(plotDataCallback)
 
     plotFig.canvas.mpl_connect('button_press_event', plotButtonPressCallback)
 
