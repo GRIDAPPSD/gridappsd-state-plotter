@@ -1152,8 +1152,7 @@ def plotData(event):
     #print(appName + ': state-estimator voltage value y-axis limits...', flush=True)
     newSEYmin, newSEYmax = yAxisLimits(SEYmin, SEYmax, uiSEZoomSldr.val, uiSEPanSldr.val)
     uiSEAx.set_ylim(newSEYmin, newSEYmax)
-    uiSEAx.xaxis.set_visible(True)
-    uiSEAx.yaxis.set_visible(True)
+    uiSEAx.grid(True)
 
     # simulation voltage value plot y-axis zoom and pan calculation
     if not simDataFlag:
@@ -1161,8 +1160,7 @@ def plotData(event):
     #print(appName + ': simulator voltage value y-axis limits...', flush=True)
     newSimYmin, newSimYmax = yAxisLimits(simYmin, simYmax, uiSimZoomSldr.val, uiSimPanSldr.val)
     uiSimAx.set_ylim(newSimYmin, newSimYmax)
-    uiSimAx.xaxis.set_visible(True)
-    uiSimAx.yaxis.set_visible(True)
+    uiSimAx.grid(True)
 
     # voltage value difference plot y-axis zoom and pan calculation
     if not plotOverlayFlag and not diffDataFlag:
@@ -1170,8 +1168,7 @@ def plotData(event):
     #print(appName + ': voltage value difference y-axis limits...', flush=True)
     newDiffYmin, newDiffYmax = yAxisLimits(diffYmin, diffYmax, uiDiffZoomSldr.val, uiDiffPanSldr.val)
     uiDiffAx.set_ylim(newDiffYmin, newDiffYmax)
-    uiDiffAx.xaxis.set_visible(True)
-    uiDiffAx.yaxis.set_visible(True)
+    uiDiffAx.grid(True)
 
     if firstPlotFlag:
         if plotStatsFlag:
@@ -1356,7 +1353,6 @@ def initPlot(configFlag):
 
     uiSimAx = plotFig.add_subplot(311)
     uiSimAx.xaxis.set_major_locator(MaxNLocator(integer=True))
-    uiSimAx.grid()
     # shrink the margins, especially the top since we don't want a label
     plt.subplots_adjust(bottom=0.09, left=0.08, right=0.96, top=0.98, hspace=0.1)
     # simulation measurement y-axis labels
@@ -1368,11 +1364,8 @@ def initPlot(configFlag):
     else:
         plt.ylabel('Field Volt. Angle (deg.)')
     plt.setp(uiSimAx.get_xticklabels(), visible=False)
-    uiSimAx.xaxis.set_visible(False)
-    uiSimAx.yaxis.set_visible(False)
 
     uiSEAx = plotFig.add_subplot(312, sharex=uiSimAx)
-    uiSEAx.grid()
     # state estimator y-axis labels
     if plotMagFlag:
         if plotCompFlag:
@@ -1383,11 +1376,8 @@ def initPlot(configFlag):
         plt.ylabel('Est. Volt. Angle (deg.)')
     # make time axis numbers invisible because the bottom plot will have them
     plt.setp(uiSEAx.get_xticklabels(), visible=False)
-    uiSEAx.xaxis.set_visible(False)
-    uiSEAx.yaxis.set_visible(False)
 
     uiDiffAx = plotFig.add_subplot(313, sharex=uiSimAx)
-    uiDiffAx.grid()
     plt.xlabel('Time (s)')
     if plotOverlayFlag:
         # overlay plot y-axis labels
@@ -1404,8 +1394,6 @@ def initPlot(configFlag):
             plt.ylabel('Volt. Magnitude % Diff.')
         else:
             plt.ylabel('Difference (deg.)')
-    uiDiffAx.xaxis.set_visible(False)
-    uiDiffAx.yaxis.set_visible(False)
 
     # pause/play button
     uiPauseAx = plt.axes([0.01, 0.01, 0.03, 0.03])
