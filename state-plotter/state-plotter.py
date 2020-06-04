@@ -58,6 +58,7 @@ from gridappsd import GridAPPSD
 
 # requires matplotlib 3.1.0+ for vertical sliders
 import matplotlib.pyplot as plt
+import matplotlib.ticker as ticker
 from matplotlib.widgets import Slider
 from matplotlib.widgets import Button
 from matplotlib.widgets import CheckButtons
@@ -1152,6 +1153,7 @@ def plotData(event):
     #print(appName + ': state-estimator voltage value y-axis limits...', flush=True)
     newSEYmin, newSEYmax = yAxisLimits(SEYmin, SEYmax, uiSEZoomSldr.val, uiSEPanSldr.val)
     uiSEAx.set_ylim(newSEYmin, newSEYmax)
+    uiSEAx.yaxis.set_major_formatter(ticker.ScalarFormatter())
     uiSEAx.grid(True)
 
     # simulation voltage value plot y-axis zoom and pan calculation
@@ -1160,6 +1162,7 @@ def plotData(event):
     #print(appName + ': simulator voltage value y-axis limits...', flush=True)
     newSimYmin, newSimYmax = yAxisLimits(simYmin, simYmax, uiSimZoomSldr.val, uiSimPanSldr.val)
     uiSimAx.set_ylim(newSimYmin, newSimYmax)
+    uiSimAx.yaxis.set_major_formatter(ticker.ScalarFormatter())
     uiSimAx.grid(True)
 
     # voltage value difference plot y-axis zoom and pan calculation
@@ -1168,6 +1171,8 @@ def plotData(event):
     #print(appName + ': voltage value difference y-axis limits...', flush=True)
     newDiffYmin, newDiffYmax = yAxisLimits(diffYmin, diffYmax, uiDiffZoomSldr.val, uiDiffPanSldr.val)
     uiDiffAx.set_ylim(newDiffYmin, newDiffYmax)
+    uiDiffAx.xaxis.set_major_formatter(ticker.ScalarFormatter())
+    uiDiffAx.yaxis.set_major_formatter(ticker.ScalarFormatter())
     uiDiffAx.grid(True)
 
     if firstPlotFlag:
@@ -1364,6 +1369,7 @@ def initPlot(configFlag):
     else:
         plt.ylabel('Field Volt. Angle (deg.)')
     plt.setp(uiSimAx.get_xticklabels(), visible=False)
+    uiSimAx.yaxis.set_major_formatter(ticker.NullFormatter())
 
     uiSEAx = plotFig.add_subplot(312, sharex=uiSimAx)
     # state estimator y-axis labels
@@ -1376,6 +1382,7 @@ def initPlot(configFlag):
         plt.ylabel('Est. Volt. Angle (deg.)')
     # make time axis numbers invisible because the bottom plot will have them
     plt.setp(uiSEAx.get_xticklabels(), visible=False)
+    uiSEAx.yaxis.set_major_formatter(ticker.NullFormatter())
 
     uiDiffAx = plotFig.add_subplot(313, sharex=uiSimAx)
     plt.xlabel('Time (s)')
@@ -1394,6 +1401,8 @@ def initPlot(configFlag):
             plt.ylabel('Volt. Magnitude % Diff.')
         else:
             plt.ylabel('Difference (deg.)')
+    uiDiffAx.xaxis.set_major_formatter(ticker.NullFormatter())
+    uiDiffAx.yaxis.set_major_formatter(ticker.NullFormatter())
 
     # pause/play button
     uiPauseAx = plt.axes([0.01, 0.01, 0.03, 0.03])
