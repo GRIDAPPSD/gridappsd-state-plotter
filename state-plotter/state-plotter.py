@@ -897,7 +897,9 @@ def plotData(event):
     global firstPlotFlag
 
     # avoid error by making sure there is data to plot, which really means
-    # lines, or 2 points, since single points don't show up
+    # lines, or 2 points, since single points don't show up and that little
+    # optimization keeps the plots from jumping around at the start before
+    # there is anything useful to look at
     if len(tsDataList) < 2:
         return
 
