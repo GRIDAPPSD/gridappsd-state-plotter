@@ -1152,6 +1152,8 @@ def plotData(event):
     #print(appName + ': state-estimator voltage value y-axis limits...', flush=True)
     newSEYmin, newSEYmax = yAxisLimits(SEYmin, SEYmax, uiSEZoomSldr.val, uiSEPanSldr.val)
     uiSEAx.set_ylim(newSEYmin, newSEYmax)
+    uiSEAx.xaxis.set_visible(True)
+    uiSEAx.yaxis.set_visible(True)
 
     # simulation voltage value plot y-axis zoom and pan calculation
     if not simDataFlag:
@@ -1159,6 +1161,8 @@ def plotData(event):
     #print(appName + ': simulator voltage value y-axis limits...', flush=True)
     newSimYmin, newSimYmax = yAxisLimits(simYmin, simYmax, uiSimZoomSldr.val, uiSimPanSldr.val)
     uiSimAx.set_ylim(newSimYmin, newSimYmax)
+    uiSimAx.xaxis.set_visible(True)
+    uiSimAx.yaxis.set_visible(True)
 
     # voltage value difference plot y-axis zoom and pan calculation
     if not plotOverlayFlag and not diffDataFlag:
@@ -1166,6 +1170,8 @@ def plotData(event):
     #print(appName + ': voltage value difference y-axis limits...', flush=True)
     newDiffYmin, newDiffYmax = yAxisLimits(diffYmin, diffYmax, uiDiffZoomSldr.val, uiDiffPanSldr.val)
     uiDiffAx.set_ylim(newDiffYmin, newDiffYmax)
+    uiDiffAx.xaxis.set_visible(True)
+    uiDiffAx.yaxis.set_visible(True)
 
     if firstPlotFlag:
         if plotStatsFlag:
@@ -1362,6 +1368,8 @@ def initPlot(configFlag):
     else:
         plt.ylabel('Field Volt. Angle (deg.)')
     plt.setp(uiSimAx.get_xticklabels(), visible=False)
+    uiSimAx.xaxis.set_visible(False)
+    uiSimAx.yaxis.set_visible(False)
 
     uiSEAx = plotFig.add_subplot(312, sharex=uiSimAx)
     uiSEAx.grid()
@@ -1375,6 +1383,8 @@ def initPlot(configFlag):
         plt.ylabel('Est. Volt. Angle (deg.)')
     # make time axis numbers invisible because the bottom plot will have them
     plt.setp(uiSEAx.get_xticklabels(), visible=False)
+    uiSEAx.xaxis.set_visible(False)
+    uiSEAx.yaxis.set_visible(False)
 
     uiDiffAx = plotFig.add_subplot(313, sharex=uiSimAx)
     uiDiffAx.grid()
@@ -1394,6 +1404,8 @@ def initPlot(configFlag):
             plt.ylabel('Volt. Magnitude % Diff.')
         else:
             plt.ylabel('Difference (deg.)')
+    uiDiffAx.xaxis.set_visible(False)
+    uiDiffAx.yaxis.set_visible(False)
 
     # pause/play button
     uiPauseAx = plt.axes([0.01, 0.01, 0.03, 0.03])
