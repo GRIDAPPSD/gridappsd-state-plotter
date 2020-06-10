@@ -1,5 +1,4 @@
 #!/bin/bash
-
 SIMREQ={\"power_system_config\":{\"Line_name\":\"_5B816B93-7A5F-B64C-8460-47C17D6E4B0F\"},\"service_configs\":[{\"id\":\"state-estimator\",\"user_options\":{\"use-sensors-for-estimates\":true}},{\"id\":\"gridappsd-sensor-simulator\",\"user_options\":{\"default-perunit-confidence-band\":0.02,\"simulate-all\":true,\"sensors-config\":{},\"default-normal-value\":100.0,\"random-seed\":0.0,\"default-aggregation-interval\":30.0,\"passthrough-if-not-specified\":false,\"default-perunit-drop-rate\":0.05}}]} # ieee13nodecktassets using sensors
 #SIMREQ={\"power_system_config\":{\"Line_name\":\"_5B816B93-7A5F-B64C-8460-47C17D6E4B0F\"},\"service_configs\":[{\"id\":\"state-estimator\",\"user_options\":{\"use-sensors-for-estimates\":false}}]} # ieee13nodecktassets using simulation
 
@@ -10,7 +9,7 @@ SIMREQ={\"power_system_config\":{\"Line_name\":\"_5B816B93-7A5F-B64C-8460-47C17D
 #SIMREQ={\"power_system_config\":{\"Line_name\":\"_AAE94E4A-2465-6F5E-37B1-3E72183A4E44\"},\"service_configs\":[{\"id\":\"state-estimator\",\"user_options\":{\"use-sensors-for-estimates\":false}} # test9500new using simulation
 
 
-#./state-plotter.py $1 $SIMREQ -stats 2>&1 | tee spmagdbg.out
+./state-plotter.py $1 $SIMREQ -stats 2>&1 | tee spmagdbg.out
 #./state-plotter.py $1 $SIMREQ -all 2>&1 | tee spmagdbg.out
 #./state-plotter.py $1 $SIMREQ -ang -stats 2>&1 | tee spangdbg.out
 #./state-plotter.py $1 $SIMREQ -50 2>&1 | tee spmagdbg.out

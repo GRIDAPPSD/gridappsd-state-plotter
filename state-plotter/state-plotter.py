@@ -96,7 +96,7 @@ plotPhaseList = []
 gapps = None
 appName = None
 simID = None
-simReq = None
+modelMRID = None
 tsInit = 0
 plotMagFlag = True
 plotCompFlag = True
@@ -248,38 +248,38 @@ def vmagPrintWithSim(ts, sepair, sevmag, simvmag, vmagdiff):
     if printDataFlag:
         print(appName + ', ts: ' + str(ts) + ', sepair: ' + sepair + ', busname: ' + SEToBusDict[sepair] + ', sevmag: ' + str(sevmag) + ', simvmag: ' + str(simvmag) + ', % mag diff: ' + str(vmagdiff), flush=True)
         # 13-node
-        if '_5B816B93-7A5F-B64C-8460-47C17D6E4B0F' in simReq:
+        if modelMRID == '_5B816B93-7A5F-B64C-8460-47C17D6E4B0F':
             if vmagdiff < -2.0:
                 print(appName + ': OUTLIER, 13-node, vmagdiff<-2.0%: ts: ' + str(ts) + ', sepair: ' + sepair + ', busname: ' + SEToBusDict[sepair] + ', sevmag: ' + str(sevmag) + ', simvmag: ' + str(simvmag) + ', % diff: ' + str(vmagdiff), flush=True)
         # 123-node
-        elif '_C1C3E687-6FFD-C753-582B-632A27E28507' in simReq:
+        elif modelMRID == '_C1C3E687-6FFD-C753-582B-632A27E28507':
             if vmagdiff > 3.0:
                 print(appName + ': OUTLIER, 123-node, vmagdiff>3.0%: ts: ' + str(ts) + ', sepair: ' + sepair + ', busname: ' + SEToBusDict[sepair] + ', sevmag: ' + str(sevmag) + ', simvmag: ' + str(simvmag) + ', % diff: ' + str(vmagdiff), flush=True)
             if vmagdiff < -2.5:
                 print(appName + ': OUTLIER, 123-node, vmagdiff<-2.5%: ts: ' + str(ts) + ', sepair: ' + sepair + ', busname: ' + SEToBusDict[sepair] + ', sevmag: ' + str(sevmag) + ', simvmag: ' + str(simvmag) + ', % diff: ' + str(vmagdiff), flush=True)
         # 9500-node
-        #elif '_AAE94E4A-2465-6F5E-37B1-3E72183A4E44' in simReq:
+        #elif modelMRID == '_AAE94E4A-2465-6F5E-37B1-3E72183A4E44':
 
 
 def vangPrintWithSim(ts, sepair, sevang, simvang, vangdiff):
     if printDataFlag:
         print(appName + ', ts: ' + str(ts) + ', sepair: ' + sepair + ', busname: ' + SEToBusDict[sepair] + ', sevang: ' + str(sevang) + ', simvang: ' + str(simvang) + ', diff: ' + str(vangdiff), flush=True)
         # 13-node
-        if '_5B816B93-7A5F-B64C-8460-47C17D6E4B0F' in simReq:
+        if modelMRID == '_5B816B93-7A5F-B64C-8460-47C17D6E4B0F':
             if vangdiff > 34.0:
                 print(appName + ': OUTLIER, 13-node, vangdiff>34.0: ts: ' + str(ts) + ', sepair: ' + sepair + ', busname: ' + SEToBusDict[sepair] + ', sevang: ' + str(sevang) + ', simvang: ' + str(simvang) + ', diff: ' + str(vangdiff), flush=True)
         # 123-node
-        #elif '_C1C3E687-6FFD-C753-582B-632A27E28507' in simReq:
+        #elif modelMRID == '_C1C3E687-6FFD-C753-582B-632A27E28507':
         #    if vangdiff < -10.0:
         #        print(appName + ': OUTLIER, 123-node, vangdiff<-100.0: ts: ' + str(ts) + ', sepair: ' + sepair + ', busname: ' + SEToBusDict[sepair] + ', sevang: ' + str(sevang) + ', simvang: ' + str(simvang) + ', diff: ' + str(vangdiff), flush=True)
         # 9500-node
-        #elif '_AAE94E4A-2465-6F5E-37B1-3E72183A4E44' in simReq:
+        #elif modelMRID == '_AAE94E4A-2465-6F5E-37B1-3E72183A4E44':
 
 
 def vmagPrintWithoutSim(ts, sepair, sevmag):
     if printDataFlag:
         print(appName + ', NO SIM MATCH, ts: ' + str(ts) + ', sepair: ' + sepair + ', busname: ' + SEToBusDict[sepair] + ', sevmag: ' + str(sevmag), flush=True)
-        if '_5B816B93-7A5F-B64C-8460-47C17D6E4B0F' in simReq:
+        if modelMRID == '_5B816B93-7A5F-B64C-8460-47C17D6E4B0F':
             if sevmag > 4000:
                 print(appName + ': OUTLIER, 13-node, sevmag>4K: ts: ' + str(ts) + ', sepair: ' + sepair + ', busname: ' + SEToBusDict[sepair] + ', sevmag > 4K: ' + str(sevmag), flush=True)
 
@@ -1271,10 +1271,6 @@ def plotButtonPressCallback(event):
 
 
 def queryBusToSE():
-    # extract the model ID from JSON argument
-    modelDict = json.loads(simReq)
-    model_mrid = modelDict['power_system_config']['Line_name']
-
     connectivity_names_query = \
             'PREFIX r:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> ' + \
             'PREFIX c:  <http://iec.ch/TC57/CIM100#> ' + \
@@ -1282,7 +1278,7 @@ def queryBusToSE():
               '?term c:Terminal.ConnectivityNode ?cn. ' + \
               '?cn c:IdentifiedObject.mRID ?cnid. ' + \
               '?cn c:IdentifiedObject.name ?cnname. ' + \
-              'VALUES ?fdrid {"' + model_mrid + '"}' + \
+              'VALUES ?fdrid {"' + modelMRID + '"}' + \
               '?term c:Terminal.ConductingEquipment ?ce. ' + \
               '?ce c:Equipment.EquipmentContainer ?fdr. ' + \
               '?fdr c:IdentifiedObject.mRID ?fdrid. ' + \
@@ -1536,7 +1532,7 @@ def configPlot(busList):
 
 
 def _main():
-    global appName, simID, simReq, gapps
+    global appName, simID, modelMRID, gapps
     global plotTitle, plotNumber, plotMagFlag, plotCompFlag, printDataFlag
     global plotStatsFlag, plotOverlayFlag, plotLegendFlag, plotMatchesFlag
 
@@ -1673,8 +1669,29 @@ Optional command line arguments:
     # subscribe to simulation output for comparison with estimates
     # subscribe as early as possible to avoid getting any estimates
     # without corresponding simulation measurements for a timestamp
-    gapps.subscribe('/topic/goss.gridappsd.simulation.output.' +
-                    simID, simulationOutputCallback)
+
+    # interrogate simReq to determine whether to subscribe to the sensor-
+    # simulator service or to simulation output measurements
+    simDict = json.loads(simReq)
+    modelMRID = simDict['power_system_config']['Line_name']
+
+    sensorSimulatorRunningFlag = False
+    useSensorsForEstimatesFlag = False
+    for jsc in simDict['service_configs']:
+        if jsc['id'] == 'gridappsd-sensor-simulator':
+            sensorSimulatorRunningFlag = True
+        elif jsc['id'] == 'state-estimator':
+            useSensorsForEstimatesFlag = jsc['user_options']['use-sensors-for-estimates']
+
+    if not sensorSimulatorRunningFlag:
+        useSensorsForEstimatesFlag = False
+
+    if useSensorsForEstimatesFlag:
+        gapps.subscribe('/topic/goss.gridappsd.simulation.gridappsd-sensor-simulator.' +
+                        simID+'.output', simulationOutputCallback)
+    else:
+        gapps.subscribe('/topic/goss.gridappsd.simulation.output.' +
+                        simID, simulationOutputCallback)
 
     # query to get connectivity node,phase pairs
     queryBusToSE()
