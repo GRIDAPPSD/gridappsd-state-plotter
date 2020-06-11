@@ -73,7 +73,7 @@ busToSimDict = {}
 SEToSimDict = {}
 SEToVnomMagDict = {}
 SEToVnomAngDict = {}
-simAllDataDict = {}
+measAllDataDict = {}
 
 tsDataList = []
 tsDataPausedList = []
@@ -313,14 +313,14 @@ def estimateConfigCallback(header, message):
     #print(appName + ': estimate timestamp: ' + str(ts), flush=True)
 
     # to account for state estimator work queue draining design, iterate over
-    # simAllDataDict and toss all measurements until we reach the current
+    # measAllDataDict and toss all measurements until we reach the current
     # timestamp since they won't be referenced again and will just drain memory
     simDataTS = None
-    for tskey in list(simAllDataDict):
+    for tskey in list(measAllDataDict):
         if tskey < ts:
-            del simAllDataDict[tskey]
+            del measAllDataDict[tskey]
         elif tskey == ts:
-            simDataTS = simAllDataDict[tskey]
+            simDataTS = measAllDataDict[tskey]
             break
         else:
             break
@@ -445,14 +445,14 @@ def estimateNoConfigCallback(header, message):
     #print(appName + ': estimate timestamp: ' + str(ts), flush=True)
 
     # to account for state estimator work queue draining design, iterate over
-    # simAllDataDict and toss all measurements until we reach the current
+    # measAllDataDict and toss all measurements until we reach the current
     # timestamp since they won't be referenced again and will just drain memory
     simDataTS = None
-    for tskey in list(simAllDataDict):
+    for tskey in list(measAllDataDict):
         if tskey < ts:
-            del simAllDataDict[tskey]
+            del measAllDataDict[tskey]
         elif tskey == ts:
-            simDataTS = simAllDataDict[tskey]
+            simDataTS = measAllDataDict[tskey]
             break
         else:
             break
@@ -615,14 +615,14 @@ def estimateStatsCallback(header, message):
     #print(appName + ': estimate timestamp: ' + str(ts), flush=True)
 
     # to account for state estimator work queue draining design, iterate over
-    # simAllDataDict and toss all measurements until we reach the current
+    # measAllDataDict and toss all measurements until we reach the current
     # timestamp since they won't be referenced again and will just drain memory
     simDataTS = None
-    for tskey in list(simAllDataDict):
+    for tskey in list(measAllDataDict):
         if tskey < ts:
-            del simAllDataDict[tskey]
+            del measAllDataDict[tskey]
         elif tskey == ts:
-            simDataTS = simAllDataDict[tskey]
+            simDataTS = measAllDataDict[tskey]
             break
         else:
             break
@@ -827,11 +827,11 @@ def estimateStatsCallback(header, message):
     plotData(None)
 
 
-def simulationOutputCallback(header, message):
+def measurementCallback(header, message):
     msgdict = message['message']
     ts = msgdict['timestamp']
 
-    #print(appName + ': simulation output message timestamp: ' + str(ts), flush=True)
+    #print(appName + ': meaurement message timestamp: ' + str(ts), flush=True)
     # a single dot per measurement to match how state-estimator does it
     print('.', end='', flush=True)
     #print('('+str(ts)+')', end='', flush=True)
@@ -841,7 +841,7 @@ def simulationOutputCallback(header, message):
     # dictionaries
     # otherwise a list should be used, but then I have to make it a list
     # of tuples to store the timestamp as well
-    simAllDataDict[ts] = msgdict['measurements']
+    measAllDataDict[ts] = msgdict['measurements']
 
 
 def yAxisLimits(yMin, yMax, zoomVal, panVal):
@@ -1310,7 +1310,7 @@ def queryBusToSE():
     print(appName + ': end state-estimator bus to semrid query results', flush=True)
 
 
-def initPlot(configFlag):
+def initPlot(configFlag, useSensorsForEstimatesFlag):
     global uiTSZoomSldr, uiTSPanSldr
     global uiSEAx, uiSEZoomSldr, uiSEPanSldr
     global uiSimAx, uiSimZoomSldr, uiSimPanSldr
@@ -1358,14 +1358,20 @@ def initPlot(configFlag):
     uiSimAx.xaxis.set_major_locator(MaxNLocator(integer=True))
     # shrink the margins, especially the top since we don't want a label
     plt.subplots_adjust(bottom=0.09, left=0.08, right=0.96, top=0.98, hspace=0.1)
+
+    if useSensorsForEstimatesFlag:
+        yLabelPrefix = 'Sensor ';
+    else:
+        yLabelPrefix = 'Field ';
+
     # simulation measurement y-axis labels
     if plotMagFlag:
         if plotCompFlag:
-            plt.ylabel('Field Volt. Mag. (p.u.)')
+            plt.ylabel(yLabelPrefix+'Volt. Mag. (p.u.)')
         else:
-            plt.ylabel('Field Volt. Magnitude (V)')
+            plt.ylabel(yLabelPrefix+'Volt. Magnitude (V)')
     else:
-        plt.ylabel('Field Volt. Angle (deg.)')
+        plt.ylabel(yLabelPrefix+'Volt. Angle (deg.)')
     plt.setp(uiSimAx.get_xticklabels(), visible=False)
     uiSimAx.yaxis.set_major_formatter(ticker.NullFormatter())
 
@@ -1388,11 +1394,11 @@ def initPlot(configFlag):
         # overlay plot y-axis labels
         if plotMagFlag:
             if plotCompFlag:
-                plt.ylabel('Field & Est. Mag. (p.u.)')
+                plt.ylabel(yLabelPrefix+'& Est. Mag. (p.u.)')
             else:
-                plt.ylabel('Field & Est. Mag. (V)')
+                plt.ylabel(yLabelPrefix+'& Est. Mag. (V)')
         else:
-            plt.ylabel('Field & Est. Angle (deg.)')
+            plt.ylabel(yLabelPrefix+'& Est. Angle (deg.)')
     else:
         # difference plot y-axis labels
         if plotMagFlag:
@@ -1666,10 +1672,6 @@ Optional command line arguments:
 
     gapps = GridAPPSD()
 
-    # subscribe to simulation output for comparison with estimates
-    # subscribe as early as possible to avoid getting any estimates
-    # without corresponding simulation measurements for a timestamp
-
     # interrogate simReq to determine whether to subscribe to the sensor-
     # simulator service or to simulation output measurements
     simDict = json.loads(simReq)
@@ -1686,12 +1688,16 @@ Optional command line arguments:
     if not sensorSimulatorRunningFlag:
         useSensorsForEstimatesFlag = False
 
+    # subscribe to simulation or sensor measurements for comparison
+    # with estimates
+    # subscribe as early as possible to avoid getting any estimates
+    # without corresponding measurements for a timestamp
     if useSensorsForEstimatesFlag:
         gapps.subscribe('/topic/goss.gridappsd.simulation.gridappsd-sensor-simulator.' +
-                        simID+'.output', simulationOutputCallback)
+                        simID+'.output', measurementCallback)
     else:
         gapps.subscribe('/topic/goss.gridappsd.simulation.output.' +
-                        simID, simulationOutputCallback)
+                        simID, measurementCallback)
 
     # query to get connectivity node,phase pairs
     queryBusToSE()
@@ -1706,7 +1712,7 @@ Optional command line arguments:
     queryVnom()
 
     # matplotlib setup done before receiving any messages that reference it
-    initPlot(plotConfigFlag)
+    initPlot(plotConfigFlag, useSensorsForEstimatesFlag)
 
     if plotConfigFlag or len(plotBusList)>0:
         # determine what to plot based on the state-plotter-config file
