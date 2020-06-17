@@ -1362,7 +1362,7 @@ def initPlot(configFlag, useSensorsForEstimatesFlag):
     if useSensorsForEstimatesFlag:
         yLabelPrefix = 'Sensor ';
     else:
-        yLabelPrefix = 'Simulation ';
+        yLabelPrefix = 'Simulated ';
 
     # simulation measurement y-axis labels
     if plotMagFlag:
