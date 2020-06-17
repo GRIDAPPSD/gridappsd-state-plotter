@@ -1362,14 +1362,14 @@ def initPlot(configFlag, useSensorsForEstimatesFlag):
     if useSensorsForEstimatesFlag:
         yLabelPrefix = 'Sensor ';
     else:
-        yLabelPrefix = 'Field ';
+        yLabelPrefix = 'Simulation ';
 
     # simulation measurement y-axis labels
     if plotMagFlag:
         if plotCompFlag:
             plt.ylabel(yLabelPrefix+'Volt. Mag. (p.u.)')
         else:
-            plt.ylabel(yLabelPrefix+'Volt. Magnitude (V)')
+            plt.ylabel(yLabelPrefix+'Volt. Mag. (V)')
     else:
         plt.ylabel(yLabelPrefix+'Volt. Angle (deg.)')
     plt.setp(uiSimAx.get_xticklabels(), visible=False)
@@ -1379,9 +1379,9 @@ def initPlot(configFlag, useSensorsForEstimatesFlag):
     # state estimator y-axis labels
     if plotMagFlag:
         if plotCompFlag:
-            plt.ylabel('Est. Volt. Magnitude (p.u.)')
+            plt.ylabel('Est. Volt. Mag. (p.u.)')
         else:
-            plt.ylabel('Est. Volt. Magnitude (V)')
+            plt.ylabel('Est. Volt. Mag. (V)')
     else:
         plt.ylabel('Est. Volt. Angle (deg.)')
     # make time axis numbers invisible because the bottom plot will have them
