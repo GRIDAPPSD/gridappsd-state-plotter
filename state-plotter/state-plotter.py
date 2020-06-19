@@ -778,7 +778,10 @@ def estimateStatsCallback(header, message):
                             diffvval = 0.0
 
                         if not plotOverlayFlag:
-                            difflist.append(diffvval)
+                            if plotMagFlag:
+                                difflist.append(abs(diffvval))
+                            else:
+                                difflist.append(diffvval)
 
                         if plotMagFlag:
                             vmagPrintWithSim(ts, sepair, sevval, simvval, diffvval)
@@ -1172,7 +1175,15 @@ def plotData(event):
         print(appName + ': NOTE: no voltage value difference data to plot yet\n', flush=True)
     #print(appName + ': voltage value difference y-axis limits...', flush=True)
     newDiffYmin, newDiffYmax = yAxisLimits(diffYmin, diffYmax, uiDiffZoomSldr.val, uiDiffPanSldr.val)
-    uiDiffAx.set_ylim(newDiffYmin, newDiffYmax)
+    if (not plotOverlayFlag) and plotMagFlag:
+        # always show 0% lower limit for magnitude % difference plots
+        # when the upper limit drops below 1%, force it to 1%
+        if newDiffYmax < 1.0:
+            uiDiffAx.set_ylim(0.0, 1.0)
+        else:
+            uiDiffAx.set_ylim(0.0, newDiffYmax)
+    else:
+        uiDiffAx.set_ylim(newDiffYmin, newDiffYmax)
     uiDiffAx.xaxis.set_major_formatter(ticker.ScalarFormatter())
     uiDiffAx.yaxis.set_major_formatter(ticker.ScalarFormatter())
     uiDiffAx.grid(True)
@@ -1402,7 +1413,7 @@ def initPlot(configFlag, useSensorsForEstimatesFlag):
     else:
         # difference plot y-axis labels
         if plotMagFlag:
-            plt.ylabel('Volt. Magnitude % Diff.')
+            plt.ylabel('Volt. Mag. Abs. % Diff.')
         else:
             plt.ylabel('Difference (deg.)')
     uiDiffAx.xaxis.set_major_formatter(ticker.NullFormatter())
