@@ -431,19 +431,50 @@ def estimateConfigCallback(header, message):
                             measvval = calcVNom(measvval, estpair)
                             measDataPausedDict[estpair].append(measvval) if plotPausedFlag else measDataDict[estpair].append(measvval)
 
-                            if not plotMagFlag:
-                                diffvval = estvval - measvval
-                            elif measvval != 0.0:
-                                diffvval = 100.0*(estvval - measvval)/measvval
-                            else:
-                                diffvval = 0.0
-                            if not plotOverlayFlag:
-                                diffDataPausedDict[estpair].append(diffvval) if plotPausedFlag else diffDataDict[estpair].append(diffvval)
-                            if plotMagFlag:
-                                vmagPrintWithMeas(ts, estpair, estvval, measvval, diffvval)
-                            else:
-                                vangPrintWithMeas(ts, estpair, estvval, measvval, diffvval)
-                            break
+                            if measmrid in simDataTS:
+                                sim = simDataTS[measmrid]
+                                if measkey in sim:
+                                    simvval = sim[measkey]
+                                    simvval = calcVNom(simvval, estpair)
+
+                                    if not plotMagFlag:
+                                        diffestvval = estvval - simvval
+                                    elif simvval != 0.0:
+                                        diffestvval = 100.0*(estvval - simvval)/simvval
+                                    else:
+                                        diffestvval = 0.0
+
+                                    if not plotOverlayFlag:
+                                        if plotMagFlag:
+                                            diffDataPausedDict[estpair+' Est'].append(abs(diffestvval)) if plotPausedFlag else diffDataDict[estpair+' Est'].append(abs(diffestvval))
+                                        else:
+                                            diffDataPausedDict[estpair+' Est'].append(diffestvval) if plotPausedFlag else diffDataDict[estpair+' Est'].append(diffestvval)
+
+                                    if sensorSimulatorRunningFlag and measmrid in senDataTS:
+                                        sen = senDataTS[measmrid]
+                                        if measkey in sen:
+                                            senvval = sen[measkey]
+                                            senvval = calcVNom(senvval, estpair)
+
+                                            if not plotMagFlag:
+                                                diffmeasvval = senvval - simvval
+                                            elif simvval != 0.0:
+                                                diffmeasvval = 100.0*(senvval - simvval)/simvval
+                                            else:
+                                                diffmeasvval = 0.0
+
+                                            if not plotOverlayFlag:
+                                                if plotMagFlag:
+                                                    diffDataPausedDict[estpair+' Meas'].append(abs(diffmeasvval)) if plotPausedFlag else diffDataDict[estpair+' Meas'].append(abs(diffmeasvval))
+                                                else:
+                                                    diffDataPausedDict[estpair+' Meas'].append(diffmeasvval) if plotPausedFlag else diffDataDict[estpair+' Meas'].append(diffmeasvval)
+
+                                    if plotMagFlag:
+                                        vmagPrintWithMeas(ts, estpair, estvval, measvval, diffestvval)
+                                    else:
+                                        vangPrintWithMeas(ts, estpair, estvval, measvval, diffestvval)
+                                    break
+
             if not measvval:
                 if plotMagFlag:
                     vmagPrintWithoutMeas(ts, estpair, estvval)
@@ -569,10 +600,15 @@ def estimateNoConfigCallback(header, message):
             measDataDict[estpair] = []
             measDataPausedDict[estpair] = []
             if not plotOverlayFlag:
-                diffDataDict[estpair] = []
-                diffDataPausedDict[estpair] = []
+                diffDataDict[estpair+' Est'] = []
+                diffDataPausedDict[estpair+' Est'] = []
+                if sensorSimulatorRunningFlag:
+                    diffDataDict[estpair+' Meas'] = []
+                    diffDataPausedDict[estpair+' Meas'] = []
 
             # create a lines dictionary entry per node/phase pair for each plot
+            measLinesDict[estpair], = uiMeasAx.plot([], [], label=estToBusDict[estpair])
+
             if plotOverlayFlag:
                 estLinesDict[estpair], = uiEstAx.plot([], [], label=estToBusDict[estpair], linestyle='--')
 
@@ -582,9 +618,10 @@ def estimateNoConfigCallback(header, message):
             else:
                 estLinesDict[estpair], = uiEstAx.plot([], [], label=estToBusDict[estpair])
 
-                diffLinesDict[estpair], = uiDiffAx.plot([], [], label=estToBusDict[estpair])
-
-            measLinesDict[estpair], = uiMeasAx.plot([], [], label=estToBusDict[estpair])
+                diffLinesDict[estpair+' Est'], = uiDiffAx.plot([], [], label=estToBusDict[estpair]+' Est.', linestyle='--')
+                if sensorSimulatorRunningFlag:
+                    color = diffLinesDict[estpair+' Est'].get_color()
+                    diffLinesDict[estpair+' Meas'], = uiDiffAx.plot([], [], label=estToBusDict[estpair]+' Meas.', color=color)
 
         # 123-node angle plots:
         #   phase A heads to -60 degrees right away
@@ -618,20 +655,50 @@ def estimateNoConfigCallback(header, message):
                         measvval = calcVNom(measvval, estpair)
                         measDataPausedDict[estpair].append(measvval) if plotPausedFlag else measDataDict[estpair].append(measvval)
 
-                        if not plotMagFlag:
-                            diffvval = estvval - measvval
-                        elif measvval != 0.0:
-                            diffvval = 100.0*(estvval - measvval)/measvval
-                        else:
-                            diffvval = 0.0
-                        if not plotOverlayFlag:
-                            diffDataPausedDict[estpair].append(diffvval) if plotPausedFlag else diffDataDict[estpair].append(diffvval)
+                        if measmrid in simDataTS:
+                            sim = simDataTS[measmrid]
+                            if measkey in sim:
+                                simvval = sim[measkey]
+                                simvval = calcVNom(simvval, estpair)
 
-                        if plotMagFlag:
-                            vmagPrintWithMeas(ts, estpair, estvval, measvval, diffvval)
-                        else:
-                            vangPrintWithMeas(ts, estpair, estvval, measvval, diffvval)
-                        break
+                                if not plotMagFlag:
+                                    diffestvval = estvval - simvval
+                                elif simvval != 0.0:
+                                    diffestvval = 100.0*(estvval - simvval)/simvval
+                                else:
+                                    diffestvval = 0.0
+
+                                if not plotOverlayFlag:
+                                    if plotMagFlag:
+                                        diffDataPausedDict[estpair+' Est'].append(abs(diffestvval)) if plotPausedFlag else diffDataDict[estpair+' Est'].append(abs(diffestvval))
+                                    else:
+                                        diffDataPausedDict[estpair+' Est'].append(diffestvval) if plotPausedFlag else diffDataDict[estpair+' Est'].append(diffestvval)
+
+                                if sensorSimulatorRunningFlag and measmrid in senDataTS:
+                                    sen = senDataTS[measmrid]
+                                    if measkey in sen:
+                                        senvval = sen[measkey]
+                                        senvval = calcVNom(senvval, estpair)
+
+                                        if not plotMagFlag:
+                                            diffmeasvval = senvval - simvval
+                                        elif simvval != 0.0:
+                                            diffmeasvval = 100.0*(senvval - simvval)/simvval
+                                        else:
+                                            diffmeasvval = 0.0
+
+                                        if not plotOverlayFlag:
+                                            if plotMagFlag:
+                                                diffDataPausedDict[estpair+' Meas'].append(abs(diffmeasvval)) if plotPausedFlag else diffDataDict[estpair+' Meas'].append(abs(diffmeasvval))
+                                            else:
+                                                diffDataPausedDict[estpair+' Meas'].append(diffmeasvval) if plotPausedFlag else diffDataDict[estpair+' Meas'].append(diffmeasvval)
+
+                                if plotMagFlag:
+                                    vmagPrintWithMeas(ts, estpair, estvval, measvval, diffestvval)
+                                else:
+                                    vangPrintWithMeas(ts, estpair, estvval, measvval, diffestvval)
+                                break
+
         if not measvval:
             if plotMagFlag:
                 vmagPrintWithoutMeas(ts, estpair, estvval)
@@ -784,10 +851,15 @@ def estimateStatsCallback(header, message):
             estLinesDict['Stdev High'], = uiEstAx.plot([], [], label='Std. Dev. High', color='blue')
             estLinesDict['Mean'], = uiEstAx.plot([], [], label='Mean', color='red')
 
-            diffDataDict['Mean'] = []
-            diffDataPausedDict['Mean'] = []
+            diffDataDict['Mean Est'] = []
+            diffDataPausedDict['Mean Est'] = []
+            if sensorSimulatorRunningFlag:
+                diffDataDict['Mean Meas'] = []
+                diffDataPausedDict['Mean Meas'] = []
 
-            diffLinesDict['Mean'], = uiDiffAx.plot([], [], label='Mean', color='red')
+            diffLinesDict['Mean Est'], = uiDiffAx.plot([], [], label='Mean Estimate Error', linestyle='--', color='red')
+            if sensorSimulatorRunningFlag:
+                diffLinesDict['Mean Meas'], = uiDiffAx.plot([], [], label='Mean Measurement Error', color='red')
 
         measLinesDict['Min'], = uiMeasAx.plot([], [], label='Minimum', color='cyan')
         measLinesDict['Max'], = uiMeasAx.plot([], [], label='Maximum', color='cyan')
@@ -810,7 +882,9 @@ def estimateStatsCallback(header, message):
 
     estlist = []
     measlist = []
-    difflist = []
+    diffestlist = []
+    if sensorSimulatorRunningFlag:
+        diffmeaslist = []
 
     for item in estVolt:
         # only consider phases A, B, C and user-specified phases
@@ -842,24 +916,49 @@ def estimateStatsCallback(header, message):
                         measvval = calcVNom(measvval, estpair)
                         measlist.append(measvval)
 
-                        if not plotMagFlag:
-                            diffvval = estvval - measvval
-                        elif measvval != 0.0:
-                            diffvval = 100.0*(estvval - measvval)/measvval
-                        else:
-                            diffvval = 0.0
+                        if measmrid in simDataTS:
+                            sim = simDataTS[measmrid]
+                            if measkey in sim:
+                                simvval = sim[measkey]
+                                simvval = calcVNom(simvval, estpair)
 
-                        if not plotOverlayFlag:
-                            if plotMagFlag:
-                                difflist.append(abs(diffvval))
-                            else:
-                                difflist.append(diffvval)
+                                if not plotMagFlag:
+                                    diffestvval = estvval - simvval
+                                elif simvval != 0.0:
+                                    diffestvval = 100.0*(estvval - simvval)/simvval
+                                else:
+                                    diffestvval = 0.0
 
-                        if plotMagFlag:
-                            vmagPrintWithMeas(ts, estpair, estvval, measvval, diffvval)
-                        else:
-                            vangPrintWithMeas(ts, estpair, estvval, measvval, diffvval)
-                        break
+                                if not plotOverlayFlag:
+                                    if plotMagFlag:
+                                        diffestlist.append(abs(diffestvval))
+                                    else:
+                                        diffestlist.append(diffestvval)
+
+                                if sensorSimulatorRunningFlag and measmrid in senDataTS:
+                                    sen = senDataTS[measmrid]
+                                    if measkey in sen:
+                                        senvval = sen[measkey]
+                                        senvval = calcVNom(senvval, estpair)
+
+                                        if not plotMagFlag:
+                                            diffmeasvval = senvval - simvval
+                                        elif simvval != 0.0:
+                                            diffmeasvval = 100.0*(senvval - simvval)/simvval
+                                        else:
+                                            diffmeasvval = 0.0
+
+                                        if not plotOverlayFlag:
+                                            if plotMagFlag:
+                                                diffmeaslist.append(abs(diffmeasvval))
+                                            else:
+                                                diffmeaslist.append(diffmeasvval)
+
+                                if plotMagFlag:
+                                    vmagPrintWithMeas(ts, estpair, estvval, measvval, diffestvval)
+                                else:
+                                    vangPrintWithMeas(ts, estpair, estvval, measvval, diffestvval)
+                                break
 
         if not measvval:
             if plotMagFlag:
@@ -890,13 +989,22 @@ def estimateStatsCallback(header, message):
         measDataPausedDict['Stdev Low'].append(measmean-measstdev) if plotPausedFlag else measDataDict['Stdev Low'].append(measmean-measstdev)
         measDataPausedDict['Stdev High'].append(measmean+measstdev) if plotPausedFlag else measDataDict['Stdev High'].append(measmean+measstdev)
 
-    if not plotOverlayFlag and len(difflist)>0:
-        diffmean = statistics.mean(difflist)
-        diffDataPausedDict['Mean'].append(diffmean) if plotPausedFlag else diffDataDict['Mean'].append(diffmean)
-        if plotMagFlag:
-            print(appName + ': mean magnitude % diff: ' + str(diffmean), flush=True)
-        else:
-            print(appName + ': mean angle diff: ' + str(diffmean), flush=True)
+    if not plotOverlayFlag:
+        if len(diffestlist) > 0:
+            diffestmean = statistics.mean(diffestlist)
+            diffDataPausedDict['Mean Est'].append(diffestmean) if plotPausedFlag else diffDataDict['Mean Est'].append(diffestmean)
+            if plotMagFlag:
+                print(appName + ': mean magnitude % diff estimate: ' + str(diffestmean), flush=True)
+            else:
+                print(appName + ': mean angle diff estimate: ' + str(diffestmean), flush=True)
+
+        if sensorSimulatorRunningFlag and len(diffmeaslist)>0:
+            diffmeasmean = statistics.mean(diffmeaslist)
+            diffDataPausedDict['Mean Meas'].append(diffmeasmean) if plotPausedFlag else diffDataDict['Mean Meas'].append(diffmeasmean)
+            if plotMagFlag:
+                print(appName + ': mean magnitude % diff measurement: ' + str(diffmeasmean), flush=True)
+            else:
+                print(appName + ': mean angle diff measurement: ' + str(diffmeasmean), flush=True)
 
     # update plots with the new data
     plotData(None)
@@ -907,8 +1015,7 @@ def simulationCallback(header, message):
     ts = msgdict['timestamp']
 
     #print(appName + ': meaurement message timestamp: ' + str(ts), flush=True)
-    # a single dot per measurement to match how state-estimator does it
-    print('.', end='', flush=True)
+    print('<', end='', flush=True)
     #print('('+str(ts)+')', end='', flush=True)
     #pprint.pprint(msgdict)
 
@@ -924,8 +1031,7 @@ def sensorCallback(header, message):
     ts = msgdict['timestamp']
 
     #print(appName + ': meaurement message timestamp: ' + str(ts), flush=True)
-    # a single dot per measurement to match how state-estimator does it
-    print('#', end='', flush=True)
+    print('>', end='', flush=True)
     #print('('+str(ts)+')', end='', flush=True)
     #pprint.pprint(msgdict)
 
@@ -1264,7 +1370,7 @@ def plotData(event):
         print(appName + ': NOTE: no voltage value difference data to plot yet\n', flush=True)
     #print(appName + ': voltage value difference y-axis limits...', flush=True)
     newDiffYmin, newDiffYmax = yAxisLimits(diffYmin, diffYmax, uiDiffZoomSldr.val, uiDiffPanSldr.val)
-    if (not plotOverlayFlag) and plotMagFlag:
+    if not plotOverlayFlag and plotMagFlag:
         # always show 0% lower limit for magnitude % difference plots
         # when the upper limit drops below 1%, force it to 1%
         if newDiffYmax < 1.0:
@@ -1281,6 +1387,7 @@ def plotData(event):
         if plotStatsFlag:
             uiEstAx.legend()
             uiMeasAx.legend()
+            uiDiffAx.legend()
 
         elif len(plotPairDict) > 0:
             if plotLegendFlag or len(estLegendLineList)<=10:
@@ -1619,10 +1726,15 @@ def configPlot(busList):
         measDataPausedDict[pair] = []
 
         if not plotOverlayFlag:
-            diffDataDict[pair] = []
-            diffDataPausedDict[pair] = []
+            diffDataDict[pair+' Est'] = []
+            diffDataPausedDict[pair+' Est'] = []
+            if sensorSimulatorRunningFlag:
+                diffDataDict[pair+' Meas'] = []
+                diffDataPausedDict[pair+' Meas'] = []
 
         # create a lines dictionary entry per node/phase pair for each plot
+        measLinesDict[pair], = uiMeasAx.plot([], [], label=plotPairDict[pair])
+
         if plotOverlayFlag:
             estLinesDict[pair], = uiEstAx.plot([], [], label=plotPairDict[pair], linestyle='--')
 
@@ -1632,9 +1744,10 @@ def configPlot(busList):
         else:
             estLinesDict[pair], = uiEstAx.plot([], [], label=plotPairDict[pair])
 
-            diffLinesDict[pair], = uiDiffAx.plot([], [], label=plotPairDict[pair])
-
-        measLinesDict[pair], = uiMeasAx.plot([], [], label=plotPairDict[pair])
+            diffLinesDict[pair+' Est'], = uiDiffAx.plot([], [], label=plotPairDict[pair]+' Est.', linestyle='--')
+            if sensorSimulatorRunningFlag:
+                color = diffLinesDict[pair+' Est'].get_color()
+                diffLinesDict[pair+' Meas'], = uiDiffAx.plot([], [], label=plotPairDict[pair]+' Meas.', color=color)
 
 
 def _main():
