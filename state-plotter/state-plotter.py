@@ -857,9 +857,10 @@ def estimateStatsCallback(header, message):
                 diffDataDict['Mean Meas'] = []
                 diffDataPausedDict['Mean Meas'] = []
 
-            diffLinesDict['Mean Est'], = uiDiffAx.plot([], [], label='Mean Estimate Error', linestyle='--', color='red')
+            # hardwire colors to magenta and green specifically for this plot
+            diffLinesDict['Mean Est'], = uiDiffAx.plot([], [], label='Mean Estimate Error', color='magenta')
             if sensorSimulatorRunningFlag:
-                diffLinesDict['Mean Meas'], = uiDiffAx.plot([], [], label='Mean Measurement Error', color='red')
+                diffLinesDict['Mean Meas'], = uiDiffAx.plot([], [], label='Mean Measurement Error', color='green')
 
         measLinesDict['Min'], = uiMeasAx.plot([], [], label='Minimum', color='cyan')
         measLinesDict['Max'], = uiMeasAx.plot([], [], label='Maximum', color='cyan')
