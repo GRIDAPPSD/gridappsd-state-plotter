@@ -491,7 +491,7 @@ def estimateConfigCallback(header, message):
     #print(appName + ': ' + str(estpairCount) + ' state-estimator measurements, ' + str(matchCount) + ' configuration file node,phase pair matches, ' + str(diffMatchCount) + ' matches to measurement data', flush=True)
 
     # update plots with the new data
-    plotData(None)
+    plotData()
 
 
 def estimateNoConfigCallback(header, message):
@@ -720,7 +720,7 @@ def estimateNoConfigCallback(header, message):
     #    print(appName + ': ' + str(estpairCount) + ' state-estimator measurements, ' + str(matchCount) + ' node,phase pair matches (matching all), ' + str(diffMatchCount) + ' matches to measurement data', flush=True)
 
     # update plots with the new data
-    plotData(None)
+    plotData()
 
 
 def estimateStatsCallback(header, message):
@@ -1008,7 +1008,7 @@ def estimateStatsCallback(header, message):
                 print(appName + ': mean angle diff measurement: ' + str(diffmeasmean), flush=True)
 
     # update plots with the new data
-    plotData(None)
+    plotData()
 
 
 def simulationCallback(header, message):
@@ -1092,7 +1092,7 @@ def yAxisLimits(yMin, yMax, zoomVal, panVal):
     return newYmin, newYmax
 
 
-def plotData(event):
+def plotData():
     global firstPlotFlag
 
     # avoid error by making sure there is data to plot, which really means
@@ -1431,7 +1431,7 @@ def plotPauseCallback(event):
                 diffDataDict[pair].extend(diffDataPausedDict[pair])
                 diffDataPausedDict[pair].clear()
 
-    plotData(None)
+    plotData()
 
 
 def plotShowAllCallback(event):
@@ -1442,12 +1442,12 @@ def plotShowAllCallback(event):
     # update the button icon
     uiShowAx.images[0].set_data(checkedIcon if plotShowAllFlag else uncheckedIcon)
     plt.draw()
-    plotData(None)
+    plotData()
 
 
 def plotDataCallback(event):
     plt.draw()
-    plotData(None)
+    plotData()
 
 
 def plotButtonPressCallback(event):
