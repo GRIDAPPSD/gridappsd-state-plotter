@@ -1108,32 +1108,7 @@ def plotData(event):
     if plotShowAllFlag:
         xupper = int(tsDataList[-1])
         if xupper > 0:
-            uiEstAx.set_xlim(0, xupper)
-
-        estYmax = -sys.float_info.max
-        estYmin = sys.float_info.max
-        for pair in estDataDict:
-            if len(estDataDict[pair]) > 0:
-                if len(estDataDict[pair]) != len(tsDataList):
-                    print('***MISMATCH Estimate show all pair: ' + pair + ', xdata #: ' + str(len(tsDataList)) + ', ydata #: ' + str(len(estDataDict[pair])), flush=True)
-                estLinesDict[pair].set_xdata(tsDataList)
-                estLinesDict[pair].set_ydata(estDataDict[pair])
-                estYmin = min(estYmin, min(estDataDict[pair]))
-                estYmax = max(estYmax, max(estDataDict[pair]))
-                if firstPlotFlag and len(plotPairDict)>0:
-                    estLegendLineList.append(estLinesDict[pair])
-                    estLegendLabelList.append(plotPairDict[pair])
-        #print(appName + ': estYmin: ' + str(estYmin) + ', estYmax: ' + str(estYmax), flush=True)
-
-        if plotStatsFlag:
-            plt.sca(uiEstAx)
-            if len(estDataDict['Mean']) > 0:
-                if len(estDataDict['Mean']) != len(tsDataList):
-                    print('***MISMATCH Estimate show all statistics, xdata #: ' + str(len(tsDataList)) + ', ydata #: ' + str(len(estDataDict['Mean'])), flush=True)
-                plt.fill_between(x=tsDataList, y1=estDataDict['Mean'], y2=estDataDict['Stdev Low'], color=stdevBlue)
-                plt.fill_between(x=tsDataList, y1=estDataDict['Mean'], y2=estDataDict['Stdev High'], color=stdevBlue)
-                plt.fill_between(x=tsDataList, y1=estDataDict['Stdev Low'], y2=estDataDict['Min'], color=minmaxBlue)
-                plt.fill_between(x=tsDataList, y1=estDataDict['Stdev High'], y2=estDataDict['Max'], color=minmaxBlue)
+            uiMeasAx.set_xlim(0, xupper)
 
         measYmax = -sys.float_info.max
         measYmin = sys.float_info.max
@@ -1160,6 +1135,31 @@ def plotData(event):
                 plt.fill_between(x=tsDataList, y1=measDataDict['Mean'], y2=measDataDict['Stdev High'], color=stdevBlue)
                 plt.fill_between(x=tsDataList, y1=measDataDict['Stdev Low'], y2=measDataDict['Min'], color=minmaxBlue)
                 plt.fill_between(x=tsDataList, y1=measDataDict['Stdev High'], y2=measDataDict['Max'], color=minmaxBlue)
+
+        estYmax = -sys.float_info.max
+        estYmin = sys.float_info.max
+        for pair in estDataDict:
+            if len(estDataDict[pair]) > 0:
+                if len(estDataDict[pair]) != len(tsDataList):
+                    print('***MISMATCH Estimate show all pair: ' + pair + ', xdata #: ' + str(len(tsDataList)) + ', ydata #: ' + str(len(estDataDict[pair])), flush=True)
+                estLinesDict[pair].set_xdata(tsDataList)
+                estLinesDict[pair].set_ydata(estDataDict[pair])
+                estYmin = min(estYmin, min(estDataDict[pair]))
+                estYmax = max(estYmax, max(estDataDict[pair]))
+                if firstPlotFlag and len(plotPairDict)>0:
+                    estLegendLineList.append(estLinesDict[pair])
+                    estLegendLabelList.append(plotPairDict[pair])
+        #print(appName + ': estYmin: ' + str(estYmin) + ', estYmax: ' + str(estYmax), flush=True)
+
+        if plotStatsFlag:
+            plt.sca(uiEstAx)
+            if len(estDataDict['Mean']) > 0:
+                if len(estDataDict['Mean']) != len(tsDataList):
+                    print('***MISMATCH Estimate show all statistics, xdata #: ' + str(len(tsDataList)) + ', ydata #: ' + str(len(estDataDict['Mean'])), flush=True)
+                plt.fill_between(x=tsDataList, y1=estDataDict['Mean'], y2=estDataDict['Stdev Low'], color=stdevBlue)
+                plt.fill_between(x=tsDataList, y1=estDataDict['Mean'], y2=estDataDict['Stdev High'], color=stdevBlue)
+                plt.fill_between(x=tsDataList, y1=estDataDict['Stdev Low'], y2=estDataDict['Min'], color=minmaxBlue)
+                plt.fill_between(x=tsDataList, y1=estDataDict['Stdev High'], y2=estDataDict['Max'], color=minmaxBlue)
 
         diffYmax = -sys.float_info.max
         diffYmin = sys.float_info.max
@@ -1228,7 +1228,7 @@ def plotData(event):
             #    tsXmin = 0
             #    tsXmax = tsZoom
 
-        uiEstAx.set_xlim(tsXmin, tsXmax)
+        uiMeasAx.set_xlim(tsXmin, tsXmax)
         #print(appName + ': tsXmin: ' + str(tsXmin), flush=True)
         #print(appName + ': tsXmax: ' + str(tsXmax), flush=True)
 
@@ -1266,31 +1266,6 @@ def plotData(event):
         #print(appName + ': tsStartpt: ' + str(tsStartpt), flush=True)
         #print(appName + ': tsEndpt: ' + str(tsEndpt) + '\n', flush=True)
 
-        estYmax = -sys.float_info.max
-        estYmin = sys.float_info.max
-        for pair in estDataDict:
-            if len(estDataDict[pair][tsStartpt:tsEndpt]) > 0:
-                if len(estDataDict[pair][tsStartpt:tsEndpt]) != len(tsDataList[tsStartpt:tsEndpt]):
-                    print('***MISMATCH Estimate pair: ' + pair + ', xdata #: ' + str(len(tsDataList[tsStartpt:tsEndpt])) + ', ydata #: ' + str(len(estDataDict[pair][tsStartpt:tsEndpt])) + ', tsStartpt: ' + str(tsStartpt) + ', tsEndpt: ' + str(tsEndpt), flush=True)
-                estLinesDict[pair].set_xdata(tsDataList[tsStartpt:tsEndpt])
-                estLinesDict[pair].set_ydata(estDataDict[pair][tsStartpt:tsEndpt])
-                estYmin = min(estYmin, min(estDataDict[pair][tsStartpt:tsEndpt]))
-                estYmax = max(estYmax, max(estDataDict[pair][tsStartpt:tsEndpt]))
-                if firstPlotFlag and len(plotPairDict)>0:
-                    estLegendLineList.append(estLinesDict[pair])
-                    estLegendLabelList.append(plotPairDict[pair])
-        #print(appName + ': estYmin: ' + str(estYmin) + ', estYmax: ' + str(estYmax), flush=True)
-
-        if plotStatsFlag:
-            plt.sca(uiEstAx)
-            if len(estDataDict['Mean'][tsStartpt:tsEndpt]) > 0:
-                if len(estDataDict['Mean'][tsStartpt:tsEndpt]) != len(tsDataList[tsStartpt:tsEndpt]):
-                    print('***MISMATCH Estimate statistics, xdata #: ' + str(len(tsDataList[tsStartpt:tsEndpt])) + ', ydata #: ' + str(len(estDataDict['Mean'][tsStartpt:tsEndpt])) + ', tsStartpt: ' + str(tsStartpt) + ', tsEndpt: ' + str(tsEndpt), flush=True)
-                plt.fill_between(x=tsDataList[tsStartpt:tsEndpt], y1=estDataDict['Mean'][tsStartpt:tsEndpt], y2=estDataDict['Stdev Low'][tsStartpt:tsEndpt], color=stdevBlue)
-                plt.fill_between(x=tsDataList[tsStartpt:tsEndpt], y1=estDataDict['Mean'][tsStartpt:tsEndpt], y2=estDataDict['Stdev High'][tsStartpt:tsEndpt], color=stdevBlue)
-                plt.fill_between(x=tsDataList[tsStartpt:tsEndpt], y1=estDataDict['Stdev Low'][tsStartpt:tsEndpt], y2=estDataDict['Min'][tsStartpt:tsEndpt], color=minmaxBlue)
-                plt.fill_between(x=tsDataList[tsStartpt:tsEndpt], y1=estDataDict['Stdev High'][tsStartpt:tsEndpt], y2=estDataDict['Max'][tsStartpt:tsEndpt], color=minmaxBlue)
-
         measYmax = -sys.float_info.max
         measYmin = sys.float_info.max
         for pair in measDataDict:
@@ -1316,6 +1291,31 @@ def plotData(event):
                 plt.fill_between(x=tsDataList[tsStartpt:tsEndpt], y1=measDataDict['Mean'][tsStartpt:tsEndpt], y2=measDataDict['Stdev High'][tsStartpt:tsEndpt], color=stdevBlue)
                 plt.fill_between(x=tsDataList[tsStartpt:tsEndpt], y1=measDataDict['Stdev Low'][tsStartpt:tsEndpt], y2=measDataDict['Min'][tsStartpt:tsEndpt], color=minmaxBlue)
                 plt.fill_between(x=tsDataList[tsStartpt:tsEndpt], y1=measDataDict['Stdev High'][tsStartpt:tsEndpt], y2=measDataDict['Max'][tsStartpt:tsEndpt], color=minmaxBlue)
+
+        estYmax = -sys.float_info.max
+        estYmin = sys.float_info.max
+        for pair in estDataDict:
+            if len(estDataDict[pair][tsStartpt:tsEndpt]) > 0:
+                if len(estDataDict[pair][tsStartpt:tsEndpt]) != len(tsDataList[tsStartpt:tsEndpt]):
+                    print('***MISMATCH Estimate pair: ' + pair + ', xdata #: ' + str(len(tsDataList[tsStartpt:tsEndpt])) + ', ydata #: ' + str(len(estDataDict[pair][tsStartpt:tsEndpt])) + ', tsStartpt: ' + str(tsStartpt) + ', tsEndpt: ' + str(tsEndpt), flush=True)
+                estLinesDict[pair].set_xdata(tsDataList[tsStartpt:tsEndpt])
+                estLinesDict[pair].set_ydata(estDataDict[pair][tsStartpt:tsEndpt])
+                estYmin = min(estYmin, min(estDataDict[pair][tsStartpt:tsEndpt]))
+                estYmax = max(estYmax, max(estDataDict[pair][tsStartpt:tsEndpt]))
+                if firstPlotFlag and len(plotPairDict)>0:
+                    estLegendLineList.append(estLinesDict[pair])
+                    estLegendLabelList.append(plotPairDict[pair])
+        #print(appName + ': estYmin: ' + str(estYmin) + ', estYmax: ' + str(estYmax), flush=True)
+
+        if plotStatsFlag:
+            plt.sca(uiEstAx)
+            if len(estDataDict['Mean'][tsStartpt:tsEndpt]) > 0:
+                if len(estDataDict['Mean'][tsStartpt:tsEndpt]) != len(tsDataList[tsStartpt:tsEndpt]):
+                    print('***MISMATCH Estimate statistics, xdata #: ' + str(len(tsDataList[tsStartpt:tsEndpt])) + ', ydata #: ' + str(len(estDataDict['Mean'][tsStartpt:tsEndpt])) + ', tsStartpt: ' + str(tsStartpt) + ', tsEndpt: ' + str(tsEndpt), flush=True)
+                plt.fill_between(x=tsDataList[tsStartpt:tsEndpt], y1=estDataDict['Mean'][tsStartpt:tsEndpt], y2=estDataDict['Stdev Low'][tsStartpt:tsEndpt], color=stdevBlue)
+                plt.fill_between(x=tsDataList[tsStartpt:tsEndpt], y1=estDataDict['Mean'][tsStartpt:tsEndpt], y2=estDataDict['Stdev High'][tsStartpt:tsEndpt], color=stdevBlue)
+                plt.fill_between(x=tsDataList[tsStartpt:tsEndpt], y1=estDataDict['Stdev Low'][tsStartpt:tsEndpt], y2=estDataDict['Min'][tsStartpt:tsEndpt], color=minmaxBlue)
+                plt.fill_between(x=tsDataList[tsStartpt:tsEndpt], y1=estDataDict['Stdev High'][tsStartpt:tsEndpt], y2=estDataDict['Max'][tsStartpt:tsEndpt], color=minmaxBlue)
 
         diffYmax = -sys.float_info.max
         diffYmin = sys.float_info.max
@@ -1350,13 +1350,6 @@ def plotData(event):
 
         #print(appName + ': diffYmin: ' + str(diffYmin) + ', diffYmax: ' + str(diffYmax), flush=True)
 
-    # state-estimator voltage magnitude plot y-axis zoom and pan calculation
-    #print(appName + ': state-estimator voltage value y-axis limits...', flush=True)
-    newEstYmin, newEstYmax = yAxisLimits(estYmin, estYmax, uiEstZoomSldr.val, uiEstPanSldr.val)
-    uiEstAx.set_ylim(newEstYmin, newEstYmax)
-    uiEstAx.yaxis.set_major_formatter(ticker.ScalarFormatter())
-    uiEstAx.grid(True)
-
     # measurement voltage value plot y-axis zoom and pan calculation
     if not measDataFlag:
         print(appName + ': NOTE: no measurement voltage value data to plot yet\n', flush=True)
@@ -1365,6 +1358,13 @@ def plotData(event):
     uiMeasAx.set_ylim(newMeasYmin, newMeasYmax)
     uiMeasAx.yaxis.set_major_formatter(ticker.ScalarFormatter())
     uiMeasAx.grid(True)
+
+    # state-estimator voltage magnitude plot y-axis zoom and pan calculation
+    #print(appName + ': state-estimator voltage value y-axis limits...', flush=True)
+    newEstYmin, newEstYmax = yAxisLimits(estYmin, estYmax, uiEstZoomSldr.val, uiEstPanSldr.val)
+    uiEstAx.set_ylim(newEstYmin, newEstYmax)
+    uiEstAx.yaxis.set_major_formatter(ticker.ScalarFormatter())
+    uiEstAx.grid(True)
 
     # voltage value difference plot y-axis zoom and pan calculation
     if not plotOverlayFlag and not diffDataFlag:
@@ -1386,18 +1386,17 @@ def plotData(event):
 
     if firstPlotFlag:
         if plotStatsFlag:
-            uiEstAx.legend()
             uiMeasAx.legend()
+            uiEstAx.legend()
             uiDiffAx.legend()
 
         elif len(plotPairDict) > 0:
-            if plotLegendFlag or len(estLegendLineList)<=10:
-                cols = math.ceil(len(estLegendLineList)/8)
-                uiEstAx.legend(estLegendLineList, estLegendLabelList, ncol=cols)
-
             if plotLegendFlag or len(measLegendLineList)<=10:
                 cols = math.ceil(len(measLegendLineList)/8)
                 uiMeasAx.legend(measLegendLineList, measLegendLabelList, ncol=cols)
+            if plotLegendFlag or len(estLegendLineList)<=10:
+                cols = math.ceil(len(estLegendLineList)/8)
+                uiEstAx.legend(estLegendLineList, estLegendLabelList, ncol=cols)
 
     firstPlotFlag = False
 
