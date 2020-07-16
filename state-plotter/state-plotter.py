@@ -106,7 +106,8 @@ plotSimAllFlag = False
 plotPausedFlag = False
 plotShowAllFlag = False
 firstPassFlag = True
-firstPlotFlag = True
+firstMeasurementPlotFlag = True
+firstEstimatePlotFlag = True
 plotOverlayFlag = False
 plotLegendFlag = False
 plotMatchesFlag = False
@@ -491,7 +492,7 @@ def estimateConfigCallback(header, message):
     #print(appName + ': ' + str(estpairCount) + ' state-estimator measurements, ' + str(matchCount) + ' configuration file node,phase pair matches, ' + str(diffMatchCount) + ' matches to measurement data', flush=True)
 
     # update plots with the new data
-    plotData()
+    plotDataCallback(None)
 
 
 def estimateNoConfigCallback(header, message):
@@ -720,7 +721,7 @@ def estimateNoConfigCallback(header, message):
     #    print(appName + ': ' + str(estpairCount) + ' state-estimator measurements, ' + str(matchCount) + ' node,phase pair matches (matching all), ' + str(diffMatchCount) + ' matches to measurement data', flush=True)
 
     # update plots with the new data
-    plotData()
+    plotDataCallback(None)
 
 
 def estimateStatsCallback(header, message):
@@ -1008,7 +1009,7 @@ def estimateStatsCallback(header, message):
                 print(appName + ': mean angle diff measurement: ' + str(diffmeasmean), flush=True)
 
     # update plots with the new data
-    plotData()
+    plotDataCallback(None)
 
 
 def simulationCallback(header, message):
@@ -1092,8 +1093,8 @@ def yAxisLimits(yMin, yMax, zoomVal, panVal):
     return newYmin, newYmax
 
 
-def plotData():
-    global firstPlotFlag
+def plotMeasurementData():
+    global firstMeasurementPlotFlag
 
     # avoid error by making sure there is data to plot, which really means
     # lines, or 2 points, since single points don't show up and that little
@@ -1103,7 +1104,6 @@ def plotData():
         return
 
     measDataFlag = False
-    diffDataFlag = False
 
     if plotShowAllFlag:
         xupper = int(tsDataList[-1])
@@ -1121,7 +1121,7 @@ def plotData():
                 measLinesDict[pair].set_ydata(measDataDict[pair])
                 measYmin = min(measYmin, min(measDataDict[pair]))
                 measYmax = max(measYmax, max(measDataDict[pair]))
-                if firstPlotFlag and len(plotPairDict)>0:
+                if firstMeasurementPlotFlag and len(plotPairDict)>0:
                     measLegendLineList.append(measLinesDict[pair])
                     measLegendLabelList.append(plotPairDict[pair])
         #print(appName + ': measYmin: ' + str(measYmin) + ', measYmax: ' + str(measYmax), flush=True)
@@ -1135,63 +1135,6 @@ def plotData():
                 plt.fill_between(x=tsDataList, y1=measDataDict['Mean'], y2=measDataDict['Stdev High'], color=stdevBlue)
                 plt.fill_between(x=tsDataList, y1=measDataDict['Stdev Low'], y2=measDataDict['Min'], color=minmaxBlue)
                 plt.fill_between(x=tsDataList, y1=measDataDict['Stdev High'], y2=measDataDict['Max'], color=minmaxBlue)
-
-        estYmax = -sys.float_info.max
-        estYmin = sys.float_info.max
-        for pair in estDataDict:
-            if len(estDataDict[pair]) > 0:
-                if len(estDataDict[pair]) != len(tsDataList):
-                    print('***MISMATCH Estimate show all pair: ' + pair + ', xdata #: ' + str(len(tsDataList)) + ', ydata #: ' + str(len(estDataDict[pair])), flush=True)
-                estLinesDict[pair].set_xdata(tsDataList)
-                estLinesDict[pair].set_ydata(estDataDict[pair])
-                estYmin = min(estYmin, min(estDataDict[pair]))
-                estYmax = max(estYmax, max(estDataDict[pair]))
-                if firstPlotFlag and len(plotPairDict)>0:
-                    estLegendLineList.append(estLinesDict[pair])
-                    estLegendLabelList.append(plotPairDict[pair])
-        #print(appName + ': estYmin: ' + str(estYmin) + ', estYmax: ' + str(estYmax), flush=True)
-
-        if plotStatsFlag:
-            plt.sca(uiEstAx)
-            if len(estDataDict['Mean']) > 0:
-                if len(estDataDict['Mean']) != len(tsDataList):
-                    print('***MISMATCH Estimate show all statistics, xdata #: ' + str(len(tsDataList)) + ', ydata #: ' + str(len(estDataDict['Mean'])), flush=True)
-                plt.fill_between(x=tsDataList, y1=estDataDict['Mean'], y2=estDataDict['Stdev Low'], color=stdevBlue)
-                plt.fill_between(x=tsDataList, y1=estDataDict['Mean'], y2=estDataDict['Stdev High'], color=stdevBlue)
-                plt.fill_between(x=tsDataList, y1=estDataDict['Stdev Low'], y2=estDataDict['Min'], color=minmaxBlue)
-                plt.fill_between(x=tsDataList, y1=estDataDict['Stdev High'], y2=estDataDict['Max'], color=minmaxBlue)
-
-        diffYmax = -sys.float_info.max
-        diffYmin = sys.float_info.max
-        if plotOverlayFlag:
-            for pair in estDataDict:
-                if len(estDataDict[pair]) > 0:
-                    if len(estDataDict[pair]) != len(tsDataList):
-                        print('***MISMATCH Difference Estimate show all pair: ' + pair + ', xdata #: ' + str(len(tsDataList)) + ', ydata #: ' + str(len(estDataDict[pair])), flush=True)
-                    diffLinesDict[pair+' Est'].set_xdata(tsDataList)
-                    diffLinesDict[pair+' Est'].set_ydata(estDataDict[pair])
-                    diffYmin = min(diffYmin, min(estDataDict[pair]))
-                    diffYmax = max(diffYmax, max(estDataDict[pair]))
-
-                if len(measDataDict[pair]) > 0:
-                    if len(measDataDict[pair]) != len(tsDataList):
-                        print('***MISMATCH Difference Measurement show all pair: ' + pair + ', xdata #: ' + str(len(tsDataList)) + ', ydata #: ' + str(len(measDataDict[pair])), flush=True)
-                    diffLinesDict[pair+' Actual'].set_xdata(tsDataList)
-                    diffLinesDict[pair+' Actual'].set_ydata(measDataDict[pair])
-                    diffYmin = min(diffYmin, min(measDataDict[pair]))
-                    diffYmax = max(diffYmax, max(measDataDict[pair]))
-
-        else:
-            for pair in diffDataDict:
-                if len(diffDataDict[pair]) > 0:
-                    if len(diffDataDict[pair]) != len(tsDataList):
-                        print('***MISMATCH Difference show all pair: ' + pair + ', xdata #: ' + str(len(tsDataList)) + ', ydata #: ' + str(len(diffDataDict[pair])), flush=True)
-                    diffDataFlag = True
-                    diffLinesDict[pair].set_xdata(tsDataList)
-                    diffLinesDict[pair].set_ydata(diffDataDict[pair])
-                    diffYmin = min(diffYmin, min(diffDataDict[pair]))
-                    diffYmax = max(diffYmax, max(diffDataDict[pair]))
-        #print(appName + ': diffYmin: ' + str(diffYmin) + ', diffYmax: ' + str(diffYmax), flush=True)
 
     else:
         tsZoom = int(uiTSZoomSldr.val)
@@ -1277,7 +1220,7 @@ def plotData():
                 measLinesDict[pair].set_ydata(measDataDict[pair][tsStartpt:tsEndpt])
                 measYmin = min(measYmin, min(measDataDict[pair][tsStartpt:tsEndpt]))
                 measYmax = max(measYmax, max(measDataDict[pair][tsStartpt:tsEndpt]))
-                if firstPlotFlag and len(plotPairDict)>0:
+                if firstMeasurementPlotFlag and len(plotPairDict)>0:
                     measLegendLineList.append(measLinesDict[pair])
                     measLegendLabelList.append(plotPairDict[pair])
         #print(appName + ': measYmin: ' + str(measYmin) + ', measYmax: ' + str(measYmax), flush=True)
@@ -1292,6 +1235,177 @@ def plotData():
                 plt.fill_between(x=tsDataList[tsStartpt:tsEndpt], y1=measDataDict['Stdev Low'][tsStartpt:tsEndpt], y2=measDataDict['Min'][tsStartpt:tsEndpt], color=minmaxBlue)
                 plt.fill_between(x=tsDataList[tsStartpt:tsEndpt], y1=measDataDict['Stdev High'][tsStartpt:tsEndpt], y2=measDataDict['Max'][tsStartpt:tsEndpt], color=minmaxBlue)
 
+    # measurement voltage value plot y-axis zoom and pan calculation
+    if not measDataFlag:
+        print(appName + ': NOTE: no measurement voltage value data to plot yet\n', flush=True)
+    #print(appName + ': measurement voltage value y-axis limits...', flush=True)
+    newMeasYmin, newMeasYmax = yAxisLimits(measYmin, measYmax, uiMeasZoomSldr.val, uiMeasPanSldr.val)
+    uiMeasAx.set_ylim(newMeasYmin, newMeasYmax)
+    uiMeasAx.yaxis.set_major_formatter(ticker.ScalarFormatter())
+    uiMeasAx.grid(True)
+
+    if firstMeasurementPlotFlag:
+        if plotStatsFlag:
+            uiMeasAx.legend()
+
+        elif len(plotPairDict) > 0:
+            if plotLegendFlag or len(measLegendLineList)<=10:
+                cols = math.ceil(len(measLegendLineList)/8)
+                uiMeasAx.legend(measLegendLineList, measLegendLabelList, ncol=cols)
+
+        firstMeasurementPlotFlag = False
+
+    # flush all the plot changes
+    plt.draw()
+
+
+def plotEstimateData():
+    global firstEstimatePlotFlag
+
+    # avoid error by making sure there is data to plot, which really means
+    # lines, or 2 points, since single points don't show up and that little
+    # optimization keeps the plots from jumping around at the start before
+    # there is anything useful to look at
+    if len(tsDataList) < 2:
+        return
+
+    diffDataFlag = False
+
+    if plotShowAllFlag:
+        xupper = int(tsDataList[-1])
+        if xupper > 0:
+            uiEstAx.set_xlim(0, xupper)
+
+        estYmax = -sys.float_info.max
+        estYmin = sys.float_info.max
+        for pair in estDataDict:
+            if len(estDataDict[pair]) > 0:
+                if len(estDataDict[pair]) != len(tsDataList):
+                    print('***MISMATCH Estimate show all pair: ' + pair + ', xdata #: ' + str(len(tsDataList)) + ', ydata #: ' + str(len(estDataDict[pair])), flush=True)
+                estLinesDict[pair].set_xdata(tsDataList)
+                estLinesDict[pair].set_ydata(estDataDict[pair])
+                estYmin = min(estYmin, min(estDataDict[pair]))
+                estYmax = max(estYmax, max(estDataDict[pair]))
+                if firstEstimatePlotFlag and len(plotPairDict)>0:
+                    estLegendLineList.append(estLinesDict[pair])
+                    estLegendLabelList.append(plotPairDict[pair])
+        #print(appName + ': estYmin: ' + str(estYmin) + ', estYmax: ' + str(estYmax), flush=True)
+
+        if plotStatsFlag:
+            plt.sca(uiEstAx)
+            if len(estDataDict['Mean']) > 0:
+                if len(estDataDict['Mean']) != len(tsDataList):
+                    print('***MISMATCH Estimate show all statistics, xdata #: ' + str(len(tsDataList)) + ', ydata #: ' + str(len(estDataDict['Mean'])), flush=True)
+                plt.fill_between(x=tsDataList, y1=estDataDict['Mean'], y2=estDataDict['Stdev Low'], color=stdevBlue)
+                plt.fill_between(x=tsDataList, y1=estDataDict['Mean'], y2=estDataDict['Stdev High'], color=stdevBlue)
+                plt.fill_between(x=tsDataList, y1=estDataDict['Stdev Low'], y2=estDataDict['Min'], color=minmaxBlue)
+                plt.fill_between(x=tsDataList, y1=estDataDict['Stdev High'], y2=estDataDict['Max'], color=minmaxBlue)
+
+        diffYmax = -sys.float_info.max
+        diffYmin = sys.float_info.max
+        if plotOverlayFlag:
+            for pair in estDataDict:
+                if len(estDataDict[pair]) > 0:
+                    if len(estDataDict[pair]) != len(tsDataList):
+                        print('***MISMATCH Difference Estimate show all pair: ' + pair + ', xdata #: ' + str(len(tsDataList)) + ', ydata #: ' + str(len(estDataDict[pair])), flush=True)
+                    diffLinesDict[pair+' Est'].set_xdata(tsDataList)
+                    diffLinesDict[pair+' Est'].set_ydata(estDataDict[pair])
+                    diffYmin = min(diffYmin, min(estDataDict[pair]))
+                    diffYmax = max(diffYmax, max(estDataDict[pair]))
+
+                if len(measDataDict[pair]) > 0:
+                    if len(measDataDict[pair]) != len(tsDataList):
+                        print('***MISMATCH Difference Measurement show all pair: ' + pair + ', xdata #: ' + str(len(tsDataList)) + ', ydata #: ' + str(len(measDataDict[pair])), flush=True)
+                    diffLinesDict[pair+' Actual'].set_xdata(tsDataList)
+                    diffLinesDict[pair+' Actual'].set_ydata(measDataDict[pair])
+                    diffYmin = min(diffYmin, min(measDataDict[pair]))
+                    diffYmax = max(diffYmax, max(measDataDict[pair]))
+
+        else:
+            for pair in diffDataDict:
+                if len(diffDataDict[pair]) > 0:
+                    if len(diffDataDict[pair]) != len(tsDataList):
+                        print('***MISMATCH Difference show all pair: ' + pair + ', xdata #: ' + str(len(tsDataList)) + ', ydata #: ' + str(len(diffDataDict[pair])), flush=True)
+                    diffDataFlag = True
+                    diffLinesDict[pair].set_xdata(tsDataList)
+                    diffLinesDict[pair].set_ydata(diffDataDict[pair])
+                    diffYmin = min(diffYmin, min(diffDataDict[pair]))
+                    diffYmax = max(diffYmax, max(diffDataDict[pair]))
+        #print(appName + ': diffYmin: ' + str(diffYmin) + ', diffYmax: ' + str(diffYmax), flush=True)
+
+    else:
+        tsZoom = int(uiTSZoomSldr.val)
+        tsPan = int(uiTSPanSldr.val)
+        if tsPan == 100:
+            # this fills data from the right
+            tsXmax = tsDataList[-1]
+            tsXmin = tsXmax - tsZoom
+
+            # uncomment this code if filling from the left is preferred
+            #if tsXmin < 0:
+            #    tsXmin = 0
+            #    tsXmax = tsZoom
+        elif tsPan == 0:
+            tsXmin = 0
+            tsXmax = tsZoom
+        else:
+            tsMid = int(tsDataList[-1]*tsPan/100.0)
+            tsXmin = int(tsMid - tsZoom/2.0)
+            tsXmax = tsXmin + tsZoom
+            # this fills data from the right
+            if tsXmax > tsDataList[-1]:
+                tsXmax = tsDataList[-1]
+                tsXmin = tsXmax - tsZoom
+            elif tsXmin < 0:
+                tsXmin = 0
+                tsXmax = tsZoom
+            # if filling from the left is preferred uncomment the lines
+            # below and comment out the block if/elif block above
+            #if tsXmin < 0:
+            #    tsXmax = tsDataList[-1]
+            #    tsXmin = tsXmax - tsZoom
+            #elif tsXmax > tsDataList[-1]:
+            #    tsXmin = 0
+            #    tsXmax = tsZoom
+
+        uiEstAx.set_xlim(tsXmin, tsXmax)
+        #print(appName + ': tsXmin: ' + str(tsXmin), flush=True)
+        #print(appName + ': tsXmax: ' + str(tsXmax), flush=True)
+
+        tsStartpt = 0
+        if tsXmin > 0:
+            # don't assume 3 timesteps between points, calculate startpt instead
+            #tsStartpt = int(tsXmin/3.0)
+            for ix in range(len(tsDataList)):
+                #print(appName + ': tsStartpt ix: ' + str(ix) + ', tsDataList: ' + str(tsDataList[ix]), flush=True)
+                if tsDataList[ix] >= tsXmin:
+                    # if it's feasible, set starting point to 1 before the
+                    # calculated point so there is no data gap at the left edge
+                    if ix > 1:
+                        tsStartpt = ix - 1
+                    #print(appName + ': tsStartpt break ix: ' + str(ix) + ', tsDataList: ' + str(tsDataList[ix]), flush=True)
+                    break
+
+        # don't assume 3 timesteps between points, calculate endpt instead
+        #tsEndpt = int(tsXmax/3.0) + 1
+        tsEndpt = 0
+        if tsXmax > 0:
+            tsEndpt = len(tsDataList)-1
+            for ix in range(tsEndpt,-1,-1):
+                #print(appName + ': tsEndpt ix: ' + str(ix) + ', tsDataList: ' + str(tsDataList[ix]), flush=True)
+                if tsDataList[ix] <= tsXmax:
+                    # if it's feasible, set ending point to 1 after the
+                    # calculated point so there is no data gap at the right edge
+                    if ix < tsEndpt:
+                        tsEndpt = ix + 1
+                    #print(appName + ': tsEndpt break ix: ' + str(ix) + ', tsDataList: ' + str(tsDataList[ix]), flush=True)
+                    break
+
+        # always add 1 to endpt because array slice uses -1 for upper bound
+        tsEndpt += 1
+        #print(appName + ': tsStartpt: ' + str(tsStartpt), flush=True)
+        #print(appName + ': tsEndpt: ' + str(tsEndpt) + '\n', flush=True)
+
         estYmax = -sys.float_info.max
         estYmin = sys.float_info.max
         for pair in estDataDict:
@@ -1302,7 +1416,7 @@ def plotData():
                 estLinesDict[pair].set_ydata(estDataDict[pair][tsStartpt:tsEndpt])
                 estYmin = min(estYmin, min(estDataDict[pair][tsStartpt:tsEndpt]))
                 estYmax = max(estYmax, max(estDataDict[pair][tsStartpt:tsEndpt]))
-                if firstPlotFlag and len(plotPairDict)>0:
+                if firstEstimatePlotFlag and len(plotPairDict)>0:
                     estLegendLineList.append(estLinesDict[pair])
                     estLegendLabelList.append(plotPairDict[pair])
         #print(appName + ': estYmin: ' + str(estYmin) + ', estYmax: ' + str(estYmax), flush=True)
@@ -1350,15 +1464,6 @@ def plotData():
 
         #print(appName + ': diffYmin: ' + str(diffYmin) + ', diffYmax: ' + str(diffYmax), flush=True)
 
-    # measurement voltage value plot y-axis zoom and pan calculation
-    if not measDataFlag:
-        print(appName + ': NOTE: no measurement voltage value data to plot yet\n', flush=True)
-    #print(appName + ': measurement voltage value y-axis limits...', flush=True)
-    newMeasYmin, newMeasYmax = yAxisLimits(measYmin, measYmax, uiMeasZoomSldr.val, uiMeasPanSldr.val)
-    uiMeasAx.set_ylim(newMeasYmin, newMeasYmax)
-    uiMeasAx.yaxis.set_major_formatter(ticker.ScalarFormatter())
-    uiMeasAx.grid(True)
-
     # state-estimator voltage magnitude plot y-axis zoom and pan calculation
     #print(appName + ': state-estimator voltage value y-axis limits...', flush=True)
     newEstYmin, newEstYmax = yAxisLimits(estYmin, estYmax, uiEstZoomSldr.val, uiEstPanSldr.val)
@@ -1384,21 +1489,17 @@ def plotData():
     uiDiffAx.yaxis.set_major_formatter(ticker.ScalarFormatter())
     uiDiffAx.grid(True)
 
-    if firstPlotFlag:
+    if firstEstimatePlotFlag:
         if plotStatsFlag:
-            uiMeasAx.legend()
             uiEstAx.legend()
             uiDiffAx.legend()
 
         elif len(plotPairDict) > 0:
-            if plotLegendFlag or len(measLegendLineList)<=10:
-                cols = math.ceil(len(measLegendLineList)/8)
-                uiMeasAx.legend(measLegendLineList, measLegendLabelList, ncol=cols)
             if plotLegendFlag or len(estLegendLineList)<=10:
                 cols = math.ceil(len(estLegendLineList)/8)
                 uiEstAx.legend(estLegendLineList, estLegendLabelList, ncol=cols)
 
-    firstPlotFlag = False
+        firstEstimatePlotFlag = False
 
     # flush all the plot changes
     plt.draw()
@@ -1431,7 +1532,7 @@ def plotPauseCallback(event):
                 diffDataDict[pair].extend(diffDataPausedDict[pair])
                 diffDataPausedDict[pair].clear()
 
-    plotData()
+    plotDataCallback(None)
 
 
 def plotShowAllCallback(event):
@@ -1442,12 +1543,13 @@ def plotShowAllCallback(event):
     # update the button icon
     uiShowAx.images[0].set_data(checkedIcon if plotShowAllFlag else uncheckedIcon)
     plt.draw()
-    plotData()
+    plotDataCallback(None)
 
 
 def plotDataCallback(event):
     plt.draw()
-    plotData()
+    plotMeasurementData()
+    plotEstimateData()
 
 
 def plotButtonPressCallback(event):
@@ -1582,7 +1684,7 @@ def initPlot(configFlag):
     plt.setp(uiMeasAx.get_xticklabels(), visible=False)
     uiMeasAx.yaxis.set_major_formatter(ticker.NullFormatter())
 
-    uiEstAx = plotFig.add_subplot(312, sharex=uiMeasAx)
+    uiEstAx = plotFig.add_subplot(312)
     # state estimator y-axis labels
     if plotMagFlag:
         if plotCompFlag:
@@ -1595,7 +1697,7 @@ def initPlot(configFlag):
     plt.setp(uiEstAx.get_xticklabels(), visible=False)
     uiEstAx.yaxis.set_major_formatter(ticker.NullFormatter())
 
-    uiDiffAx = plotFig.add_subplot(313, sharex=uiMeasAx)
+    uiDiffAx = plotFig.add_subplot(313, sharex=uiEstAx)
     plt.xlabel('Time (s)')
     if plotOverlayFlag:
         # overlay plot y-axis labels
