@@ -568,7 +568,6 @@ def estimateNoConfigCallback(header, message):
         uiTSZoomSldr.set_val(uiTSZoomSldr.val)
         uiTSZoomSldr.valmin = 1
 
-    if firstPassFlag:
         # save first timestamp so what we plot is an offset from this
         tsInit = ts
 
