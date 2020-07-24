@@ -1799,7 +1799,7 @@ def configPlot(busList):
                     buspair = ''.join(buspair.split())
                     # skip empty and commented out lines
                     if buspair=='' or buspair.startswith('#'):
-                        next
+                        continue
 
                     buspair = buspair.upper()
                     if ',' in buspair:
