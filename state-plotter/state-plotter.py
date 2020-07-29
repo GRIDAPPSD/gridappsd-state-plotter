@@ -66,33 +66,36 @@ from matplotlib.ticker import MaxNLocator
 from matplotlib import backend_bases
 
 # global dictionaries and lists
-busToEstDict = {}
-estToBusDict = {}
 busToMeasDict = {}
 measToBusDict = {}
+busToEstDict = {}
+estToBusDict = {}
 busToVnomMagDict = {}
 busToVnomAngDict = {}
 plotBusDict = {}
 simAllDataDict = {}
 senAllDataDict = {}
 
-tsEstDataList = []
-tsEstDataPausedList = []
 tsMeasDataList = []
 tsMeasDataPausedList = []
-estDataDict = {}
-estDataPausedDict = {}
+tsEstDataList = []
+tsEstDataPausedList = []
 measDataDict = {}
 measDataPausedDict = {}
-diffDataDict = {}
-diffDataPausedDict = {}
-estLinesDict = {}
+estDataDict = {}
+estDataPausedDict = {}
+diffMeasDataDict = {}
+diffMeasDataPausedDict = {}
+diffEstDataDict = {}
+diffEstDataPausedDict = {}
 measLinesDict = {}
-diffLinesDict = {}
-estLegendLineList = []
-estLegendLabelList = []
+estLinesDict = {}
+diffMeasLinesDict = {}
+diffEstLinesDict = {}
 measLegendLineList = []
 measLegendLabelList = []
+estLegendLineList = []
+estLegendLabelList = []
 plotPhaseList = []
 
 # global variables
@@ -112,6 +115,7 @@ plotSimAllFlag = False
 plotPausedFlag = False
 plotShowAllFlag = False
 firstMeasurementPassFlag = True
+firstSensorPassFlag = True
 firstEstimatePassFlag = True
 firstMeasurementPlotFlag = True
 firstEstimatePlotFlag = True
@@ -316,11 +320,7 @@ def setTSZoomSliderVals(pairCount):
     uiTSZoomSldr.set_val(uiTSZoomSldr.val)
 
 
-def estimateConfigCallback(header, message):
-    msgdict = message['message']
-    ts = msgdict['timestamp']
-    #print(appName + ': estimate timestamp: ' + str(ts), flush=True)
-
+def findMeasTS(ts):
     # to account for state estimator work queue draining design, iterate over
     # simulation and sensor dictionaries and toss all measurements until we
     # reach the current timestamp since they won't be referenced again and
@@ -337,10 +337,10 @@ def estimateConfigCallback(header, message):
 
     if not simDataTS:
         print(appName + ': NOTE: No simulation measurement for timestamp: ' + str(ts) + ', disregarding estimate', flush=True)
-        return
+        return None, None, None
 
+    senDataTS = None
     if sensorSimulatorRunningFlag:
-        senDataTS = None
         for tskey in list(senAllDataDict):
             if tskey < ts:
                 del senAllDataDict[tskey]
@@ -352,7 +352,7 @@ def estimateConfigCallback(header, message):
 
         if not senDataTS:
             print(appName + ': NOTE: No sensor measurement for timestamp: ' + str(ts) + ', disregarding estimate', flush=True)
-            return
+            return None, None, None
 
     # determine whether simulation or sensor data should be used for
     # the second plot
@@ -360,6 +360,34 @@ def estimateConfigCallback(header, message):
         measDataTS = senDataTS
     else:
         measDataTS = simDataTS
+
+    return measDataTS, simDataTS, senDataTS
+
+
+def findSimTS(ts):
+    simDataTS = None
+    if ts in simAllDataDict:
+        simDataTS = simAllDataDict[ts]
+
+    return simDataTS
+
+
+def findSenTS(ts):
+    senDataTS = None
+    if ts in senAllDataDict:
+        senDataTS = senAllDataDict[ts]
+
+    return senDataTS
+
+
+def estimateConfigCallback(header, message):
+    msgdict = message['message']
+    ts = msgdict['timestamp']
+    #print(appName + ': estimate timestamp: ' + str(ts), flush=True)
+
+    measDataTS, simDataTS, senDataTS = findMeasTS(ts)
+    if not measDataTS:
+        return
 
     estVolt = msgdict['Estimate']['SvEstVoltages']
     foundSet = set()
@@ -427,23 +455,7 @@ def estimateConfigCallback(header, message):
                                         diffestvval = 0.0
 
                                     if not plotOverlayFlag:
-                                        diffDataPausedDict[buspair+' Est'].append(diffestvval) if plotPausedFlag else diffDataDict[buspair+' Est'].append(diffestvval)
-
-                                    if sensorSimulatorRunningFlag and measmrid in senDataTS:
-                                        sen = senDataTS[measmrid]
-                                        if measkey in sen:
-                                            senvval = sen[measkey]
-                                            senvval = calcBusVNom(senvval, buspair)
-
-                                            if not plotMagFlag:
-                                                diffmeasvval = senvval - simvval
-                                            elif simvval != 0.0:
-                                                diffmeasvval = abs(100.0*(senvval - simvval)/simvval)
-                                            else:
-                                                diffmeasvval = 0.0
-
-                                            if not plotOverlayFlag:
-                                                diffDataPausedDict[buspair+' Meas'].append(diffmeasvval) if plotPausedFlag else diffDataDict[buspair+' Meas'].append(diffmeasvval)
+                                        diffEstDataPausedDict[buspair+' Est'].append(diffestvval) if plotPausedFlag else diffEstDataDict[buspair+' Est'].append(diffestvval)
 
                                     measvval = meas[measkey]
                                     measvval = calcBusVNom(measvval, buspair)
@@ -480,45 +492,9 @@ def estimateNoConfigCallback(header, message):
     ts = msgdict['timestamp']
     #print(appName + ': estimate timestamp: ' + str(ts), flush=True)
 
-    # to account for state estimator work queue draining design, iterate over
-    # simulation and sensor dictionaries and toss all measurements until we
-    # reach the current timestamp since they won't be referenced again and
-    # will just drain memory
-    simDataTS = None
-    for tskey in list(simAllDataDict):
-        if tskey < ts:
-            del simAllDataDict[tskey]
-        elif tskey == ts:
-            simDataTS = simAllDataDict[tskey]
-            break
-        else:
-            break
-
-    if not simDataTS:
-        print(appName + ': NOTE: No simulation measurement for timestamp: ' + str(ts) + ', disregarding estimate', flush=True)
+    measDataTS, simDataTS, senDataTS = findMeasTS(ts)
+    if not measDataTS:
         return
-
-    if sensorSimulatorRunningFlag:
-        senDataTS = None
-        for tskey in list(senAllDataDict):
-            if tskey < ts:
-                del senAllDataDict[tskey]
-            elif tskey == ts:
-                senDataTS = senAllDataDict[tskey]
-                break
-            else:
-                break
-
-        if not senDataTS:
-            print(appName + ': NOTE: No sensor measurement for timestamp: ' + str(ts) + ', disregarding estimate', flush=True)
-            return
-
-    # determine whether simulation or sensor data should be used for
-    # the second plot
-    if useSensorsForEstimatesFlag:
-        measDataTS = senDataTS
-    else:
-        measDataTS = simDataTS
 
     estVolt = msgdict['Estimate']['SvEstVoltages']
     foundSet = set()
@@ -557,28 +533,26 @@ def estimateNoConfigCallback(header, message):
             estDataDict[buspair] = []
             estDataPausedDict[buspair] = []
             if not plotOverlayFlag:
-                diffDataDict[buspair+' Est'] = []
-                diffDataPausedDict[buspair+' Est'] = []
-                if sensorSimulatorRunningFlag:
-                    diffDataDict[buspair+' Meas'] = []
-                    diffDataPausedDict[buspair+' Meas'] = []
+                diffEstDataDict[buspair+' Est'] = []
+                diffEstDataPausedDict[buspair+' Est'] = []
 
             # create a lines dictionary entry per bus,phase pair for each plot
             if plotOverlayFlag:
                 estLinesDict[buspair], = uiEstAx.plot([], [], label=buspair, linestyle='--')
 
-                if buspair+' Actual' in diffLinesDict:
-                    color = diffLinesDict[buspair+' Actual'].get_color()
-                    diffLinesDict[buspair+' Est'], = uiDiffAx.plot([], [], label=buspair+' Est.', linestyle='--', color=color)
+                if buspair+' Actual' in diffMeasLinesDict:
+                    color = diffMeasLinesDict[buspair+' Actual'].get_color()
+                    diffEstLinesDict[buspair+' Est'], = uiDiffAx.plot([], [], label=buspair+' Est.', linestyle='--', color=color)
                 else:
-                    diffLinesDict[buspair+' Est'], = uiDiffAx.plot([], [], label=buspair+' Est.', linestyle='--')
+                    diffEstLinesDict[buspair+' Est'], = uiDiffAx.plot([], [], label=buspair+' Est.', linestyle='--')
             else:
                 estLinesDict[buspair], = uiEstAx.plot([], [], label=buspair)
 
-                diffLinesDict[buspair+' Est'], = uiDiffAx.plot([], [], label=buspair+' Est.', linestyle='--')
-                if sensorSimulatorRunningFlag:
-                    color = diffLinesDict[buspair+' Est'].get_color()
-                    diffLinesDict[buspair+' Meas'], = uiDiffAx.plot([], [], label=buspair+' Meas.', color=color)
+                if buspair+' Meas' in diffMeasLinesDict:
+                    color = diffMeasLinesDict[buspair+' Meas'].get_color()
+                    diffEstLinesDict[buspair+' Est'], = uiDiffAx.plot([], [], label=buspair+' Est.', linestyle='--', color=color)
+                else:
+                    diffEstLinesDict[buspair+' Est'], = uiDiffAx.plot([], [], label=buspair+' Est.', linestyle='--')
 
         measvval = None
         if not plotMatchesFlag:
@@ -613,23 +587,7 @@ def estimateNoConfigCallback(header, message):
                                     diffestvval = 0.0
 
                                 if not plotOverlayFlag:
-                                    diffDataPausedDict[buspair+' Est'].append(diffestvval) if plotPausedFlag else diffDataDict[buspair+' Est'].append(diffestvval)
-
-                                if sensorSimulatorRunningFlag and measmrid in senDataTS:
-                                    sen = senDataTS[measmrid]
-                                    if measkey in sen:
-                                        senvval = sen[measkey]
-                                        senvval = calcBusVNom(senvval, buspair)
-
-                                        if not plotMagFlag:
-                                            diffmeasvval = senvval - simvval
-                                        elif simvval != 0.0:
-                                            diffmeasvval = abs(100.0*(senvval - simvval)/simvval)
-                                        else:
-                                            diffmeasvval = 0.0
-
-                                        if not plotOverlayFlag:
-                                            diffDataPausedDict[buspair+' Meas'].append(diffmeasvval) if plotPausedFlag else diffDataDict[buspair+' Meas'].append(diffmeasvval)
+                                    diffEstDataPausedDict[buspair+' Est'].append(diffestvval) if plotPausedFlag else diffEstDataDict[buspair+' Est'].append(diffestvval)
 
                                 measvval = meas[measkey]
                                 measvval = calcBusVNom(measvval, buspair)
@@ -671,45 +629,9 @@ def estimateStatsCallback(header, message):
     ts = msgdict['timestamp']
     #print(appName + ': estimate timestamp: ' + str(ts), flush=True)
 
-    # to account for state estimator work queue draining design, iterate over
-    # simulation and sensor dictionaries and toss all measurements until we
-    # reach the current timestamp since they won't be referenced again and
-    # will just drain memory
-    simDataTS = None
-    for tskey in list(simAllDataDict):
-        if tskey < ts:
-            del simAllDataDict[tskey]
-        elif tskey == ts:
-            simDataTS = simAllDataDict[tskey]
-            break
-        else:
-            break
-
-    if not simDataTS:
-        print(appName + ': NOTE: No simulation measurement for timestamp: ' + str(ts) + ', disregarding estimate', flush=True)
+    measDataTS, simDataTS, senDataTS = findMeasTS(ts)
+    if not measDataTS:
         return
-
-    if sensorSimulatorRunningFlag:
-        senDataTS = None
-        for tskey in list(senAllDataDict):
-            if tskey < ts:
-                del senAllDataDict[tskey]
-            elif tskey == ts:
-                senDataTS = senAllDataDict[tskey]
-                break
-            else:
-                break
-
-        if not senDataTS:
-            print(appName + ': NOTE: No sensor measurement for timestamp: ' + str(ts) + ', disregarding estimate', flush=True)
-            return
-
-    # determine whether simulation or sensor data should be used for
-    # the second plot
-    if useSensorsForEstimatesFlag:
-        measDataTS = senDataTS
-    else:
-        measDataTS = simDataTS
 
     if firstEstimatePassFlag:
         firstEstimatePassFlag = False
@@ -733,25 +655,11 @@ def estimateStatsCallback(header, message):
             estLinesDict['Stdev High'], = uiEstAx.plot([], [], label='Std. Dev. High', linestyle='--', color='blue')
             estLinesDict['Mean'], = uiEstAx.plot([], [], label='Mean', linestyle='--', color='red')
 
-            diffLinesDict['Min Actual'], = uiDiffAx.plot([], [], label='Minimum Actual', color='cyan')
-            color = diffLinesDict['Min Actual'].get_color()
-            diffLinesDict['Min Est'], = uiDiffAx.plot([], [], label='Minimum Est.', linestyle='--', color=color)
-
-            diffLinesDict['Max Actual'], = uiDiffAx.plot([], [], label='Maximum Actual', color='cyan')
-            color = diffLinesDict['Max Actual'].get_color()
-            diffLinesDict['Max Est'], = uiDiffAx.plot([], [], label='Maximum Est.', linestyle='--', color=color)
-
-            diffLinesDict['Stdev Low Actual'], = uiDiffAx.plot([], [], label='Std. Dev. Low Actual', color='blue')
-            color = diffLinesDict['Stdev Low Actual'].get_color()
-            diffLinesDict['Stdev Low Est'], = uiDiffAx.plot([], [], label='Std. Dev. Low Est.', linestyle='--', color=color)
-
-            diffLinesDict['Stdev High Actual'], = uiDiffAx.plot([], [], label='Std. Dev. High Actual', color='blue')
-            color = diffLinesDict['Stdev High Actual'].get_color()
-            diffLinesDict['Stdev High Est'], = uiDiffAx.plot([], [], label='Std. Dev. High Est.', linestyle='--', color=color)
-
-            diffLinesDict['Mean Actual'], = uiDiffAx.plot([], [], label='Mean Actual', color='red')
-            color = diffLinesDict['Mean Actual'].get_color()
-            diffLinesDict['Mean Est'], = uiDiffAx.plot([], [], label='Mean Est.', linestyle='--', color=color)
+            diffEstLinesDict['Min Est'], = uiDiffAx.plot([], [], label='Minimum Est.', linestyle='--', color='cyan')
+            diffEstLinesDict['Max Est'], = uiDiffAx.plot([], [], label='Maximum Est.', linestyle='--', color='cyan')
+            diffEstLinesDict['Stdev Low Est'], = uiDiffAx.plot([], [], label='Std. Dev. Low Est.', linestyle='--', color='blue')
+            diffEstLinesDict['Stdev High Est'], = uiDiffAx.plot([], [], label='Std. Dev. High Est.', linestyle='--', color='blue')
+            diffEstLinesDict['Mean Est'], = uiDiffAx.plot([], [], label='Mean Est.', linestyle='--', color='red')
 
         else:
             estLinesDict['Min'], = uiEstAx.plot([], [], label='Minimum', color='cyan')
@@ -760,21 +668,14 @@ def estimateStatsCallback(header, message):
             estLinesDict['Stdev High'], = uiEstAx.plot([], [], label='Std. Dev. High', color='blue')
             estLinesDict['Mean'], = uiEstAx.plot([], [], label='Mean', color='red')
 
-            diffDataDict['Mean Est'] = []
-            diffDataPausedDict['Mean Est'] = []
-            if sensorSimulatorRunningFlag:
-                diffDataDict['Mean Meas'] = []
-                diffDataPausedDict['Mean Meas'] = []
+            diffEstDataDict['Mean Est'] = []
+            diffEstDataPausedDict['Mean Est'] = []
 
-            # hardwire colors to magenta and green specifically for this plot
-            diffLinesDict['Mean Est'], = uiDiffAx.plot([], [], label='Mean Estimate Error', color='magenta')
-            if sensorSimulatorRunningFlag:
-                diffLinesDict['Mean Meas'], = uiDiffAx.plot([], [], label='Mean Measurement Error', color='green')
+            # hardwire color to magenta specifically for this plot
+            diffEstLinesDict['Mean Est'], = uiDiffAx.plot([], [], label='Mean Estimate Error', color='magenta')
 
     estlist = []
     diffestlist = []
-    if sensorSimulatorRunningFlag:
-        diffmeaslist = []
 
     estVolt = msgdict['Estimate']['SvEstVoltages']
     foundDiffSet = set()
@@ -833,22 +734,6 @@ def estimateStatsCallback(header, message):
                                 if not plotOverlayFlag:
                                     diffestlist.append(diffestvval)
 
-                                if sensorSimulatorRunningFlag and measmrid in senDataTS:
-                                    sen = senDataTS[measmrid]
-                                    if measkey in sen:
-                                        senvval = sen[measkey]
-                                        senvval = calcBusVNom(senvval, buspair)
-
-                                        if not plotMagFlag:
-                                            diffmeasvval = senvval - simvval
-                                        elif simvval != 0.0:
-                                            diffmeasvval = abs(100.0*(senvval - simvval)/simvval)
-                                        else:
-                                            diffmeasvval = 0.0
-
-                                        if not plotOverlayFlag:
-                                            diffmeaslist.append(diffmeasvval)
-
                                 measvval = meas[measkey]
                                 measvval = calcBusVNom(measvval, buspair)
 
@@ -879,19 +764,11 @@ def estimateStatsCallback(header, message):
     if not plotOverlayFlag:
         if len(diffestlist) > 0:
             diffestmean = statistics.mean(diffestlist)
-            diffDataPausedDict['Mean Est'].append(diffestmean) if plotPausedFlag else diffDataDict['Mean Est'].append(diffestmean)
+            diffEstDataPausedDict['Mean Est'].append(diffestmean) if plotPausedFlag else diffEstDataDict['Mean Est'].append(diffestmean)
             if plotMagFlag:
                 print(appName + ': mean magnitude % diff estimate: ' + str(diffestmean), flush=True)
             else:
                 print(appName + ': mean angle diff estimate: ' + str(diffestmean), flush=True)
-
-        if sensorSimulatorRunningFlag and len(diffmeaslist)>0:
-            diffmeasmean = statistics.mean(diffmeaslist)
-            diffDataPausedDict['Mean Meas'].append(diffmeasmean) if plotPausedFlag else diffDataDict['Mean Meas'].append(diffmeasmean)
-            if plotMagFlag:
-                print(appName + ': mean magnitude % diff measurement: ' + str(diffmeasmean), flush=True)
-            else:
-                print(appName + ': mean angle diff measurement: ' + str(diffmeasmean), flush=True)
 
     # update plots with the new data
     plotEstimateData()
@@ -917,6 +794,7 @@ def measurementConfigCallback(header, message):
         # otherwise a list should be used, but then I have to make it a list
         # of tuples to store the timestamp as well
         senAllDataDict[ts] = measVolt
+
     else:
         #print('<', end='', flush=True)
         print('[sim]', end='', flush=True)
@@ -928,6 +806,12 @@ def measurementConfigCallback(header, message):
         # otherwise a list should be used, but then I have to make it a list
         # of tuples to store the timestamp as well
         simAllDataDict[ts] = measVolt
+
+    simDataTS = None
+    if useSensorsForEstimatesFlag:
+        # this must be a sensor measurement triggering this callback so
+        # get the corresponding simulation measurement that was sent
+        simDataTS = findSimTS(ts)
 
     if firstMeasurementPassFlag:
         firstMeasurementPassFlag = False
@@ -974,6 +858,21 @@ def measurementConfigCallback(header, message):
 
             measDataPausedDict[buspair].append(measvval) if plotPausedFlag else measDataDict[buspair].append(measvval)
 
+            if not plotOverlayFlag and simDataTS and measmrid in simDataTS:
+                sim = simDataTS[measmrid]
+                if measkey in sim:
+                    simvval = sim[measkey]
+                    simvval = calcBusVNom(simvval, buspair)
+
+                    if not plotMagFlag:
+                        diffmeasvval = measvval - simvval
+                    elif simvval != 0.0:
+                        diffmeasvval = abs(100.0*(measvval - simvval)/simvval)
+                    else:
+                        diffmeasvval = 0.0
+
+                    diffMeasDataPausedDict[buspair+' Meas'].append(diffmeasvval) if plotPausedFlag else diffMeasDataDict[buspair+' Meas'].append(diffmeasvval)
+
             # no reason to keep checking more pairs if we've found all we
             # are looking for
             if len(foundSet) == len(plotBusDict):
@@ -983,8 +882,6 @@ def measurementConfigCallback(header, message):
 
     # update measurement plot with the new data
     plotMeasurementData()
-
-    return
 
 
 def measurementNoConfigCallback(header, message):
@@ -1018,6 +915,12 @@ def measurementNoConfigCallback(header, message):
         # otherwise a list should be used, but then I have to make it a list
         # of tuples to store the timestamp as well
         simAllDataDict[ts] = measVolt
+
+    simDataTS = None
+    if useSensorsForEstimatesFlag:
+        # this must be a sensor measurement triggering this callback so
+        # get the corresponding simulation measurement that was sent
+        simDataTS = findSimTS(ts)
 
     if firstMeasurementPassFlag:
         # save first timestamp so what we plot is an offset from this
@@ -1054,12 +957,17 @@ def measurementNoConfigCallback(header, message):
             if firstMeasurementPassFlag:
                 measDataDict[buspair] = []
                 measDataPausedDict[buspair] = []
+                if not plotOverlayFlag and sensorSimulatorRunningFlag:
+                    diffMeasDataDict[buspair+' Meas'] = []
+                    diffMeasDataPausedDict[buspair+' Meas'] = []
 
                 # create a lines dictionary entry per node/phase pair for each plot
                 measLinesDict[buspair], = uiMeasAx.plot([], [], label=buspair)
 
                 if plotOverlayFlag:
-                    diffLinesDict[buspair+' Actual'], = uiDiffAx.plot([], [], label=buspair+' Actual')
+                    diffMeasLinesDict[buspair+' Actual'], = uiDiffAx.plot([], [], label=buspair+' Actual')
+                else:
+                    diffMeasLinesDict[buspair+' Meas'], = uiDiffAx.plot([], [], label=buspair+' Meas.')
 
             meas = measVolt[measmrid]
             measvval = meas[measkey]
@@ -1073,6 +981,21 @@ def measurementNoConfigCallback(header, message):
                 tsMeasDataPausedList.append(ts - tsInit) if plotPausedFlag else tsMeasDataList.append(ts - tsInit)
 
             measDataPausedDict[buspair].append(measvval) if plotPausedFlag else measDataDict[buspair].append(measvval)
+
+            if not plotOverlayFlag and simDataTS and measmrid in simDataTS:
+                sim = simDataTS[measmrid]
+                if measkey in sim:
+                    simvval = sim[measkey]
+                    simvval = calcBusVNom(simvval, buspair)
+
+                    if not plotMagFlag:
+                        diffmeasvval = measvval - simvval
+                    elif simvval != 0.0:
+                        diffmeasvval = abs(100.0*(measvval - simvval)/simvval)
+                    else:
+                        diffmeasvval = 0.0
+
+                    diffMeasDataPausedDict[buspair+' Meas'].append(diffmeasvval) if plotPausedFlag else diffMeasDataDict[buspair+' Meas'].append(diffmeasvval)
 
             # no reason to keep checking more pairs if we've found all we
             # are looking for
@@ -1088,8 +1011,6 @@ def measurementNoConfigCallback(header, message):
 
     # update measurement plot with the new data
     plotMeasurementData()
-
-    return
 
 
 def measurementStatsCallback(header, message):
@@ -1124,6 +1045,12 @@ def measurementStatsCallback(header, message):
         # of tuples to store the timestamp as well
         simAllDataDict[ts] = measVolt
 
+    simDataTS = None
+    if useSensorsForEstimatesFlag:
+        # this must be a sensor measurement triggering this callback so
+        # get the corresponding simulation measurement that was sent
+        simDataTS = findSimTS(ts)
+
     if firstMeasurementPassFlag:
         firstMeasurementPassFlag = False
         # save first timestamp so what we plot is an offset from this
@@ -1148,7 +1075,25 @@ def measurementStatsCallback(header, message):
         measLinesDict['Stdev High'], = uiMeasAx.plot([], [], label='Std. Dev. High', color='blue')
         measLinesDict['Mean'], = uiMeasAx.plot([], [], label='Mean', color='red')
 
+        # create a lines dictionary entry for each plot line
+        if plotOverlayFlag:
+            diffMeasLinesDict['Min Actual'], = uiDiffAx.plot([], [], label='Minimum Actual', color='cyan')
+            diffMeasLinesDict['Max Actual'], = uiDiffAx.plot([], [], label='Maximum Actual', color='cyan')
+            diffMeasLinesDict['Stdev Low Actual'], = uiDiffAx.plot([], [], label='Std. Dev. Low Actual', color='blue')
+            diffMeasLinesDict['Stdev High Actual'], = uiDiffAx.plot([], [], label='Std. Dev. High Actual', color='blue')
+            diffMeasLinesDict['Mean Actual'], = uiDiffAx.plot([], [], label='Mean Actual', color='red')
+
+        else:
+            if sensorSimulatorRunningFlag:
+                diffMeasDataDict['Mean Meas'] = []
+                diffMeasDataPausedDict['Mean Meas'] = []
+
+                # hardwire color to green specifically for this plot
+                diffMeasLinesDict['Mean Meas'], = uiDiffAx.plot([], [], label='Mean Measurement Error', color='green')
+
     measlist = []
+    if sensorSimulatorRunningFlag:
+        diffmeaslist = []
 
     foundSet = set()
 
@@ -1185,6 +1130,21 @@ def measurementStatsCallback(header, message):
 
         measlist.append(measvval)
 
+        if not plotOverlayFlag and simDataTS and measmrid in simDataTS:
+            sim = simDataTS[measmrid]
+            if measkey in sim:
+                simvval = sim[measkey]
+                simvval = calcBusVNom(simvval, buspair)
+
+                if not plotMagFlag:
+                    diffmeasvval = measvval - simvval
+                elif simvval != 0.0:
+                    diffmeasvval = abs(100.0*(measvval - simvval)/simvval)
+                else:
+                    diffmeasvval = 0.0
+
+                diffmeaslist.append(diffmeasvval)
+
     tsMeasDataPausedList.append(ts - tsInit) if plotPausedFlag else tsMeasDataList.append(ts - tsInit)
 
     if len(measlist) > 0:
@@ -1197,6 +1157,14 @@ def measurementStatsCallback(header, message):
         measDataPausedDict['Mean'].append(measmean) if plotPausedFlag else measDataDict['Mean'].append(measmean)
         measDataPausedDict['Stdev Low'].append(measmean-measstdev) if plotPausedFlag else measDataDict['Stdev Low'].append(measmean-measstdev)
         measDataPausedDict['Stdev High'].append(measmean+measstdev) if plotPausedFlag else measDataDict['Stdev High'].append(measmean+measstdev)
+
+    if not plotOverlayFlag and sensorSimulatorRunningFlag and len(diffmeaslist)>0:
+        diffmeasmean = statistics.mean(diffmeaslist)
+        diffMeasDataPausedDict['Mean Meas'].append(diffmeasmean) if plotPausedFlag else diffMeasDataDict['Mean Meas'].append(diffmeasmean)
+        if plotMagFlag:
+            print(appName + ': mean magnitude % diff measurement: ' + str(diffmeasmean), flush=True)
+        else:
+            print(appName + ': mean angle diff measurement: ' + str(diffmeasmean), flush=True)
 
     # update measurement plot with the new data
     plotMeasurementData()
@@ -1234,6 +1202,288 @@ def sensorCallback(header, message):
     # otherwise a list should be used, but then I have to make it a list
     # of tuples to store the timestamp as well
     senAllDataDict[ts] = msgdict['measurements']
+
+
+def sensorConfigCallback(header, message):
+    msgdict = message['message']
+    ts = msgdict['timestamp']
+
+    #print(appName + ': meaurement message timestamp: ' + str(ts), flush=True)
+    #print('>', end='', flush=True)
+    print('[sen]', end='', flush=True)
+    #print('('+str(ts)+')', end='', flush=True)
+    #pprint.pprint(msgdict)
+
+    # because we require Python 3.6, we can count on insertion ordered
+    # dictionaries
+    # otherwise a list should be used, but then I have to make it a list
+    # of tuples to store the timestamp as well
+    measVolt = msgdict['measurements']
+    senAllDataDict[ts] = measVolt
+
+    # get the corresponding simulation measurement that was sent
+    simDataTS = findSimTS(ts)
+
+    # set the data element keys we want to extract
+    if plotMagFlag:
+        measkey = 'magnitude'
+    else:
+        measkey = 'angle'
+
+    foundSet = set()
+
+    for measmrid in measVolt:
+        if measmrid not in measToBusDict:
+            continue
+
+        buspair = measToBusDict[measmrid]
+        bus, phase = buspair.split(',')
+
+        # only consider phases A, B, C and user-specified phases
+        if phase!='A' and phase!='B' and phase!='C' or \
+           len(plotPhaseList)>0 and phase not in plotPhaseList:
+            continue
+
+        # skip if this is a buspair that's not in the plot configuration
+        # or if the buspair was previously processed (multiple mrids for
+        # bus,phase pairs are possible where we just take the first)
+        if buspair in plotBusDict and buspair not in foundSet:
+            foundSet.add(buspair)
+
+            meas = measVolt[measmrid]
+            measvval = meas[measkey]
+            measvval = calcBusVNom(measvval, buspair)
+
+            #print(appName + ': bus,phase pair: ' + buspair, flush=True)
+            #print(appName + ': timestamp: ' + str(ts), flush=True)
+            #print(appName + ': measvval: ' + str(measvval), flush=True)
+
+            if not plotOverlayFlag and simDataTS and measmrid in simDataTS:
+                sim = simDataTS[measmrid]
+                if measkey in sim:
+                    simvval = sim[measkey]
+                    simvval = calcBusVNom(simvval, buspair)
+
+                    if not plotMagFlag:
+                        diffmeasvval = measvval - simvval
+                    elif simvval != 0.0:
+                        diffmeasvval = abs(100.0*(measvval - simvval)/simvval)
+                    else:
+                        diffmeasvval = 0.0
+
+                    diffMeasDataPausedDict[buspair+' Meas'].append(diffmeasvval) if plotPausedFlag else diffMeasDataDict[buspair+' Meas'].append(diffmeasvval)
+
+            # no reason to keep checking more pairs if we've found all we
+            # are looking for
+            if len(foundSet) == len(plotBusDict):
+                break
+
+    #print(appName + ': ' + str(len(measVolt)) + ' measurements, ' + str(measCount) + ' configuration file bus,phase pair matches, ' + str(len(plotBusDict)) + ' configuration file bus,phase total pairs', flush=True)
+
+    # update measurement plot with the new data
+    plotMeasurementData()
+
+
+def sensorNoConfigCallback(header, message):
+    global firstSensorPassFlag
+
+    msgdict = message['message']
+    ts = msgdict['timestamp']
+
+    #print(appName + ': meaurement message timestamp: ' + str(ts), flush=True)
+    #print('>', end='', flush=True)
+    print('[sen]', end='', flush=True)
+    #print('('+str(ts)+')', end='', flush=True)
+    #pprint.pprint(msgdict)
+
+    # because we require Python 3.6, we can count on insertion ordered
+    # dictionaries
+    # otherwise a list should be used, but then I have to make it a list
+    # of tuples to store the timestamp as well
+    measVolt = msgdict['measurements']
+    senAllDataDict[ts] = measVolt
+
+    # get the corresponding simulation measurement that was sent
+    simDataTS = findSimTS(ts)
+
+    # set the data element keys we want to extract
+    if plotMagFlag:
+        measkey = 'magnitude'
+    else:
+        measkey = 'angle'
+
+    foundSet = set()
+
+    for measmrid in measVolt:
+        if measmrid not in measToBusDict:
+            continue
+
+        buspair = measToBusDict[measmrid]
+        bus, phase = buspair.split(',')
+
+        # only consider phases A, B, C and user-specified phases
+        if phase!='A' and phase!='B' and phase!='C' or \
+           len(plotPhaseList)>0 and phase not in plotPhaseList:
+            continue
+
+        # skip if this is a buspair that was previously processed
+        # (multiple mrids for bus,phase pairs are possible where we
+        # just take the first)
+        if buspair not in foundSet:
+            foundSet.add(buspair)
+
+            # only do the dictionary initializtion code on the first call
+            if firstSensorPassFlag and not plotOverlayFlag:
+                diffMeasDataDict[buspair+' Meas'] = []
+                diffMeasDataPausedDict[buspair+' Meas'] = []
+
+                # create a lines dictionary entry per node/phase pair for each plot
+                if plotOverlayFlag:
+                    diffMeasLinesDict[buspair+' Actual'], = uiDiffAx.plot([], [], label=buspair+' Actual')
+                else:
+                    diffMeasLinesDict[buspair+' Meas'], = uiDiffAx.plot([], [], label=buspair+' Meas.')
+
+            meas = measVolt[measmrid]
+            measvval = meas[measkey]
+            measvval = calcBusVNom(measvval, buspair)
+
+            #print(appName + ': bus,phase pair: ' + buspair, flush=True)
+            #print(appName + ': timestamp: ' + str(ts), flush=True)
+            #print(appName + ': measvval: ' + str(measvval), flush=True)
+
+            if not plotOverlayFlag and simDataTS and measmrid in simDataTS:
+                sim = simDataTS[measmrid]
+                if measkey in sim:
+                    simvval = sim[measkey]
+                    simvval = calcBusVNom(simvval, buspair)
+
+                    if not plotMagFlag:
+                        diffmeasvval = measvval - simvval
+                    elif simvval != 0.0:
+                        diffmeasvval = abs(100.0*(measvval - simvval)/simvval)
+                    else:
+                        diffmeasvval = 0.0
+
+                    diffMeasDataPausedDict[buspair+' Meas'].append(diffmeasvval) if plotPausedFlag else diffMeasDataDict[buspair+' Meas'].append(diffmeasvval)
+
+            # no reason to keep checking more pairs if we've found all we
+            # are looking for
+            if plotNumber>0 and len(foundSet)==plotNumber:
+                break
+
+    firstSensorPassFlag = False
+
+    #if plotNumber > 0:
+    #    print(appName + ': ' + str(len(measVolt)) + ' measurements, ' + str(len(foundSet)) + ' node,phase pair matches (matching first ' + str(plotNumber) + ')', flush=True)
+    #else:
+    #    print(appName + ': ' + str(len(len(measVolt))) + ' measurements, ' + str(len(foundSet)) + ' node,phase pair matches (matching all)', flush=True)
+
+    # update measurement plot with the new data
+    plotMeasurementData()
+
+
+def sensorStatsCallback(header, message):
+    global firstSensorPassFlag
+
+    msgdict = message['message']
+    ts = msgdict['timestamp']
+
+    #print(appName + ': meaurement message timestamp: ' + str(ts), flush=True)
+    #print('>', end='', flush=True)
+    print('[sen]', end='', flush=True)
+    #print('('+str(ts)+')', end='', flush=True)
+    #pprint.pprint(msgdict)
+
+    # because we require Python 3.6, we can count on insertion ordered
+    # dictionaries
+    # otherwise a list should be used, but then I have to make it a list
+    # of tuples to store the timestamp as well
+    measVolt = msgdict['measurements']
+    senAllDataDict[ts] = measVolt
+
+    # get the corresponding simulation measurement that was sent
+    simDataTS = findSimTS(ts)
+
+    if firstSensorPassFlag:
+        firstSensorPassFlag = False
+
+        # create a lines dictionary entry for each plot line
+        if plotOverlayFlag:
+            diffMeasLinesDict['Min Actual'], = uiDiffAx.plot([], [], label='Minimum Actual', color='cyan')
+            diffMeasLinesDict['Max Actual'], = uiDiffAx.plot([], [], label='Maximum Actual', color='cyan')
+            diffMeasLinesDict['Stdev Low Actual'], = uiDiffAx.plot([], [], label='Std. Dev. Low Actual', color='blue')
+            diffMeasLinesDict['Stdev High Actual'], = uiDiffAx.plot([], [], label='Std. Dev. High Actual', color='blue')
+            diffMeasLinesDict['Mean Actual'], = uiDiffAx.plot([], [], label='Mean Actual', color='red')
+
+        else:
+            diffMeasDataDict['Mean Meas'] = []
+            diffMeasDataPausedDict['Mean Meas'] = []
+
+            # hardwire color to green specifically for this plot
+            diffMeasLinesDict['Mean Meas'], = uiDiffAx.plot([], [], label='Mean Measurement Error', color='green')
+
+    diffmeaslist = []
+
+    foundSet = set()
+
+    # set the data element keys we want to extract
+    if plotMagFlag:
+        measkey = 'magnitude'
+    else:
+        measkey = 'angle'
+
+    for measmrid in measVolt:
+        if measmrid not in measToBusDict:
+            continue
+
+        buspair = measToBusDict[measmrid]
+        bus, phase = buspair.split(',')
+
+        # only consider phases A, B, C and user-specified phases
+        if phase!='A' and phase!='B' and phase!='C' or \
+           len(plotPhaseList)>0 and phase not in plotPhaseList:
+            continue
+
+        if buspair in foundSet:
+            continue
+
+        foundSet.add(buspair)
+
+        meas = measVolt[measmrid]
+        measvval = meas[measkey]
+        measvval = calcBusVNom(measvval, buspair)
+
+        #print(appName + ': measmrid: ' + measmrid, flush=True)
+        #print(appName + ': timestamp: ' + str(ts), flush=True)
+        #print(appName + ': measvval: ' + str(measvval), flush=True)
+
+        measlist.append(measvval)
+
+        if not plotOverlayFlag and simDataTS and measmrid in simDataTS:
+            sim = simDataTS[measmrid]
+            if measkey in sim:
+                simvval = sim[measkey]
+                simvval = calcBusVNom(simvval, buspair)
+
+                if not plotMagFlag:
+                    diffmeasvval = measvval - simvval
+                elif simvval != 0.0:
+                    diffmeasvval = abs(100.0*(measvval - simvval)/simvval)
+                else:
+                    diffmeasvval = 0.0
+
+                diffmeaslist.append(diffmeasvval)
+
+    if not plotOverlayFlag and len(diffmeaslist)>0:
+        diffmeasmean = statistics.mean(diffmeaslist)
+        diffMeasDataPausedDict['Mean Meas'].append(diffmeasmean) if plotPausedFlag else diffMeasDataDict['Mean Meas'].append(diffmeasmean)
+        if plotMagFlag:
+            print(appName + ': mean magnitude % diff measurement: ' + str(diffmeasmean), flush=True)
+        else:
+            print(appName + ': mean angle diff measurement: ' + str(diffmeasmean), flush=True)
+
+    # update measurement plot with the new data
+    plotMeasurementData()
 
 
 def yAxisLimits(yMin, yMax, zoomVal, panVal):
@@ -1296,7 +1546,7 @@ def plotMeasurementData():
         return
 
     measDataFlag = False
-    diffDataFlag = False
+    diffMeasDataFlag = False
 
     if plotShowAllFlag:
         xupper = int(tsMeasDataList[-1])
@@ -1336,11 +1586,23 @@ def plotMeasurementData():
                 if len(measDataDict[pair]) > 0:
                     if len(measDataDict[pair]) != len(tsMeasDataList):
                         print('***MISMATCH Difference Measurement show all pair: ' + pair + ', xdata #: ' + str(len(tsMeasDataList)) + ', ydata #: ' + str(len(measDataDict[pair])), flush=True)
-                    diffDataFlag = True
-                    diffLinesDict[pair+' Actual'].set_xdata(tsMeasDataList)
-                    diffLinesDict[pair+' Actual'].set_ydata(measDataDict[pair])
+                    diffMeasDataFlag = True
+                    diffMeasLinesDict[pair+' Actual'].set_xdata(tsMeasDataList)
+                    diffMeasLinesDict[pair+' Actual'].set_ydata(measDataDict[pair])
                     measDiffYmin = min(measDiffYmin, min(measDataDict[pair]))
                     measDiffYmax = max(measDiffYmax, max(measDataDict[pair]))
+
+        else:
+            for pair in diffMeasDataDict:
+                if len(diffMeasDataDict[pair]) > 0:
+                    if len(diffMeasDataDict[pair]) != len(tsMeasDataList):
+                        print('***MISMATCH Difference Measurement show all pair: ' + pair + ', xdata #: ' + str(len(tsMeasDataList)) + ', ydata #: ' + str(len(diffMeasDataDict[pair])), flush=True)
+                    diffMeasDataFlag = True
+                    diffMeasLinesDict[pair].set_xdata(tsMeasDataList)
+                    diffMeasLinesDict[pair].set_ydata(diffMeasDataDict[pair])
+                    measDiffYmin = min(measDiffYmin, min(diffMeasDataDict[pair]))
+                    measDiffYmax = max(measDiffYmax, max(diffMeasDataDict[pair]))
+        #print(appName + ': measDiffYmin: ' + str(measDiffYmin) + ', measDiffYmax: ' + str(measDiffYmax), flush=True)
 
     else:
         tsZoom = int(uiTSZoomSldr.val)
@@ -1448,11 +1710,24 @@ def plotMeasurementData():
                 if len(measDataDict[pair][tsStartpt:tsEndpt]) > 0:
                     if len(measDataDict[pair][tsStartpt:tsEndpt]) != len(tsMeasDataList[tsStartpt:tsEndpt]):
                         print('***MISMATCH Difference Measurement pair: ' + pair + ', xdata #: ' + str(len(tsMeasDataList[tsStartpt:tsEndpt])) + ', ydata #: ' + str(len(measDataDict[pair][tsStartpt:tsEndpt])) + ', tsStartpt: ' + str(tsStartpt) + ', tsEndpt: ' + str(tsEndpt), flush=True)
-                    diffDataFlag = True
-                    diffLinesDict[pair+' Actual'].set_xdata(tsMeasDataList[tsStartpt:tsEndpt])
-                    diffLinesDict[pair+' Actual'].set_ydata(measDataDict[pair][tsStartpt:tsEndpt])
+                    diffMeasDataFlag = True
+                    diffMeasLinesDict[pair+' Actual'].set_xdata(tsMeasDataList[tsStartpt:tsEndpt])
+                    diffMeasLinesDict[pair+' Actual'].set_ydata(measDataDict[pair][tsStartpt:tsEndpt])
                     measDiffYmin = min(measDiffYmin, min(measDataDict[pair][tsStartpt:tsEndpt]))
                     measDiffYmax = max(measDiffYmax, max(measDataDict[pair][tsStartpt:tsEndpt]))
+
+        else:
+            for pair in diffMeasDataDict:
+                if len(diffMeasDataDict[pair][tsStartpt:tsEndpt]) > 0:
+                    diffMeasDataFlag = True
+                    if len(diffMeasDataDict[pair][tsStartpt:tsEndpt]) != len(tsMeasDataList[tsStartpt:tsEndpt]):
+                        print('***MISMATCH Difference Measurement pair: ' + pair + ', xdata #: ' + str(len(tsMeasDataList[tsStartpt:tsEndpt])) + ', ydata #: ' + str(len(diffMeasDataDict[pair][tsStartpt:tsEndpt])) + ', tsStartpt: ' + str(tsStartpt) + ', tsEndpt: ' + str(tsEndpt), flush=True)
+                    diffMeasLinesDict[pair].set_xdata(tsMeasDataList[tsStartpt:tsEndpt])
+                    diffMeasLinesDict[pair].set_ydata(diffMeasDataDict[pair][tsStartpt:tsEndpt])
+                    measDiffYmin = min(measDiffYmin, min(diffMeasDataDict[pair][tsStartpt:tsEndpt]))
+                    measDiffYmax = max(measDiffYmax, max(diffMeasDataDict[pair][tsStartpt:tsEndpt]))
+
+        #print(appName + ': measDiffYmin: ' + str(measDiffYmin) + ', measDiffYmax: ' + str(measDiffYmax), flush=True)
 
     # measurement voltage value plot y-axis zoom and pan calculation
     if not measDataFlag:
@@ -1463,7 +1738,7 @@ def plotMeasurementData():
     uiMeasAx.yaxis.set_major_formatter(ticker.ScalarFormatter())
     uiMeasAx.grid(True)
 
-    if diffDataFlag:
+    if diffMeasDataFlag:
         # voltage value difference plot y-axis zoom and pan calculation
 
         # compare with measurement min/max to get overall min/max
@@ -1471,7 +1746,17 @@ def plotMeasurementData():
         diffYmax = max(estDiffYmax, measDiffYmax)
 
         newDiffYmin, newDiffYmax = yAxisLimits(diffYmin, diffYmax, uiDiffZoomSldr.val, uiDiffPanSldr.val)
-        uiDiffAx.set_ylim(newDiffYmin, newDiffYmax)
+
+        if not plotOverlayFlag and plotMagFlag:
+            # always show 0% lower limit for magnitude % difference plots
+            # when the upper limit drops below 1%, force it to 1%
+            if newDiffYmax < 1.0:
+                uiDiffAx.set_ylim(0.0, 1.0)
+            else:
+                uiDiffAx.set_ylim(0.0, newDiffYmax)
+        else:
+            uiDiffAx.set_ylim(newDiffYmin, newDiffYmax)
+
         uiDiffAx.xaxis.set_major_formatter(ticker.ScalarFormatter())
         uiDiffAx.yaxis.set_major_formatter(ticker.ScalarFormatter())
         uiDiffAx.grid(True)
@@ -1479,6 +1764,8 @@ def plotMeasurementData():
     if firstMeasurementPlotFlag:
         if plotStatsFlag:
             uiMeasAx.legend()
+            if not plotOverlayFlag:
+                uiDiffAx.legend()
 
         elif len(plotBusDict) > 0:
             if plotLegendFlag or len(measLegendLineList)<=10:
@@ -1501,7 +1788,7 @@ def plotEstimateData():
     if len(tsEstDataList) < 2:
         return
 
-    diffDataFlag = False
+    diffEstDataFlag = False
 
     if plotShowAllFlag:
         xupper = int(tsEstDataList[-1])
@@ -1540,21 +1827,21 @@ def plotEstimateData():
                 if len(estDataDict[pair]) > 0:
                     if len(estDataDict[pair]) != len(tsEstDataList):
                         print('***MISMATCH Difference Estimate show all pair: ' + pair + ', xdata #: ' + str(len(tsEstDataList)) + ', ydata #: ' + str(len(estDataDict[pair])), flush=True)
-                    diffLinesDict[pair+' Est'].set_xdata(tsEstDataList)
-                    diffLinesDict[pair+' Est'].set_ydata(estDataDict[pair])
+                    diffEstLinesDict[pair+' Est'].set_xdata(tsEstDataList)
+                    diffEstLinesDict[pair+' Est'].set_ydata(estDataDict[pair])
                     estDiffYmin = min(estDiffYmin, min(estDataDict[pair]))
                     estDiffYmax = max(estDiffYmax, max(estDataDict[pair]))
 
         else:
-            for pair in diffDataDict:
-                if len(diffDataDict[pair]) > 0:
-                    if len(diffDataDict[pair]) != len(tsEstDataList):
-                        print('***MISMATCH Difference show all pair: ' + pair + ', xdata #: ' + str(len(tsEstDataList)) + ', ydata #: ' + str(len(diffDataDict[pair])), flush=True)
-                    diffDataFlag = True
-                    diffLinesDict[pair].set_xdata(tsEstDataList)
-                    diffLinesDict[pair].set_ydata(diffDataDict[pair])
-                    estDiffYmin = min(estDiffYmin, min(diffDataDict[pair]))
-                    estDiffYmax = max(estDiffYmax, max(diffDataDict[pair]))
+            for pair in diffEstDataDict:
+                if len(diffEstDataDict[pair]) > 0:
+                    if len(diffEstDataDict[pair]) != len(tsEstDataList):
+                        print('***MISMATCH Difference Estimate show all pair: ' + pair + ', xdata #: ' + str(len(tsEstDataList)) + ', ydata #: ' + str(len(diffEstDataDict[pair])), flush=True)
+                    diffEstDataFlag = True
+                    diffEstLinesDict[pair].set_xdata(tsEstDataList)
+                    diffEstLinesDict[pair].set_ydata(diffEstDataDict[pair])
+                    estDiffYmin = min(estDiffYmin, min(diffEstDataDict[pair]))
+                    estDiffYmax = max(estDiffYmax, max(diffEstDataDict[pair]))
         #print(appName + ': estDiffYmin: ' + str(estDiffYmin) + ', estDiffYmax: ' + str(estDiffYmax), flush=True)
 
     else:
@@ -1662,21 +1949,21 @@ def plotEstimateData():
                 if len(estDataDict[pair][tsStartpt:tsEndpt]) > 0:
                     if len(estDataDict[pair][tsStartpt:tsEndpt]) != len(tsEstDataList[tsStartpt:tsEndpt]):
                         print('***MISMATCH Difference Estimate pair: ' + pair + ', xdata #: ' + str(len(tsEstDataList[tsStartpt:tsEndpt])) + ', ydata #: ' + str(len(estDataDict[pair][tsStartpt:tsEndpt])) + ', tsStartpt: ' + str(tsStartpt) + ', tsEndpt: ' + str(tsEndpt), flush=True)
-                    diffLinesDict[pair+' Est'].set_xdata(tsEstDataList[tsStartpt:tsEndpt])
-                    diffLinesDict[pair+' Est'].set_ydata(estDataDict[pair][tsStartpt:tsEndpt])
+                    diffEstLinesDict[pair+' Est'].set_xdata(tsEstDataList[tsStartpt:tsEndpt])
+                    diffEstLinesDict[pair+' Est'].set_ydata(estDataDict[pair][tsStartpt:tsEndpt])
                     estDiffYmin = min(estDiffYmin, min(estDataDict[pair][tsStartpt:tsEndpt]))
                     estDiffYmax = max(estDiffYmax, max(estDataDict[pair][tsStartpt:tsEndpt]))
 
         else:
-            for pair in diffDataDict:
-                if len(diffDataDict[pair][tsStartpt:tsEndpt]) > 0:
-                    diffDataFlag = True
-                    if len(diffDataDict[pair][tsStartpt:tsEndpt]) != len(tsEstDataList[tsStartpt:tsEndpt]):
-                        print('***MISMATCH Difference pair: ' + pair + ', xdata #: ' + str(len(tsEstDataList[tsStartpt:tsEndpt])) + ', ydata #: ' + str(len(diffDataDict[pair][tsStartpt:tsEndpt])) + ', tsStartpt: ' + str(tsStartpt) + ', tsEndpt: ' + str(tsEndpt), flush=True)
-                    diffLinesDict[pair].set_xdata(tsEstDataList[tsStartpt:tsEndpt])
-                    diffLinesDict[pair].set_ydata(diffDataDict[pair][tsStartpt:tsEndpt])
-                    estDiffYmin = min(estDiffYmin, min(diffDataDict[pair][tsStartpt:tsEndpt]))
-                    estDiffYmax = max(estDiffYmax, max(diffDataDict[pair][tsStartpt:tsEndpt]))
+            for pair in diffEstDataDict:
+                if len(diffEstDataDict[pair][tsStartpt:tsEndpt]) > 0:
+                    diffEstDataFlag = True
+                    if len(diffEstDataDict[pair][tsStartpt:tsEndpt]) != len(tsEstDataList[tsStartpt:tsEndpt]):
+                        print('***MISMATCH Difference Estimate pair: ' + pair + ', xdata #: ' + str(len(tsEstDataList[tsStartpt:tsEndpt])) + ', ydata #: ' + str(len(diffEstDataDict[pair][tsStartpt:tsEndpt])) + ', tsStartpt: ' + str(tsStartpt) + ', tsEndpt: ' + str(tsEndpt), flush=True)
+                    diffEstLinesDict[pair].set_xdata(tsEstDataList[tsStartpt:tsEndpt])
+                    diffEstLinesDict[pair].set_ydata(diffEstDataDict[pair][tsStartpt:tsEndpt])
+                    estDiffYmin = min(estDiffYmin, min(diffEstDataDict[pair][tsStartpt:tsEndpt]))
+                    estDiffYmax = max(estDiffYmax, max(diffEstDataDict[pair][tsStartpt:tsEndpt]))
 
         #print(appName + ': estDiffYmin: ' + str(estDiffYmin) + ', estDiffYmax: ' + str(estDiffYmax), flush=True)
 
@@ -1688,7 +1975,7 @@ def plotEstimateData():
     uiEstAx.grid(True)
 
     # voltage value difference plot y-axis zoom and pan calculation
-    if not plotOverlayFlag and not diffDataFlag:
+    if not plotOverlayFlag and not diffEstDataFlag:
         print(appName + ': NOTE: no voltage value difference data to plot yet\n', flush=True)
     #print(appName + ': voltage value difference y-axis limits...', flush=True)
 
@@ -1697,6 +1984,7 @@ def plotEstimateData():
     diffYmax = max(estDiffYmax, measDiffYmax)
 
     newDiffYmin, newDiffYmax = yAxisLimits(diffYmin, diffYmax, uiDiffZoomSldr.val, uiDiffPanSldr.val)
+
     if not plotOverlayFlag and plotMagFlag:
         # always show 0% lower limit for magnitude % difference plots
         # when the upper limit drops below 1%, force it to 1%
@@ -1714,7 +2002,8 @@ def plotEstimateData():
     if firstEstimatePlotFlag:
         if plotStatsFlag:
             uiEstAx.legend()
-            uiDiffAx.legend()
+            if not plotOverlayFlag:
+                uiDiffAx.legend()
 
         elif len(plotBusDict) > 0:
             if plotLegendFlag or len(estLegendLineList)<=10:
@@ -1724,7 +2013,7 @@ def plotEstimateData():
                 if not plotOverlayFlag:
                     # bottom difference plot needs a legend because it has
                     # double the lines with different line types
-                    cols = math.ceil(len(diffLinesDict)/8)
+                    cols = math.ceil((len(diffMeasLinesDict) + len(diffEstLinesDict))/8)
                     uiDiffAx.legend(ncol=cols)
 
         firstEstimatePlotFlag = False
@@ -1756,9 +2045,12 @@ def plotPauseCallback(event):
             measDataPausedDict[pair].clear()
 
         if not plotOverlayFlag:
-            for pair in diffDataDict:
-                diffDataDict[pair].extend(diffDataPausedDict[pair])
-                diffDataPausedDict[pair].clear()
+            for pair in diffMeasDataDict:
+                diffMeasDataDict[pair].extend(diffMeasDataPausedDict[pair])
+                diffMeasDataPausedDict[pair].clear()
+            for pair in diffEstDataDict:
+                diffEstDataDict[pair].extend(diffEstDataPausedDict[pair])
+                diffEstDataPausedDict[pair].clear()
 
     plotDataCallback(None)
 
@@ -1925,7 +2217,7 @@ def initPlot(configFlag):
     plt.setp(uiEstAx.get_xticklabels(), visible=False)
     uiEstAx.yaxis.set_major_formatter(ticker.NullFormatter())
 
-    uiDiffAx = plotFig.add_subplot(313, sharex=uiEstAx)
+    uiDiffAx = plotFig.add_subplot(313, sharex=uiMeasAx)
     plt.xlabel('Time (s)')
     if plotOverlayFlag:
         # overlay plot y-axis labels
@@ -2054,11 +2346,11 @@ def configPlot(busList):
         measDataPausedDict[pair] = []
 
         if not plotOverlayFlag:
-            diffDataDict[pair+' Est'] = []
-            diffDataPausedDict[pair+' Est'] = []
+            diffEstDataDict[pair+' Est'] = []
+            diffEstDataPausedDict[pair+' Est'] = []
             if sensorSimulatorRunningFlag:
-                diffDataDict[pair+' Meas'] = []
-                diffDataPausedDict[pair+' Meas'] = []
+                diffMeasDataDict[pair+' Meas'] = []
+                diffMeasDataPausedDict[pair+' Meas'] = []
 
         # create a lines dictionary entry per node/phase pair for each plot
         measLinesDict[pair], = uiMeasAx.plot([], [], label=plotBusDict[pair])
@@ -2066,16 +2358,16 @@ def configPlot(busList):
         if plotOverlayFlag:
             estLinesDict[pair], = uiEstAx.plot([], [], label=plotBusDict[pair], linestyle='--')
 
-            diffLinesDict[pair+' Actual'], = uiDiffAx.plot([], [], label=plotBusDict[pair]+' Actual')
-            color = diffLinesDict[pair+' Actual'].get_color()
-            diffLinesDict[pair+' Est'], = uiDiffAx.plot([], [], label=plotBusDict[pair]+' Est.', linestyle='--', color=color)
+            diffMeasLinesDict[pair+' Actual'], = uiDiffAx.plot([], [], label=plotBusDict[pair]+' Actual')
+            color = diffMeasLinesDict[pair+' Actual'].get_color()
+            diffEstLinesDict[pair+' Est'], = uiDiffAx.plot([], [], label=plotBusDict[pair]+' Est.', linestyle='--', color=color)
         else:
             estLinesDict[pair], = uiEstAx.plot([], [], label=plotBusDict[pair])
 
-            diffLinesDict[pair+' Est'], = uiDiffAx.plot([], [], label=plotBusDict[pair]+' Est.', linestyle='--')
+            diffEstLinesDict[pair+' Est'], = uiDiffAx.plot([], [], label=plotBusDict[pair]+' Est.', linestyle='--')
             if sensorSimulatorRunningFlag:
-                color = diffLinesDict[pair+' Est'].get_color()
-                diffLinesDict[pair+' Meas'], = uiDiffAx.plot([], [], label=plotBusDict[pair]+' Meas.', color=color)
+                color = diffEstLinesDict[pair+' Est'].get_color()
+                diffMeasLinesDict[pair+' Meas'], = uiDiffAx.plot([], [], label=plotBusDict[pair]+' Meas.', color=color)
 
 
 def _main():
@@ -2234,11 +2526,6 @@ Optional command line arguments:
         # subscribe to all simulation measurements for the bottom plot
         gapps.subscribe('/topic/goss.gridappsd.simulation.output.' +
                         simID, simulationCallback)
-    elif sensorSimulatorRunningFlag:
-        # subscribe to all sensor measurements for the bottom plot
-        gapps.subscribe('/topic/goss.gridappsd.simulation.' +
-                        'gridappsd-sensor-simulator.' + simID + '.output',
-                        sensorCallback)
 
     # query to get connectivity node,phase pairs
     queryBusToEst()
@@ -2259,12 +2546,15 @@ Optional command line arguments:
 
     # determine which flavor of callback for measurements and estimates
     measCallback = measurementNoConfigCallback
+    senCallback = sensorNoConfigCallback
     estCallback = estimateNoConfigCallback
     if plotConfigFlag or len(plotBusList)>0:
         measCallback = measurementConfigCallback
+        senCallback = sensorConfigCallback
         estCallback = estimateConfigCallback
     elif plotStatsFlag:
         measCallback = measurementStatsCallback
+        senCallback = sensorStatsCallback
         estCallback = estimateStatsCallback
 
     # subscribe to either sensor or simulation measurements for the top plot
@@ -2275,6 +2565,11 @@ Optional command line arguments:
     else:
         gapps.subscribe('/topic/goss.gridappsd.simulation.output.' +
                         simID, measCallback)
+
+        if sensorSimulatorRunningFlag:
+            gapps.subscribe('/topic/goss.gridappsd.simulation.' +
+                            'gridappsd-sensor-simulator.' + simID + '.output',
+                            senCallback)
 
     # subscribe to state-estimator output--with config file
     gapps.subscribe('/topic/goss.gridappsd.state-estimator.out.' +
