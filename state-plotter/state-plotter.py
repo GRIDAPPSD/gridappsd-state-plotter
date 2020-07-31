@@ -126,6 +126,8 @@ printDataFlag = False
 sensorSimulatorRunningFlag = False
 useSensorsForEstimatesFlag = False
 plotNumber = 0
+
+plotFig = None
 plotTitle = None
 playIcon = None
 pauseIcon = None
@@ -1535,6 +1537,16 @@ def yAxisLimits(yMin, yMax, zoomVal, panVal):
     return newYmin, newYmax
 
 
+def updatePlots():
+    plt.sca(uiMeasAx)
+    plt.draw()
+    plt.sca(uiEstAx)
+    plt.draw()
+    plt.sca(uiDiffAx)
+    plt.draw()
+    #plotFig.canvas.draw()
+    plotFig.canvas.flush_events()
+
 def plotMeasurementData():
     global firstMeasurementPlotFlag, measDiffYmin, measDiffYmax
 
@@ -1775,7 +1787,7 @@ def plotMeasurementData():
         firstMeasurementPlotFlag = False
 
     # flush all the plot changes
-    plt.draw()
+    updatePlots()
 
 
 def plotEstimateData():
@@ -2019,7 +2031,7 @@ def plotEstimateData():
         firstEstimatePlotFlag = False
 
     # flush all the plot changes
-    plt.draw()
+    updatePlots()
 
 
 def plotPauseCallback(event):
@@ -2029,7 +2041,6 @@ def plotPauseCallback(event):
 
     # update the button icon
     uiPauseAx.images[0].set_data(playIcon if plotPausedFlag else pauseIcon)
-    plt.draw()
 
     if not plotPausedFlag:
         # add all the data that came in since the pause button was hit
@@ -2062,12 +2073,10 @@ def plotShowAllCallback(event):
 
     # update the button icon
     uiShowAx.images[0].set_data(checkedIcon if plotShowAllFlag else uncheckedIcon)
-    plt.draw()
     plotDataCallback(None)
 
 
 def plotDataCallback(event):
-    plt.draw()
     plotMeasurementData()
     plotEstimateData()
 
@@ -2140,6 +2149,7 @@ def queryBusToEst():
 
 
 def initPlot(configFlag):
+    global plotFig
     global uiTSZoomSldr, uiTSPanSldr
     global uiEstAx, uiEstZoomSldr, uiEstPanSldr
     global uiMeasAx, uiMeasZoomSldr, uiMeasPanSldr
@@ -2204,7 +2214,7 @@ def initPlot(configFlag):
     plt.setp(uiMeasAx.get_xticklabels(), visible=False)
     uiMeasAx.yaxis.set_major_formatter(ticker.NullFormatter())
 
-    uiEstAx = plotFig.add_subplot(312)
+    uiEstAx = plotFig.add_subplot(312, sharex=uiMeasAx)
     # state estimator y-axis labels
     if plotMagFlag:
         if plotCompFlag:
