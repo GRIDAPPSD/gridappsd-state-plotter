@@ -1528,7 +1528,7 @@ def yAxisLimits(yMin, yMax, zoomVal, panVal):
 
     # override auto-scaling with the calculated y-axis limits
     # apply a fixed margin to the axis limits
-    margin = height*0.10
+    margin = height*0.20
     newYmin -= margin
     newYmax += margin
     #print(appName + ': margin newYmin: ' + str(newYmin), flush=True)
@@ -1538,14 +1538,22 @@ def yAxisLimits(yMin, yMax, zoomVal, panVal):
 
 
 def updatePlots():
-    plt.sca(uiMeasAx)
-    plt.draw()
-    plt.sca(uiEstAx)
-    plt.draw()
-    plt.sca(uiDiffAx)
-    plt.draw()
-    #plotFig.canvas.draw()
-    plotFig.canvas.flush_events()
+    # make sure interactive mode is enabled
+    plt.ion()
+
+    # now just do this to cause a redraw
+    plotFig.canvas.draw_idle()
+
+    # but I used to do all of these instead, but it doesn't seem to
+    # make a difference and the draw_idle() call seems more CPU friendly
+    # because it won't force it right away
+    # plt.sca(uiMeasAx)
+    # plt.draw()
+    # plt.sca(uiEstAx)
+    # plt.draw()
+    # plt.sca(uiDiffAx)
+    # plt.draw()
+    # plotFig.canvas.flush_events()
 
 def plotMeasurementData():
     global firstMeasurementPlotFlag, measDiffYmin, measDiffYmax
@@ -1586,10 +1594,12 @@ def plotMeasurementData():
             if len(measDataDict['Mean']) > 0:
                 if len(measDataDict['Mean']) != len(tsMeasDataList):
                     print('***MISMATCH Measurement show all statistics, xdata #: ' + str(len(tsMeasDataList)) + ', ydata #: ' + str(len(measDataDict['Mean'])), flush=True)
-                plt.fill_between(x=tsMeasDataList, y1=measDataDict['Mean'], y2=measDataDict['Stdev Low'], color=stdevBlue)
-                plt.fill_between(x=tsMeasDataList, y1=measDataDict['Mean'], y2=measDataDict['Stdev High'], color=stdevBlue)
-                plt.fill_between(x=tsMeasDataList, y1=measDataDict['Stdev Low'], y2=measDataDict['Min'], color=minmaxBlue)
-                plt.fill_between(x=tsMeasDataList, y1=measDataDict['Stdev High'], y2=measDataDict['Max'], color=minmaxBlue)
+                # disable filling between lines because it's too much work
+                # for big models and causes matplotlib to freeze
+                #plt.fill_between(x=tsMeasDataList, y1=measDataDict['Mean'], y2=measDataDict['Stdev Low'], color=stdevBlue)
+                #plt.fill_between(x=tsMeasDataList, y1=measDataDict['Mean'], y2=measDataDict['Stdev High'], color=stdevBlue)
+                #plt.fill_between(x=tsMeasDataList, y1=measDataDict['Stdev Low'], y2=measDataDict['Min'], color=minmaxBlue)
+                #plt.fill_between(x=tsMeasDataList, y1=measDataDict['Stdev High'], y2=measDataDict['Max'], color=minmaxBlue)
 
         measDiffYmax = -sys.float_info.max
         measDiffYmin = sys.float_info.max
@@ -1710,10 +1720,12 @@ def plotMeasurementData():
             if len(measDataDict['Mean'][tsStartpt:tsEndpt]) > 0:
                 if len(measDataDict['Mean'][tsStartpt:tsEndpt]) != len(tsMeasDataList[tsStartpt:tsEndpt]):
                     print('***MISMATCH Measurement statistics, xdata #: ' + str(len(tsMeasDataList[tsStartpt:tsEndpt])) + ', ydata #: ' + str(len(measDataDict['Mean'][tsStartpt:tsEndpt])) + ', tsStartpt: ' + str(tsStartpt) + ', tsEndpt: ' + str(tsEndpt), flush=True)
-                plt.fill_between(x=tsMeasDataList[tsStartpt:tsEndpt], y1=measDataDict['Mean'][tsStartpt:tsEndpt], y2=measDataDict['Stdev Low'][tsStartpt:tsEndpt], color=stdevBlue)
-                plt.fill_between(x=tsMeasDataList[tsStartpt:tsEndpt], y1=measDataDict['Mean'][tsStartpt:tsEndpt], y2=measDataDict['Stdev High'][tsStartpt:tsEndpt], color=stdevBlue)
-                plt.fill_between(x=tsMeasDataList[tsStartpt:tsEndpt], y1=measDataDict['Stdev Low'][tsStartpt:tsEndpt], y2=measDataDict['Min'][tsStartpt:tsEndpt], color=minmaxBlue)
-                plt.fill_between(x=tsMeasDataList[tsStartpt:tsEndpt], y1=measDataDict['Stdev High'][tsStartpt:tsEndpt], y2=measDataDict['Max'][tsStartpt:tsEndpt], color=minmaxBlue)
+                # disable filling between lines because it's too much work
+                # for big models and causes matplotlib to freeze
+                #plt.fill_between(x=tsMeasDataList[tsStartpt:tsEndpt], y1=measDataDict['Mean'][tsStartpt:tsEndpt], y2=measDataDict['Stdev Low'][tsStartpt:tsEndpt], color=stdevBlue)
+                #plt.fill_between(x=tsMeasDataList[tsStartpt:tsEndpt], y1=measDataDict['Mean'][tsStartpt:tsEndpt], y2=measDataDict['Stdev High'][tsStartpt:tsEndpt], color=stdevBlue)
+                #plt.fill_between(x=tsMeasDataList[tsStartpt:tsEndpt], y1=measDataDict['Stdev Low'][tsStartpt:tsEndpt], y2=measDataDict['Min'][tsStartpt:tsEndpt], color=minmaxBlue)
+                #plt.fill_between(x=tsMeasDataList[tsStartpt:tsEndpt], y1=measDataDict['Stdev High'][tsStartpt:tsEndpt], y2=measDataDict['Max'][tsStartpt:tsEndpt], color=minmaxBlue)
 
         measDiffYmax = -sys.float_info.max
         measDiffYmin = sys.float_info.max
@@ -1827,10 +1839,12 @@ def plotEstimateData():
             if len(estDataDict['Mean']) > 0:
                 if len(estDataDict['Mean']) != len(tsEstDataList):
                     print('***MISMATCH Estimate show all statistics, xdata #: ' + str(len(tsEstDataList)) + ', ydata #: ' + str(len(estDataDict['Mean'])), flush=True)
-                plt.fill_between(x=tsEstDataList, y1=estDataDict['Mean'], y2=estDataDict['Stdev Low'], color=stdevBlue)
-                plt.fill_between(x=tsEstDataList, y1=estDataDict['Mean'], y2=estDataDict['Stdev High'], color=stdevBlue)
-                plt.fill_between(x=tsEstDataList, y1=estDataDict['Stdev Low'], y2=estDataDict['Min'], color=minmaxBlue)
-                plt.fill_between(x=tsEstDataList, y1=estDataDict['Stdev High'], y2=estDataDict['Max'], color=minmaxBlue)
+                # disable filling between lines because it's too much work
+                # for big models and causes matplotlib to freeze
+                #plt.fill_between(x=tsEstDataList, y1=estDataDict['Mean'], y2=estDataDict['Stdev Low'], color=stdevBlue)
+                #plt.fill_between(x=tsEstDataList, y1=estDataDict['Mean'], y2=estDataDict['Stdev High'], color=stdevBlue)
+                #plt.fill_between(x=tsEstDataList, y1=estDataDict['Stdev Low'], y2=estDataDict['Min'], color=minmaxBlue)
+                #plt.fill_between(x=tsEstDataList, y1=estDataDict['Stdev High'], y2=estDataDict['Max'], color=minmaxBlue)
 
         estDiffYmax = -sys.float_info.max
         estDiffYmin = sys.float_info.max
@@ -1949,10 +1963,12 @@ def plotEstimateData():
             if len(estDataDict['Mean'][tsStartpt:tsEndpt]) > 0:
                 if len(estDataDict['Mean'][tsStartpt:tsEndpt]) != len(tsEstDataList[tsStartpt:tsEndpt]):
                     print('***MISMATCH Estimate statistics, xdata #: ' + str(len(tsEstDataList[tsStartpt:tsEndpt])) + ', ydata #: ' + str(len(estDataDict['Mean'][tsStartpt:tsEndpt])) + ', tsStartpt: ' + str(tsStartpt) + ', tsEndpt: ' + str(tsEndpt), flush=True)
-                plt.fill_between(x=tsEstDataList[tsStartpt:tsEndpt], y1=estDataDict['Mean'][tsStartpt:tsEndpt], y2=estDataDict['Stdev Low'][tsStartpt:tsEndpt], color=stdevBlue)
-                plt.fill_between(x=tsEstDataList[tsStartpt:tsEndpt], y1=estDataDict['Mean'][tsStartpt:tsEndpt], y2=estDataDict['Stdev High'][tsStartpt:tsEndpt], color=stdevBlue)
-                plt.fill_between(x=tsEstDataList[tsStartpt:tsEndpt], y1=estDataDict['Stdev Low'][tsStartpt:tsEndpt], y2=estDataDict['Min'][tsStartpt:tsEndpt], color=minmaxBlue)
-                plt.fill_between(x=tsEstDataList[tsStartpt:tsEndpt], y1=estDataDict['Stdev High'][tsStartpt:tsEndpt], y2=estDataDict['Max'][tsStartpt:tsEndpt], color=minmaxBlue)
+                # disable filling between lines because it's too much work
+                # for big models and causes matplotlib to freeze
+                #plt.fill_between(x=tsEstDataList[tsStartpt:tsEndpt], y1=estDataDict['Mean'][tsStartpt:tsEndpt], y2=estDataDict['Stdev Low'][tsStartpt:tsEndpt], color=stdevBlue)
+                #plt.fill_between(x=tsEstDataList[tsStartpt:tsEndpt], y1=estDataDict['Mean'][tsStartpt:tsEndpt], y2=estDataDict['Stdev High'][tsStartpt:tsEndpt], color=stdevBlue)
+                #plt.fill_between(x=tsEstDataList[tsStartpt:tsEndpt], y1=estDataDict['Stdev Low'][tsStartpt:tsEndpt], y2=estDataDict['Min'][tsStartpt:tsEndpt], color=minmaxBlue)
+                #plt.fill_between(x=tsEstDataList[tsStartpt:tsEndpt], y1=estDataDict['Stdev High'][tsStartpt:tsEndpt], y2=estDataDict['Max'][tsStartpt:tsEndpt], color=minmaxBlue)
 
         estDiffYmax = -sys.float_info.max
         estDiffYmin = sys.float_info.max
