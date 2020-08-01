@@ -1538,9 +1538,6 @@ def yAxisLimits(yMin, yMax, zoomVal, panVal):
 
 
 def updatePlots():
-    # make sure interactive mode is enabled
-    plt.ion()
-
     # now just do this to cause a redraw
     plotFig.canvas.draw_idle()
 
