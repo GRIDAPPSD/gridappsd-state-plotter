@@ -1528,7 +1528,7 @@ def yAxisLimits(yMin, yMax, zoomVal, panVal):
 
     # override auto-scaling with the calculated y-axis limits
     # apply a fixed margin to the axis limits
-    margin = height*0.20
+    margin = height*0.10
     newYmin -= margin
     newYmax += margin
     #print(appName + ': margin newYmin: ' + str(newYmin), flush=True)
@@ -1772,11 +1772,11 @@ def plotMeasurementData():
             # always show 0% lower limit for magnitude % difference plots
             # when the upper limit drops below 1%, force it to 1%
             if newDiffYmax < 1.0:
-                uiDiffAx.set_ylim(0.0, 1.0)
+                newDiffYmin, newDiffYmax = yAxisLimits(0.0, 1.0, uiDiffZoomSldr.val, uiDiffPanSldr.val)
             else:
-                uiDiffAx.set_ylim(0.0, newDiffYmax)
-        else:
-            uiDiffAx.set_ylim(newDiffYmin, newDiffYmax)
+                newDiffYmin, newDiffYmax = yAxisLimits(0.0, diffYmax, uiDiffZoomSldr.val, uiDiffPanSldr.val)
+
+        uiDiffAx.set_ylim(newDiffYmin, newDiffYmax)
 
         uiDiffAx.xaxis.set_major_formatter(ticker.ScalarFormatter())
         uiDiffAx.yaxis.set_major_formatter(ticker.ScalarFormatter())
@@ -2014,11 +2014,11 @@ def plotEstimateData():
         # always show 0% lower limit for magnitude % difference plots
         # when the upper limit drops below 1%, force it to 1%
         if newDiffYmax < 1.0:
-            uiDiffAx.set_ylim(0.0, 1.0)
+            newDiffYmin, newDiffYmax = yAxisLimits(0.0, 1.0, uiDiffZoomSldr.val, uiDiffPanSldr.val)
         else:
-            uiDiffAx.set_ylim(0.0, newDiffYmax)
-    else:
-        uiDiffAx.set_ylim(newDiffYmin, newDiffYmax)
+            newDiffYmin, newDiffYmax = yAxisLimits(0.0, diffYmax, uiDiffZoomSldr.val, uiDiffPanSldr.val)
+
+    uiDiffAx.set_ylim(newDiffYmin, newDiffYmax)
 
     uiDiffAx.xaxis.set_major_formatter(ticker.ScalarFormatter())
     uiDiffAx.yaxis.set_major_formatter(ticker.ScalarFormatter())
