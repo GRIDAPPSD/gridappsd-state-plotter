@@ -540,21 +540,25 @@ def estimateNoConfigCallback(header, message):
 
             # create a lines dictionary entry per bus,phase pair for each plot
             if plotOverlayFlag:
-                estLinesDict[buspair], = uiEstAx.plot([], [], label=buspair, linestyle='--')
+                estLinesDict[buspair], = uiEstAx.plot([], [], label=buspair, linestyle='dashed')
 
                 if buspair+' Actual' in diffMeasLinesDict:
                     color = diffMeasLinesDict[buspair+' Actual'].get_color()
-                    diffEstLinesDict[buspair+' Est'], = uiDiffAx.plot([], [], label=buspair+' Est.', linestyle='--', color=color)
+                    diffEstLinesDict[buspair+' Est'], = uiDiffAx.plot([], [], label=buspair+' Est.', linestyle='dashed', color=color)
                 else:
-                    diffEstLinesDict[buspair+' Est'], = uiDiffAx.plot([], [], label=buspair+' Est.', linestyle='--')
+                    diffEstLinesDict[buspair+' Est'], = uiDiffAx.plot([], [], label=buspair+' Est.')
             else:
                 estLinesDict[buspair], = uiEstAx.plot([], [], label=buspair)
 
+                linestyle = 'solid'
+                if sensorSimulatorRunningFlag:
+                    linestyle = 'dashed'
+
                 if buspair+' Meas' in diffMeasLinesDict:
                     color = diffMeasLinesDict[buspair+' Meas'].get_color()
-                    diffEstLinesDict[buspair+' Est'], = uiDiffAx.plot([], [], label=buspair+' Est.', linestyle='--', color=color)
+                    diffEstLinesDict[buspair+' Est'], = uiDiffAx.plot([], [], label=buspair+' Est.', linestyle=linestyle, color=color)
                 else:
-                    diffEstLinesDict[buspair+' Est'], = uiDiffAx.plot([], [], label=buspair+' Est.', linestyle='--')
+                    diffEstLinesDict[buspair+' Est'], = uiDiffAx.plot([], [], label=buspair+' Est.')
 
         measvval = None
         if not plotMatchesFlag:
@@ -651,17 +655,17 @@ def estimateStatsCallback(header, message):
 
         # create a lines dictionary entry for each plot line
         if plotOverlayFlag:
-            estLinesDict['Min'], = uiEstAx.plot([], [], label='Minimum', linestyle='--', color='cyan')
-            estLinesDict['Max'], = uiEstAx.plot([], [], label='Maximum', linestyle='--', color='cyan')
-            estLinesDict['Stdev Low'], = uiEstAx.plot([], [], label='Std. Dev. Low', linestyle='--', color='blue')
-            estLinesDict['Stdev High'], = uiEstAx.plot([], [], label='Std. Dev. High', linestyle='--', color='blue')
-            estLinesDict['Mean'], = uiEstAx.plot([], [], label='Mean', linestyle='--', color='red')
+            estLinesDict['Min'], = uiEstAx.plot([], [], label='Minimum', linestyle='dashed', color='cyan')
+            estLinesDict['Max'], = uiEstAx.plot([], [], label='Maximum', linestyle='dashed', color='cyan')
+            estLinesDict['Stdev Low'], = uiEstAx.plot([], [], label='Std. Dev. Low', linestyle='dashed', color='blue')
+            estLinesDict['Stdev High'], = uiEstAx.plot([], [], label='Std. Dev. High', linestyle='dashed', color='blue')
+            estLinesDict['Mean'], = uiEstAx.plot([], [], label='Mean', linestyle='dashed', color='red')
 
-            diffEstLinesDict['Min Est'], = uiDiffAx.plot([], [], label='Minimum Est.', linestyle='--', color='cyan')
-            diffEstLinesDict['Max Est'], = uiDiffAx.plot([], [], label='Maximum Est.', linestyle='--', color='cyan')
-            diffEstLinesDict['Stdev Low Est'], = uiDiffAx.plot([], [], label='Std. Dev. Low Est.', linestyle='--', color='blue')
-            diffEstLinesDict['Stdev High Est'], = uiDiffAx.plot([], [], label='Std. Dev. High Est.', linestyle='--', color='blue')
-            diffEstLinesDict['Mean Est'], = uiDiffAx.plot([], [], label='Mean Est.', linestyle='--', color='red')
+            diffEstLinesDict['Min Est'], = uiDiffAx.plot([], [], label='Minimum Est.', linestyle='dashed', color='cyan')
+            diffEstLinesDict['Max Est'], = uiDiffAx.plot([], [], label='Maximum Est.', linestyle='dashed', color='cyan')
+            diffEstLinesDict['Stdev Low Est'], = uiDiffAx.plot([], [], label='Std. Dev. Low Est.', linestyle='dashed', color='blue')
+            diffEstLinesDict['Stdev High Est'], = uiDiffAx.plot([], [], label='Std. Dev. High Est.', linestyle='dashed', color='blue')
+            diffEstLinesDict['Mean Est'], = uiDiffAx.plot([], [], label='Mean Est.', linestyle='dashed', color='red')
 
         else:
             estLinesDict['Min'], = uiEstAx.plot([], [], label='Minimum', color='cyan')
@@ -2379,18 +2383,20 @@ def configPlot(busList):
         measLinesDict[pair], = uiMeasAx.plot([], [], label=plotBusDict[pair])
 
         if plotOverlayFlag:
-            estLinesDict[pair], = uiEstAx.plot([], [], label=plotBusDict[pair], linestyle='--')
+            estLinesDict[pair], = uiEstAx.plot([], [], label=plotBusDict[pair], linestyle='dashed')
 
             diffMeasLinesDict[pair+' Actual'], = uiDiffAx.plot([], [], label=plotBusDict[pair]+' Actual')
             color = diffMeasLinesDict[pair+' Actual'].get_color()
-            diffEstLinesDict[pair+' Est'], = uiDiffAx.plot([], [], label=plotBusDict[pair]+' Est.', linestyle='--', color=color)
+            diffEstLinesDict[pair+' Est'], = uiDiffAx.plot([], [], label=plotBusDict[pair]+' Est.', linestyle='dashed', color=color)
         else:
             estLinesDict[pair], = uiEstAx.plot([], [], label=plotBusDict[pair])
 
-            diffEstLinesDict[pair+' Est'], = uiDiffAx.plot([], [], label=plotBusDict[pair]+' Est.', linestyle='--')
             if sensorSimulatorRunningFlag:
+                diffEstLinesDict[pair+' Est'], = uiDiffAx.plot([], [], label=plotBusDict[pair]+' Est.', linestyle='dashed')
                 color = diffEstLinesDict[pair+' Est'].get_color()
                 diffMeasLinesDict[pair+' Meas'], = uiDiffAx.plot([], [], label=plotBusDict[pair]+' Meas.', color=color)
+            else:
+                diffEstLinesDict[pair+' Est'], = uiDiffAx.plot([], [], label=plotBusDict[pair]+' Est.')
 
 
 def _main():
