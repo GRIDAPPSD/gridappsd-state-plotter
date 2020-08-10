@@ -420,7 +420,7 @@ def estimateConfigCallback(header, message):
             estvval = item[estkey]
             estvval = calcBusVNom(estvval, buspair)
 
-            #print(appName + ': bus,phase pair: ' + buspair, flush=True)
+            #print(appName + ': estimate bus,phase pair: ' + buspair, flush=True)
             #print(appName + ': timestamp: ' + str(ts), flush=True)
             #print(appName + ': estvval: ' + str(estvval), flush=True)
 
@@ -526,7 +526,7 @@ def estimateNoConfigCallback(header, message):
         estvval = item[estkey]
         estvval = calcBusVNom(estvval, buspair)
 
-        #print(appName + ': bus,phase pair: ' + buspair, flush=True)
+        #print(appName + ': estimate bus,phase pair: ' + buspair, flush=True)
         #print(appName + ': timestamp: ' + str(ts), flush=True)
         #print(appName + ': estvval: ' + str(estvval), flush=True)
 
@@ -540,15 +540,24 @@ def estimateNoConfigCallback(header, message):
 
             # create a lines dictionary entry per bus,phase pair for each plot
             if plotOverlayFlag:
-                estLinesDict[buspair], = uiEstAx.plot([], [], label=buspair, linestyle='dashed')
+                if buspair in measLinesDict:
+                    color = measLinesDict[buspair].get_color()
+                    estLinesDict[buspair], = uiEstAx.plot([], [], label=buspair, linestyle='dashed', color=color)
+                else:
+                    estLinesDict[buspair], = uiEstAx.plot([], [], label=buspair, linestyle='dashed')
 
                 if buspair+' Actual' in diffMeasLinesDict:
                     color = diffMeasLinesDict[buspair+' Actual'].get_color()
                     diffEstLinesDict[buspair+' Est'], = uiDiffAx.plot([], [], label=buspair+' Est.', linestyle='dashed', color=color)
                 else:
-                    diffEstLinesDict[buspair+' Est'], = uiDiffAx.plot([], [], label=buspair+' Est.')
+                    color = estLinesDict[buspair].get_color()
+                    diffEstLinesDict[buspair+' Est'], = uiDiffAx.plot([], [], label=buspair+' Est.', color=color)
             else:
-                estLinesDict[buspair], = uiEstAx.plot([], [], label=buspair)
+                if buspair in measLinesDict:
+                    color = measLinesDict[buspair].get_color()
+                    estLinesDict[buspair], = uiEstAx.plot([], [], label=buspair, color=color)
+                else:
+                    estLinesDict[buspair], = uiEstAx.plot([], [], label=buspair)
 
                 linestyle = 'solid'
                 if sensorSimulatorRunningFlag:
@@ -558,7 +567,8 @@ def estimateNoConfigCallback(header, message):
                     color = diffMeasLinesDict[buspair+' Meas'].get_color()
                     diffEstLinesDict[buspair+' Est'], = uiDiffAx.plot([], [], label=buspair+' Est.', linestyle=linestyle, color=color)
                 else:
-                    diffEstLinesDict[buspair+' Est'], = uiDiffAx.plot([], [], label=buspair+' Est.')
+                    color = estLinesDict[buspair].get_color()
+                    diffEstLinesDict[buspair+' Est'], = uiDiffAx.plot([], [], label=buspair+' Est.', color=color)
 
         measvval = None
         if not plotMatchesFlag:
@@ -705,7 +715,7 @@ def estimateStatsCallback(header, message):
         estvval = item[estkey]
         estvval = calcBusVNom(estvval, buspair)
 
-        #print(appName + ': bus,phase pair: ' + buspair, flush=True)
+        #print(appName + ': estimate bus,phase pair: ' + buspair, flush=True)
         #print(appName + ': timestamp: ' + str(ts), flush=True)
         #print(appName + ': estvval: ' + str(estvval), flush=True)
 
@@ -855,7 +865,7 @@ def measurementConfigCallback(header, message):
             measvval = meas[measkey]
             measvval = calcBusVNom(measvval, buspair)
 
-            #print(appName + ': bus,phase pair: ' + buspair, flush=True)
+            #print(appName + ': measurement bus,phase pair: ' + buspair, flush=True)
             #print(appName + ': timestamp: ' + str(ts), flush=True)
             #print(appName + ': measvval: ' + str(measvval), flush=True)
 
@@ -969,17 +979,18 @@ def measurementNoConfigCallback(header, message):
 
                 # create a lines dictionary entry per node/phase pair for each plot
                 measLinesDict[buspair], = uiMeasAx.plot([], [], label=buspair)
+                color = measLinesDict[buspair].get_color()
 
                 if plotOverlayFlag:
-                    diffMeasLinesDict[buspair+' Actual'], = uiDiffAx.plot([], [], label=buspair+' Actual')
+                    diffMeasLinesDict[buspair+' Actual'], = uiDiffAx.plot([], [], label=buspair+' Actual', color=color)
                 else:
-                    diffMeasLinesDict[buspair+' Meas'], = uiDiffAx.plot([], [], label=buspair+' Meas.')
+                    diffMeasLinesDict[buspair+' Meas'], = uiDiffAx.plot([], [], label=buspair+' Meas.', color=color)
 
             meas = measVolt[measmrid]
             measvval = meas[measkey]
             measvval = calcBusVNom(measvval, buspair)
 
-            #print(appName + ': bus,phase pair: ' + buspair, flush=True)
+            #print(appName + ': measurement bus,phase pair: ' + buspair, flush=True)
             #print(appName + ': timestamp: ' + str(ts), flush=True)
             #print(appName + ': measvval: ' + str(measvval), flush=True)
 
@@ -1130,7 +1141,7 @@ def measurementStatsCallback(header, message):
         measvval = meas[measkey]
         measvval = calcBusVNom(measvval, buspair)
 
-        #print(appName + ': measmrid: ' + measmrid, flush=True)
+        #print(appName + ': measurement bus,phase pair: ' + buspair, flush=True)
         #print(appName + ': timestamp: ' + str(ts), flush=True)
         #print(appName + ': measvval: ' + str(measvval), flush=True)
 
@@ -2381,22 +2392,21 @@ def configPlot(busList):
 
         # create a lines dictionary entry per node/phase pair for each plot
         measLinesDict[pair], = uiMeasAx.plot([], [], label=plotBusDict[pair])
+        color = measLinesDict[pair].get_color()
 
         if plotOverlayFlag:
-            estLinesDict[pair], = uiEstAx.plot([], [], label=plotBusDict[pair], linestyle='dashed')
+            estLinesDict[pair], = uiEstAx.plot([], [], label=plotBusDict[pair], linestyle='dashed', color=color)
 
-            diffMeasLinesDict[pair+' Actual'], = uiDiffAx.plot([], [], label=plotBusDict[pair]+' Actual')
-            color = diffMeasLinesDict[pair+' Actual'].get_color()
+            diffMeasLinesDict[pair+' Actual'], = uiDiffAx.plot([], [], label=plotBusDict[pair]+' Actual', color=color)
             diffEstLinesDict[pair+' Est'], = uiDiffAx.plot([], [], label=plotBusDict[pair]+' Est.', linestyle='dashed', color=color)
         else:
-            estLinesDict[pair], = uiEstAx.plot([], [], label=plotBusDict[pair])
+            estLinesDict[pair], = uiEstAx.plot([], [], label=plotBusDict[pair], color=color)
 
             if sensorSimulatorRunningFlag:
-                diffEstLinesDict[pair+' Est'], = uiDiffAx.plot([], [], label=plotBusDict[pair]+' Est.', linestyle='dashed')
-                color = diffEstLinesDict[pair+' Est'].get_color()
+                diffEstLinesDict[pair+' Est'], = uiDiffAx.plot([], [], label=plotBusDict[pair]+' Est.', linestyle='dashed', color=color)
                 diffMeasLinesDict[pair+' Meas'], = uiDiffAx.plot([], [], label=plotBusDict[pair]+' Meas.', color=color)
             else:
-                diffEstLinesDict[pair+' Est'], = uiDiffAx.plot([], [], label=plotBusDict[pair]+' Est.')
+                diffEstLinesDict[pair+' Est'], = uiDiffAx.plot([], [], label=plotBusDict[pair]+' Est.', color=color)
 
 
 def _main():
