@@ -121,7 +121,7 @@ firstMeasurementPlotFlag = True
 firstEstimatePlotFlag = True
 plotOverlayFlag = False
 plotLegendFlag = False
-plotMatchesFlag = False
+plotMatchesFlag = True
 printDataFlag = False
 sensorSimulatorRunningFlag = False
 useSensorsForEstimatesFlag = False
@@ -2540,6 +2540,8 @@ Optional command line arguments:
             plotOverlayFlag = True
         elif arg.startswith('-match'):
             plotMatchesFlag = True
+        elif arg.startswith('-nomatch'):
+            plotMatchesFlag = False
         elif arg.startswith('-phys') or arg.startswith('-nocomp'):
             plotCompFlag = False
         elif arg.startswith('-comp'):
