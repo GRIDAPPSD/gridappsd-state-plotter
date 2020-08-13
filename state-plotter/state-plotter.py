@@ -339,7 +339,7 @@ def findMeasTS(ts):
 
     if not simDataTS:
         print(appName + ': NOTE: No simulation measurement for timestamp: ' + str(ts) + ', disregarding estimate', flush=True)
-        return None, None, None
+        return None, None
 
     senDataTS = None
     if sensorSimulatorRunningFlag:
@@ -354,7 +354,7 @@ def findMeasTS(ts):
 
         if not senDataTS:
             print(appName + ': NOTE: No sensor measurement for timestamp: ' + str(ts) + ', disregarding estimate', flush=True)
-            return None, None, None
+            return None, None
 
     # determine whether simulation or sensor data should be used for
     # the second plot
@@ -374,6 +374,79 @@ def findSimTS(ts):
     return simDataTS
 
 
+def estimateConfigAppend(ts, buspair, item, estkey, measkey,
+                         foundSet, foundDiffSet, measDataTS, simDataTS):
+    # for estimates, there should never be more than a single match
+    # for a given bus,phase pair so skip check for that
+    foundSet.add(buspair)
+
+    estvval = item[estkey]
+    estvval = calcBusVNom(estvval, buspair)
+
+    #print(appName + ': estimate bus,phase pair: ' + buspair, flush=True)
+    #print(appName + ': timestamp: ' + str(ts), flush=True)
+    #print(appName + ': estvval: ' + str(estvval), flush=True)
+
+    measvval = None
+    if not plotMatchesFlag:
+        if len(foundSet) == 1:
+            tsEstDataPausedList.append(ts - tsInit) if plotPausedFlag else tsEstDataList.append(ts - tsInit)
+        estDataPausedDict[buspair].append(estvval) if plotPausedFlag else estDataDict[buspair].append(estvval)
+    if measDataTS is not None and buspair in busToMeasDict:
+        for measmrid in busToMeasDict[buspair]:
+            if buspair in foundDiffSet:
+                break
+
+            if measmrid in measDataTS:
+                meas = measDataTS[measmrid]
+                if measkey in meas:
+                    foundDiffSet.add(buspair)
+                    if plotMatchesFlag:
+                        if len(foundDiffSet) == 1:
+                            tsEstDataPausedList.append(ts - tsInit) if plotPausedFlag else tsEstDataList.append(ts - tsInit)
+                        estDataPausedDict[buspair].append(estvval) if plotPausedFlag else estDataDict[buspair].append(estvval)
+
+                    if measmrid in simDataTS:
+                        sim = simDataTS[measmrid]
+                        if measkey in sim:
+                            simvval = sim[measkey]
+                            simvval = calcBusVNom(simvval, buspair)
+
+                            if not plotMagFlag:
+                                diffestvval = estvval - simvval
+                            elif simvval != 0.0:
+                                diffestvval = abs(100.0*(estvval - simvval)/simvval)
+                            else:
+                                diffestvval = 0.0
+
+                            if not plotOverlayFlag:
+                                diffEstDataPausedDict[buspair+' Est'].append(diffestvval) if plotPausedFlag else diffEstDataDict[buspair+' Est'].append(diffestvval)
+
+                            measvval = meas[measkey]
+                            measvval = calcBusVNom(measvval, buspair)
+
+                            if plotMagFlag:
+                                vmagPrintWithMeas(ts, buspair, estvval, measvval, diffestvval)
+                            else:
+                                vangPrintWithMeas(ts, buspair, estvval, measvval, diffestvval)
+                            break
+
+    if not measvval:
+        if plotMagFlag:
+            vmagPrintWithoutMeas(ts, buspair, estvval)
+        else:
+            vangPrintWithoutMeas(ts, buspair, estvval)
+
+    # no reason to keep checking more pairs if we've found all we
+    # are looking for
+    if not plotMatchesFlag and len(foundSet)==len(plotBusDict):
+        return True
+    elif plotMatchesFlag and len(foundDiffSet)==len(plotBusDict):
+        return True
+
+    return False
+
+
 def estimateConfigCallback(header, message):
     msgdict = message['message']
     ts = msgdict['timestamp']
@@ -384,6 +457,7 @@ def estimateConfigCallback(header, message):
         return
 
     estVolt = msgdict['Estimate']['SvEstVoltages']
+
     foundSet = set()
     foundDiffSet = set()
 
@@ -395,83 +469,37 @@ def estimateConfigCallback(header, message):
         estkey = 'angle'
         measkey = 'angle'
 
-    for item in estVolt:
-        # only consider phases A, B, C and user-specified phases
-        phase = item['phase']
-        if phase!='A' and phase!='B' and phase!='C' or \
-           len(plotPhaseList)>0 and phase not in plotPhaseList:
-            continue
+    if plotMatchesFlag:
+        for buspair in measDataDict:
+            if buspair in plotBusDict:
+                bus, phase = buspair.split(',')
+                if phase!='A' and phase!='B' and phase!='C' or \
+                   len(plotPhaseList)>0 and phase not in plotPhaseList:
+                    continue
 
-        buspair = estToBusDict[item['ConnectivityNode']+','+phase]
+                cnid = busToEstDict[bus]
+                estlist = list(filter(lambda x:x['ConnectivityNode']==cnid and x['phase']==phase, estVolt))
+                if (len(estlist) == 0):
+                    continue
 
-        if buspair in plotBusDict:
-            # for estimates, there should never be more than a single match
-            # for a given bus,phase pair so skip check for that
-            foundSet.add(buspair)
+                item = estlist[0]
+                if estimateConfigAppend(ts, buspair, item, estkey, measkey,
+                                 foundSet, foundDiffSet, measDataTS, simDataTS):
+                    break
 
-            estvval = item[estkey]
-            estvval = calcBusVNom(estvval, buspair)
+    else:
+        for item in estVolt:
+            # only consider phases A, B, C and user-specified phases
+            phase = item['phase']
+            if phase!='A' and phase!='B' and phase!='C' or \
+               len(plotPhaseList)>0 and phase not in plotPhaseList:
+                continue
 
-            #print(appName + ': estimate bus,phase pair: ' + buspair, flush=True)
-            #print(appName + ': timestamp: ' + str(ts), flush=True)
-            #print(appName + ': estvval: ' + str(estvval), flush=True)
-
-            measvval = None
-            if not plotMatchesFlag:
-                if len(foundSet) == 1:
-                    tsEstDataPausedList.append(ts - tsInit) if plotPausedFlag else tsEstDataList.append(ts - tsInit)
-                estDataPausedDict[buspair].append(estvval) if plotPausedFlag else estDataDict[buspair].append(estvval)
-            if measDataTS is not None and buspair in busToMeasDict:
-                for measmrid in busToMeasDict[buspair]:
-                    if buspair in foundDiffSet:
-                        break
-
-                    if measmrid in measDataTS:
-                        meas = measDataTS[measmrid]
-                        if measkey in meas:
-                            foundDiffSet.add(buspair)
-                            if plotMatchesFlag:
-                                if len(foundDiffSet) == 1:
-                                    tsEstDataPausedList.append(ts - tsInit) if plotPausedFlag else tsEstDataList.append(ts - tsInit)
-                                estDataPausedDict[buspair].append(estvval) if plotPausedFlag else estDataDict[buspair].append(estvval)
-
-                            if measmrid in simDataTS:
-                                sim = simDataTS[measmrid]
-                                if measkey in sim:
-                                    simvval = sim[measkey]
-                                    simvval = calcBusVNom(simvval, buspair)
-
-                                    if not plotMagFlag:
-                                        diffestvval = estvval - simvval
-                                    elif simvval != 0.0:
-                                        diffestvval = abs(100.0*(estvval - simvval)/simvval)
-                                    else:
-                                        diffestvval = 0.0
-
-                                    if not plotOverlayFlag:
-                                        diffEstDataPausedDict[buspair+' Est'].append(diffestvval) if plotPausedFlag else diffEstDataDict[buspair+' Est'].append(diffestvval)
-
-                                    measvval = meas[measkey]
-                                    measvval = calcBusVNom(measvval, buspair)
-
-                                    if plotMagFlag:
-                                        vmagPrintWithMeas(ts, buspair, estvval, measvval, diffestvval)
-                                    else:
-                                        vangPrintWithMeas(ts, buspair, estvval, measvval, diffestvval)
-                                    break
-
-            if not measvval:
-                if plotMagFlag:
-                    vmagPrintWithoutMeas(ts, buspair, estvval)
-                else:
-                    vangPrintWithoutMeas(ts, buspair, estvval)
-
-            # no reason to keep checking more pairs if we've found all we
-            # are looking for
-            if not plotMatchesFlag and len(foundSet)==len(plotBusDict):
-                break
-            elif plotMatchesFlag and len(foundDiffSet)==len(plotBusDict):
-                break
+            buspair = estToBusDict[item['ConnectivityNode']+','+phase]
+            if buspair in plotBusDict:
+                if estimateConfigAppend(ts, buspair, item, estkey, measkey,
+                                 foundSet, foundDiffSet, measDataTS, simDataTS):
+                    break
 
     #print(appName + ': ' + str(len(estVolt)) + ' state-estimator measurements, ' + str(len(foundSet)) + ' configuration file node,phase pair matches, ' + str(len(foundDiffSet)) + ' matches to measurement data', flush=True)
 
@@ -606,6 +634,7 @@ def estimateNoConfigCallback(header, message):
         return
 
     estVolt = msgdict['Estimate']['SvEstVoltages']
+
     foundSet = set()
     foundDiffSet = set()
 
@@ -732,6 +761,7 @@ def estimateStatsCallback(header, message):
             continue
 
         buspair = estToBusDict[item['ConnectivityNode']+','+phase]
+
         estvval = item[estkey]
         estvval = calcBusVNom(estvval, buspair)
 
@@ -740,8 +770,6 @@ def estimateStatsCallback(header, message):
         #print(appName + ': estvval: ' + str(estvval), flush=True)
 
         measvval = None
-        if not plotMatchesFlag:
-            estlist.append(estvval)
         if measDataTS is not None and buspair in busToMeasDict:
             for measmrid in busToMeasDict[buspair]:
                 if buspair in foundDiffSet:
@@ -751,8 +779,7 @@ def estimateStatsCallback(header, message):
                     meas = measDataTS[measmrid]
                     if measkey in meas:
                         foundDiffSet.add(buspair)
-                        if plotMatchesFlag:
-                            estlist.append(estvval)
+                        estlist.append(estvval)
 
                         if measmrid in simDataTS:
                             sim = simDataTS[measmrid]
