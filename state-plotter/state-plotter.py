@@ -1605,7 +1605,6 @@ def updatePlots():
 
     # but I used to do all of these instead, but it doesn't seem to
     # make a difference and the draw_idle() call seems more CPU friendly
-    # because it won't force it right away
     # plt.sca(uiMeasAx)
     # plt.draw()
     # plt.sca(uiEstAx)
@@ -1613,6 +1612,7 @@ def updatePlots():
     # plt.sca(uiDiffAx)
     # plt.draw()
     # plotFig.canvas.flush_events()
+
 
 def plotMeasurementData():
     global firstMeasurementPlotFlag, measDiffYmin, measDiffYmax
@@ -1840,9 +1840,16 @@ def plotMeasurementData():
 
         uiDiffAx.set_ylim(newDiffYmin, newDiffYmax)
 
-        uiDiffAx.xaxis.set_major_formatter(ticker.ScalarFormatter())
-        uiDiffAx.yaxis.set_major_formatter(ticker.ScalarFormatter())
-        uiDiffAx.grid(True)
+    # even though we aren't updating the estimate plot and may not be updating
+    # the difference plot, the formatter and grid calls will make the plot
+    # look good, including displaying the x-axis time, until those plots do
+    # have data
+    uiEstAx.yaxis.set_major_formatter(ticker.ScalarFormatter())
+    uiEstAx.grid(True)
+
+    uiDiffAx.xaxis.set_major_formatter(ticker.ScalarFormatter())
+    uiDiffAx.yaxis.set_major_formatter(ticker.ScalarFormatter())
+    uiDiffAx.grid(True)
 
     if firstMeasurementPlotFlag:
         if plotStatsFlag:
