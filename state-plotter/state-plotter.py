@@ -183,8 +183,10 @@ def queryBusToSim():
 def mapBusToVnomMag(bus, phase, magnitude):
     if phase == 1:
         busToVnomMagDict[bus+',A'] = magnitude
+        busToVnomMagDict[bus+',S1'] = magnitude
     elif phase == 2:
         busToVnomMagDict[bus+',B'] = magnitude
+        busToVnomMagDict[bus+',S2'] = magnitude
     elif phase == 3:
         busToVnomMagDict[bus+',C'] = magnitude
 
@@ -192,8 +194,10 @@ def mapBusToVnomMag(bus, phase, magnitude):
 def mapBusToVnomAngle(bus, phase, angle):
     if phase == 1:
         busToVnomAngDict[bus+',A'] = angle
+        busToVnomAngDict[bus+',S1'] = angle
     elif phase == 2:
         busToVnomAngDict[bus+',B'] = angle
+        busToVnomAngDict[bus+',S2'] = angle
     elif phase == 3:
         busToVnomAngDict[bus+',C'] = angle
 
@@ -473,8 +477,9 @@ def estimateConfigCallback(header, message):
         for buspair in measDataDict:
             if buspair in plotBusDict:
                 bus, phase = buspair.split(',')
-                if phase!='A' and phase!='B' and phase!='C' or \
-                   len(plotPhaseList)>0 and phase not in plotPhaseList:
+                #if phase!='A' and phase!='B' and phase!='C' or \
+                #   len(plotPhaseList)>0 and phase not in plotPhaseList:
+                if len(plotPhaseList)>0 and phase not in plotPhaseList:
                     continue
 
                 cnid = busToEstDict[bus]
@@ -491,8 +496,9 @@ def estimateConfigCallback(header, message):
         for item in estVolt:
             # only consider phases A, B, C and user-specified phases
             phase = item['phase']
-            if phase!='A' and phase!='B' and phase!='C' or \
-               len(plotPhaseList)>0 and phase not in plotPhaseList:
+            #if phase!='A' and phase!='B' and phase!='C' or \
+            #   len(plotPhaseList)>0 and phase not in plotPhaseList:
+            if len(plotPhaseList)>0 and phase not in plotPhaseList:
                 continue
 
             buspair = estToBusDict[item['ConnectivityNode']+','+phase]
@@ -649,8 +655,9 @@ def estimateNoConfigCallback(header, message):
     if plotMatchesFlag:
         for buspair in measDataDict:
             bus, phase = buspair.split(',')
-            if phase!='A' and phase!='B' and phase!='C' or \
-               len(plotPhaseList)>0 and phase not in plotPhaseList:
+            #if phase!='A' and phase!='B' and phase!='C' or \
+            #   len(plotPhaseList)>0 and phase not in plotPhaseList:
+            if len(plotPhaseList)>0 and phase not in plotPhaseList:
                 continue
 
             cnid = busToEstDict[bus]
@@ -667,8 +674,9 @@ def estimateNoConfigCallback(header, message):
         for item in estVolt:
             # only consider phases A, B, C and user-specified phases
             phase = item['phase']
-            if phase!='A' and phase!='B' and phase!='C' or \
-               len(plotPhaseList)>0 and phase not in plotPhaseList:
+            #if phase!='A' and phase!='B' and phase!='C' or \
+            #   len(plotPhaseList)>0 and phase not in plotPhaseList:
+            if len(plotPhaseList)>0 and phase not in plotPhaseList:
                 continue
 
             buspair = estToBusDict[item['ConnectivityNode']+','+phase]
@@ -756,8 +764,9 @@ def estimateStatsCallback(header, message):
     for item in estVolt:
         # only consider phases A, B, C and user-specified phases
         phase = item['phase']
-        if phase!='A' and phase!='B' and phase!='C' or \
-           len(plotPhaseList)>0 and phase not in plotPhaseList:
+        #if phase!='A' and phase!='B' and phase!='C' or \
+        #   len(plotPhaseList)>0 and phase not in plotPhaseList:
+        if len(plotPhaseList)>0 and phase not in plotPhaseList:
             continue
 
         buspair = estToBusDict[item['ConnectivityNode']+','+phase]
@@ -898,8 +907,9 @@ def measurementConfigCallback(header, message):
         bus, phase = buspair.split(',')
 
         # only consider phases A, B, C and user-specified phases
-        if phase!='A' and phase!='B' and phase!='C' or \
-           len(plotPhaseList)>0 and phase not in plotPhaseList:
+        #if phase!='A' and phase!='B' and phase!='C' or \
+        #   len(plotPhaseList)>0 and phase not in plotPhaseList:
+        if len(plotPhaseList)>0 and phase not in plotPhaseList:
             continue
 
         # skip if this is a buspair that's not in the plot configuration
@@ -1006,8 +1016,9 @@ def measurementNoConfigCallback(header, message):
         bus, phase = buspair.split(',')
 
         # only consider phases A, B, C and user-specified phases
-        if phase!='A' and phase!='B' and phase!='C' or \
-           len(plotPhaseList)>0 and phase not in plotPhaseList:
+        #if phase!='A' and phase!='B' and phase!='C' or \
+        #   len(plotPhaseList)>0 and phase not in plotPhaseList:
+        if len(plotPhaseList)>0 and phase not in plotPhaseList:
             continue
 
         # skip if this is a buspair that was previously processed
@@ -1175,8 +1186,9 @@ def measurementStatsCallback(header, message):
         bus, phase = buspair.split(',')
 
         # only consider phases A, B, C and user-specified phases
-        if phase!='A' and phase!='B' and phase!='C' or \
-           len(plotPhaseList)>0 and phase not in plotPhaseList:
+        #if phase!='A' and phase!='B' and phase!='C' or \
+        #   len(plotPhaseList)>0 and phase not in plotPhaseList:
+        if len(plotPhaseList)>0 and phase not in plotPhaseList:
             continue
 
         if buspair in foundSet:
@@ -1304,8 +1316,9 @@ def sensorConfigCallback(header, message):
         bus, phase = buspair.split(',')
 
         # only consider phases A, B, C and user-specified phases
-        if phase!='A' and phase!='B' and phase!='C' or \
-           len(plotPhaseList)>0 and phase not in plotPhaseList:
+        #if phase!='A' and phase!='B' and phase!='C' or \
+        #   len(plotPhaseList)>0 and phase not in plotPhaseList:
+        if len(plotPhaseList)>0 and phase not in plotPhaseList:
             continue
 
         # skip if this is a buspair that's not in the plot configuration
@@ -1386,8 +1399,9 @@ def sensorNoConfigCallback(header, message):
         bus, phase = buspair.split(',')
 
         # only consider phases A, B, C and user-specified phases
-        if phase!='A' and phase!='B' and phase!='C' or \
-           len(plotPhaseList)>0 and phase not in plotPhaseList:
+        #if phase!='A' and phase!='B' and phase!='C' or \
+        #   len(plotPhaseList)>0 and phase not in plotPhaseList:
+        if len(plotPhaseList)>0 and phase not in plotPhaseList:
             continue
 
         # skip if this is a buspair that was previously processed
@@ -1504,8 +1518,9 @@ def sensorStatsCallback(header, message):
         bus, phase = buspair.split(',')
 
         # only consider phases A, B, C and user-specified phases
-        if phase!='A' and phase!='B' and phase!='C' or \
-           len(plotPhaseList)>0 and phase not in plotPhaseList:
+        #if phase!='A' and phase!='B' and phase!='C' or \
+        #   len(plotPhaseList)>0 and phase not in plotPhaseList:
+        if len(plotPhaseList)>0 and phase not in plotPhaseList:
             continue
 
         if buspair in foundSet:
@@ -2225,6 +2240,8 @@ def queryBusToEst():
         estToBusDict[cnid+',A'] = cnname+',A'
         estToBusDict[cnid+',B'] = cnname+',B'
         estToBusDict[cnid+',C'] = cnname+',C'
+        estToBusDict[cnid+',S1'] = cnname+',S1'
+        estToBusDict[cnid+',S2'] = cnname+',S2'
     print(appName + ': start bus to estimate mrid query results...', flush=True)
     pprint.pprint(busToEstDict)
     print(appName + ': end bus to estimate mrid query results', flush=True)
@@ -2401,6 +2418,10 @@ def configPlot(busList):
                     plotBusDict[buspair+',B'] = buspair+',B'
                 if buspair+',C' in busToMeasDict:
                     plotBusDict[buspair+',C'] = buspair+',C'
+                if buspair+',S1' in busToMeasDict:
+                    plotBusDict[buspair+',S1'] = buspair+',S1'
+                if buspair+',S2' in busToMeasDict:
+                    plotBusDict[buspair+',S2'] = buspair+',S2'
     else:
         # match connectivity node,phase pairs with the config file for determining
         # what data to plot
@@ -2424,6 +2445,10 @@ def configPlot(busList):
                             plotBusDict[buspair+',B'] = buspair+',B'
                         if buspair+',C' in busToMeasDict:
                             plotBusDict[buspair+',C'] = buspair+',C'
+                        if buspair+',S1' in busToMeasDict:
+                            plotBusDict[buspair+',S1'] = buspair+',S1'
+                        if buspair+',S2' in busToMeasDict:
+                            plotBusDict[buspair+',S2'] = buspair+',S2'
             #print(appName + ': ' + str(plotBusDict), flush=True)
         except:
             print(appName + ': ERROR: node/phase pair configuration file state-plotter-config.csv does not exist.\n', flush=True)
