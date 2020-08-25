@@ -1653,7 +1653,9 @@ def plotMeasurementData():
             if len(measDataDict[pair]) > 0:
                 measDataFlag = True
                 if len(measDataDict[pair]) != len(tsMeasDataList):
-                    print('***MISMATCH Measurement show all pair: ' + pair + ', xdata #: ' + str(len(tsMeasDataList)) + ', ydata #: ' + str(len(measDataDict[pair])), flush=True)
+                    print('***MISMATCH Measurement show all pair: ' + pair + ', xdata #: ' + str(len(tsMeasDataList)) + ', ydata #: ' + str(len(measDataDict[pair])) + ', skipping pair', flush=True)
+                    continue
+
                 measLinesDict[pair].set_xdata(tsMeasDataList)
                 measLinesDict[pair].set_ydata(measDataDict[pair])
                 measYmin = min(measYmin, min(measDataDict[pair]))
@@ -1663,11 +1665,12 @@ def plotMeasurementData():
                     measLegendLabelList.append(plotBusDict[pair])
         #print(appName + ': measYmin: ' + str(measYmin) + ', measYmax: ' + str(measYmax), flush=True)
 
-        if plotStatsFlag:
-            plt.sca(uiMeasAx)
-            if len(measDataDict['Mean']) > 0:
-                if len(measDataDict['Mean']) != len(tsMeasDataList):
-                    print('***MISMATCH Measurement show all statistics, xdata #: ' + str(len(tsMeasDataList)) + ', ydata #: ' + str(len(measDataDict['Mean'])), flush=True)
+        #if plotStatsFlag:
+        #    plt.sca(uiMeasAx)
+        #    if len(measDataDict['Mean']) > 0:
+        #        if len(measDataDict['Mean']) != len(tsMeasDataList):
+        #            print('***MISMATCH Measurement show all statistics, xdata #: ' + str(len(tsMeasDataList)) + ', ydata #: ' + str(len(measDataDict['Mean'])) + ', skipping pair', flush=True)
+
                 # disable filling between lines because it's too much work
                 # for big models and causes matplotlib to freeze
                 #plt.fill_between(x=tsMeasDataList, y1=measDataDict['Mean'], y2=measDataDict['Stdev Low'], color=stdevBlue)
@@ -1681,7 +1684,9 @@ def plotMeasurementData():
             for pair in measDataDict:
                 if len(measDataDict[pair]) > 0:
                     if len(measDataDict[pair]) != len(tsMeasDataList):
-                        print('***MISMATCH Difference Measurement show all pair: ' + pair + ', xdata #: ' + str(len(tsMeasDataList)) + ', ydata #: ' + str(len(measDataDict[pair])), flush=True)
+                        print('***MISMATCH Difference Measurement show all pair: ' + pair + ', xdata #: ' + str(len(tsMeasDataList)) + ', ydata #: ' + str(len(measDataDict[pair])) + ', skipping pair', flush=True)
+                        continue
+
                     diffMeasDataFlag = True
                     diffMeasLinesDict[pair+' Actual'].set_xdata(tsMeasDataList)
                     diffMeasLinesDict[pair+' Actual'].set_ydata(measDataDict[pair])
@@ -1692,7 +1697,9 @@ def plotMeasurementData():
             for pair in diffMeasDataDict:
                 if len(diffMeasDataDict[pair]) > 0:
                     if len(diffMeasDataDict[pair]) != len(tsMeasDataList):
-                        print('***MISMATCH Difference Measurement show all pair: ' + pair + ', xdata #: ' + str(len(tsMeasDataList)) + ', ydata #: ' + str(len(diffMeasDataDict[pair])), flush=True)
+                        print('***MISMATCH Difference Measurement show all pair: ' + pair + ', xdata #: ' + str(len(tsMeasDataList)) + ', ydata #: ' + str(len(diffMeasDataDict[pair])) + ', skipping pair', flush=True)
+                        continue
+
                     diffMeasDataFlag = True
                     diffMeasLinesDict[pair].set_xdata(tsMeasDataList)
                     diffMeasLinesDict[pair].set_ydata(diffMeasDataDict[pair])
@@ -1779,7 +1786,9 @@ def plotMeasurementData():
             if len(measDataDict[pair][tsStartpt:tsEndpt]) > 0:
                 measDataFlag = True
                 if len(measDataDict[pair][tsStartpt:tsEndpt]) != len(tsMeasDataList[tsStartpt:tsEndpt]):
-                    print('***MISMATCH Measurement pair: ' + pair + ', xdata #: ' + str(len(tsMeasDataList[tsStartpt:tsEndpt])) + ', ydata #: ' + str(len(measDataDict[pair][tsStartpt:tsEndpt])) + ', tsStartpt: ' + str(tsStartpt) + ', tsEndpt: ' + str(tsEndpt), flush=True)
+                    print('***MISMATCH Measurement pair: ' + pair + ', xdata #: ' + str(len(tsMeasDataList[tsStartpt:tsEndpt])) + ', ydata #: ' + str(len(measDataDict[pair][tsStartpt:tsEndpt])) + ', tsStartpt: ' + str(tsStartpt) + ', tsEndpt: ' + str(tsEndpt) + ', skipping pair', flush=True)
+                    continue
+
                 measLinesDict[pair].set_xdata(tsMeasDataList[tsStartpt:tsEndpt])
                 measLinesDict[pair].set_ydata(measDataDict[pair][tsStartpt:tsEndpt])
                 measYmin = min(measYmin, min(measDataDict[pair][tsStartpt:tsEndpt]))
@@ -1789,11 +1798,12 @@ def plotMeasurementData():
                     measLegendLabelList.append(plotBusDict[pair])
         #print(appName + ': measYmin: ' + str(measYmin) + ', measYmax: ' + str(measYmax), flush=True)
 
-        if plotStatsFlag:
-            plt.sca(uiMeasAx)
-            if len(measDataDict['Mean'][tsStartpt:tsEndpt]) > 0:
-                if len(measDataDict['Mean'][tsStartpt:tsEndpt]) != len(tsMeasDataList[tsStartpt:tsEndpt]):
-                    print('***MISMATCH Measurement statistics, xdata #: ' + str(len(tsMeasDataList[tsStartpt:tsEndpt])) + ', ydata #: ' + str(len(measDataDict['Mean'][tsStartpt:tsEndpt])) + ', tsStartpt: ' + str(tsStartpt) + ', tsEndpt: ' + str(tsEndpt), flush=True)
+        #if plotStatsFlag:
+        #    plt.sca(uiMeasAx)
+        #    if len(measDataDict['Mean'][tsStartpt:tsEndpt]) > 0:
+        #        if len(measDataDict['Mean'][tsStartpt:tsEndpt]) != len(tsMeasDataList[tsStartpt:tsEndpt]):
+        #            print('***MISMATCH Measurement statistics, xdata #: ' + str(len(tsMeasDataList[tsStartpt:tsEndpt])) + ', ydata #: ' + str(len(measDataDict['Mean'][tsStartpt:tsEndpt])) + ', tsStartpt: ' + str(tsStartpt) + ', tsEndpt: ' + str(tsEndpt) + ', skipping pair', flush=True)
+
                 # disable filling between lines because it's too much work
                 # for big models and causes matplotlib to freeze
                 #plt.fill_between(x=tsMeasDataList[tsStartpt:tsEndpt], y1=measDataDict['Mean'][tsStartpt:tsEndpt], y2=measDataDict['Stdev Low'][tsStartpt:tsEndpt], color=stdevBlue)
@@ -1807,7 +1817,9 @@ def plotMeasurementData():
             for pair in measDataDict:
                 if len(measDataDict[pair][tsStartpt:tsEndpt]) > 0:
                     if len(measDataDict[pair][tsStartpt:tsEndpt]) != len(tsMeasDataList[tsStartpt:tsEndpt]):
-                        print('***MISMATCH Difference Measurement pair: ' + pair + ', xdata #: ' + str(len(tsMeasDataList[tsStartpt:tsEndpt])) + ', ydata #: ' + str(len(measDataDict[pair][tsStartpt:tsEndpt])) + ', tsStartpt: ' + str(tsStartpt) + ', tsEndpt: ' + str(tsEndpt), flush=True)
+                        print('***MISMATCH Difference Measurement pair: ' + pair + ', xdata #: ' + str(len(tsMeasDataList[tsStartpt:tsEndpt])) + ', ydata #: ' + str(len(measDataDict[pair][tsStartpt:tsEndpt])) + ', tsStartpt: ' + str(tsStartpt) + ', tsEndpt: ' + str(tsEndpt) + ', skipping pair', flush=True)
+                        continue
+
                     diffMeasDataFlag = True
                     diffMeasLinesDict[pair+' Actual'].set_xdata(tsMeasDataList[tsStartpt:tsEndpt])
                     diffMeasLinesDict[pair+' Actual'].set_ydata(measDataDict[pair][tsStartpt:tsEndpt])
@@ -1819,7 +1831,9 @@ def plotMeasurementData():
                 if len(diffMeasDataDict[pair][tsStartpt:tsEndpt]) > 0:
                     diffMeasDataFlag = True
                     if len(diffMeasDataDict[pair][tsStartpt:tsEndpt]) != len(tsMeasDataList[tsStartpt:tsEndpt]):
-                        print('***MISMATCH Difference Measurement pair: ' + pair + ', xdata #: ' + str(len(tsMeasDataList[tsStartpt:tsEndpt])) + ', ydata #: ' + str(len(diffMeasDataDict[pair][tsStartpt:tsEndpt])) + ', tsStartpt: ' + str(tsStartpt) + ', tsEndpt: ' + str(tsEndpt), flush=True)
+                        print('***MISMATCH Difference Measurement pair: ' + pair + ', xdata #: ' + str(len(tsMeasDataList[tsStartpt:tsEndpt])) + ', ydata #: ' + str(len(diffMeasDataDict[pair][tsStartpt:tsEndpt])) + ', tsStartpt: ' + str(tsStartpt) + ', tsEndpt: ' + str(tsEndpt) + ', skipping pair', flush=True)
+                        continue
+
                     diffMeasLinesDict[pair].set_xdata(tsMeasDataList[tsStartpt:tsEndpt])
                     diffMeasLinesDict[pair].set_ydata(diffMeasDataDict[pair][tsStartpt:tsEndpt])
                     measDiffYmin = min(measDiffYmin, min(diffMeasDataDict[pair][tsStartpt:tsEndpt]))
@@ -1905,7 +1919,9 @@ def plotEstimateData():
         for pair in estDataDict:
             if len(estDataDict[pair]) > 0:
                 if len(estDataDict[pair]) != len(tsEstDataList):
-                    print('***MISMATCH Estimate show all pair: ' + pair + ', xdata #: ' + str(len(tsEstDataList)) + ', ydata #: ' + str(len(estDataDict[pair])), flush=True)
+                    print('***MISMATCH Estimate show all pair: ' + pair + ', xdata #: ' + str(len(tsEstDataList)) + ', ydata #: ' + str(len(estDataDict[pair])) + ', skipping pair', flush=True)
+                    continue
+
                 estLinesDict[pair].set_xdata(tsEstDataList)
                 estLinesDict[pair].set_ydata(estDataDict[pair])
                 estYmin = min(estYmin, min(estDataDict[pair]))
@@ -1915,11 +1931,12 @@ def plotEstimateData():
                     estLegendLabelList.append(plotBusDict[pair])
         #print(appName + ': estYmin: ' + str(estYmin) + ', estYmax: ' + str(estYmax), flush=True)
 
-        if plotStatsFlag:
-            plt.sca(uiEstAx)
-            if len(estDataDict['Mean']) > 0:
-                if len(estDataDict['Mean']) != len(tsEstDataList):
-                    print('***MISMATCH Estimate show all statistics, xdata #: ' + str(len(tsEstDataList)) + ', ydata #: ' + str(len(estDataDict['Mean'])), flush=True)
+        #if plotStatsFlag:
+        #    plt.sca(uiEstAx)
+        #    if len(estDataDict['Mean']) > 0:
+        #        if len(estDataDict['Mean']) != len(tsEstDataList):
+        #            print('***MISMATCH Estimate show all statistics, xdata #: ' + str(len(tsEstDataList)) + ', ydata #: ' + str(len(estDataDict['Mean'])) + ', skipping pair', flush=True)
+
                 # disable filling between lines because it's too much work
                 # for big models and causes matplotlib to freeze
                 #plt.fill_between(x=tsEstDataList, y1=estDataDict['Mean'], y2=estDataDict['Stdev Low'], color=stdevBlue)
@@ -1933,7 +1950,9 @@ def plotEstimateData():
             for pair in estDataDict:
                 if len(estDataDict[pair]) > 0:
                     if len(estDataDict[pair]) != len(tsEstDataList):
-                        print('***MISMATCH Difference Estimate show all pair: ' + pair + ', xdata #: ' + str(len(tsEstDataList)) + ', ydata #: ' + str(len(estDataDict[pair])), flush=True)
+                        print('***MISMATCH Difference Estimate show all pair: ' + pair + ', xdata #: ' + str(len(tsEstDataList)) + ', ydata #: ' + str(len(estDataDict[pair])) + ', skipping pair', flush=True)
+                        continue
+
                     diffEstLinesDict[pair+' Est'].set_xdata(tsEstDataList)
                     diffEstLinesDict[pair+' Est'].set_ydata(estDataDict[pair])
                     estDiffYmin = min(estDiffYmin, min(estDataDict[pair]))
@@ -1943,7 +1962,9 @@ def plotEstimateData():
             for pair in diffEstDataDict:
                 if len(diffEstDataDict[pair]) > 0:
                     if len(diffEstDataDict[pair]) != len(tsEstDataList):
-                        print('***MISMATCH Difference Estimate show all pair: ' + pair + ', xdata #: ' + str(len(tsEstDataList)) + ', ydata #: ' + str(len(diffEstDataDict[pair])), flush=True)
+                        print('***MISMATCH Difference Estimate show all pair: ' + pair + ', xdata #: ' + str(len(tsEstDataList)) + ', ydata #: ' + str(len(diffEstDataDict[pair])) + ', skipping pair', flush=True)
+                        continue
+
                     diffEstDataFlag = True
                     diffEstLinesDict[pair].set_xdata(tsEstDataList)
                     diffEstLinesDict[pair].set_ydata(diffEstDataDict[pair])
@@ -2029,7 +2050,9 @@ def plotEstimateData():
         for pair in estDataDict:
             if len(estDataDict[pair][tsStartpt:tsEndpt]) > 0:
                 if len(estDataDict[pair][tsStartpt:tsEndpt]) != len(tsEstDataList[tsStartpt:tsEndpt]):
-                    print('***MISMATCH Estimate pair: ' + pair + ', xdata #: ' + str(len(tsEstDataList[tsStartpt:tsEndpt])) + ', ydata #: ' + str(len(estDataDict[pair][tsStartpt:tsEndpt])) + ', tsStartpt: ' + str(tsStartpt) + ', tsEndpt: ' + str(tsEndpt), flush=True)
+                    print('***MISMATCH Estimate pair: ' + pair + ', xdata #: ' + str(len(tsEstDataList[tsStartpt:tsEndpt])) + ', ydata #: ' + str(len(estDataDict[pair][tsStartpt:tsEndpt])) + ', tsStartpt: ' + str(tsStartpt) + ', tsEndpt: ' + str(tsEndpt) + ', skipping pair', flush=True)
+                    continue
+
                 estLinesDict[pair].set_xdata(tsEstDataList[tsStartpt:tsEndpt])
                 estLinesDict[pair].set_ydata(estDataDict[pair][tsStartpt:tsEndpt])
                 estYmin = min(estYmin, min(estDataDict[pair][tsStartpt:tsEndpt]))
@@ -2039,11 +2062,12 @@ def plotEstimateData():
                     estLegendLabelList.append(plotBusDict[pair])
         #print(appName + ': estYmin: ' + str(estYmin) + ', estYmax: ' + str(estYmax), flush=True)
 
-        if plotStatsFlag:
-            plt.sca(uiEstAx)
-            if len(estDataDict['Mean'][tsStartpt:tsEndpt]) > 0:
-                if len(estDataDict['Mean'][tsStartpt:tsEndpt]) != len(tsEstDataList[tsStartpt:tsEndpt]):
-                    print('***MISMATCH Estimate statistics, xdata #: ' + str(len(tsEstDataList[tsStartpt:tsEndpt])) + ', ydata #: ' + str(len(estDataDict['Mean'][tsStartpt:tsEndpt])) + ', tsStartpt: ' + str(tsStartpt) + ', tsEndpt: ' + str(tsEndpt), flush=True)
+        #if plotStatsFlag:
+        #    plt.sca(uiEstAx)
+        #    if len(estDataDict['Mean'][tsStartpt:tsEndpt]) > 0:
+        #        if len(estDataDict['Mean'][tsStartpt:tsEndpt]) != len(tsEstDataList[tsStartpt:tsEndpt]):
+        #            print('***MISMATCH Estimate statistics, xdata #: ' + str(len(tsEstDataList[tsStartpt:tsEndpt])) + ', ydata #: ' + str(len(estDataDict['Mean'][tsStartpt:tsEndpt])) + ', tsStartpt: ' + str(tsStartpt) + ', tsEndpt: ' + str(tsEndpt) + ', skipping pair', flush=True)
+
                 # disable filling between lines because it's too much work
                 # for big models and causes matplotlib to freeze
                 #plt.fill_between(x=tsEstDataList[tsStartpt:tsEndpt], y1=estDataDict['Mean'][tsStartpt:tsEndpt], y2=estDataDict['Stdev Low'][tsStartpt:tsEndpt], color=stdevBlue)
@@ -2057,7 +2081,9 @@ def plotEstimateData():
             for pair in estDataDict:
                 if len(estDataDict[pair][tsStartpt:tsEndpt]) > 0:
                     if len(estDataDict[pair][tsStartpt:tsEndpt]) != len(tsEstDataList[tsStartpt:tsEndpt]):
-                        print('***MISMATCH Difference Estimate pair: ' + pair + ', xdata #: ' + str(len(tsEstDataList[tsStartpt:tsEndpt])) + ', ydata #: ' + str(len(estDataDict[pair][tsStartpt:tsEndpt])) + ', tsStartpt: ' + str(tsStartpt) + ', tsEndpt: ' + str(tsEndpt), flush=True)
+                        print('***MISMATCH Difference Estimate pair: ' + pair + ', xdata #: ' + str(len(tsEstDataList[tsStartpt:tsEndpt])) + ', ydata #: ' + str(len(estDataDict[pair][tsStartpt:tsEndpt])) + ', tsStartpt: ' + str(tsStartpt) + ', tsEndpt: ' + str(tsEndpt) + ', skipping pair', flush=True)
+                        continue
+
                     diffEstLinesDict[pair+' Est'].set_xdata(tsEstDataList[tsStartpt:tsEndpt])
                     diffEstLinesDict[pair+' Est'].set_ydata(estDataDict[pair][tsStartpt:tsEndpt])
                     estDiffYmin = min(estDiffYmin, min(estDataDict[pair][tsStartpt:tsEndpt]))
@@ -2068,7 +2094,9 @@ def plotEstimateData():
                 if len(diffEstDataDict[pair][tsStartpt:tsEndpt]) > 0:
                     diffEstDataFlag = True
                     if len(diffEstDataDict[pair][tsStartpt:tsEndpt]) != len(tsEstDataList[tsStartpt:tsEndpt]):
-                        print('***MISMATCH Difference Estimate pair: ' + pair + ', xdata #: ' + str(len(tsEstDataList[tsStartpt:tsEndpt])) + ', ydata #: ' + str(len(diffEstDataDict[pair][tsStartpt:tsEndpt])) + ', tsStartpt: ' + str(tsStartpt) + ', tsEndpt: ' + str(tsEndpt), flush=True)
+                        print('***MISMATCH Difference Estimate pair: ' + pair + ', xdata #: ' + str(len(tsEstDataList[tsStartpt:tsEndpt])) + ', ydata #: ' + str(len(diffEstDataDict[pair][tsStartpt:tsEndpt])) + ', tsStartpt: ' + str(tsStartpt) + ', tsEndpt: ' + str(tsEndpt) + ', skipping pair', flush=True)
+                        continue
+
                     diffEstLinesDict[pair].set_xdata(tsEstDataList[tsStartpt:tsEndpt])
                     diffEstLinesDict[pair].set_ydata(diffEstDataDict[pair][tsStartpt:tsEndpt])
                     estDiffYmin = min(estDiffYmin, min(diffEstDataDict[pair][tsStartpt:tsEndpt]))
