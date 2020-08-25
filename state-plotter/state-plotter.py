@@ -483,7 +483,7 @@ def estimateConfigCallback(header, message):
                     continue
 
                 cnid = busToEstDict[bus]
-                estlist = list(filter(lambda x:x['ConnectivityNode']==cnid and x['phase']==phase, estVolt))
+                estlist = list(filter(lambda x:x['ConnectivityNode']==cnid and x['phase'].upper()==phase, estVolt))
                 if (len(estlist) == 0):
                     continue
 
@@ -661,7 +661,7 @@ def estimateNoConfigCallback(header, message):
                 continue
 
             cnid = busToEstDict[bus]
-            estlist = list(filter(lambda x:x['ConnectivityNode']==cnid and x['phase']==phase, estVolt))
+            estlist = list(filter(lambda x:x['ConnectivityNode']==cnid and x['phase'].upper()==phase, estVolt))
             if (len(estlist) == 0):
                 continue
 
