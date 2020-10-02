@@ -55,6 +55,8 @@ import statistics
 
 # gridappsd-python module
 from gridappsd import GridAPPSD
+from gridappsd.topics import simulation_output_topic, service_output_topic
+
 
 # requires matplotlib 3.1.0+ for vertical sliders
 import matplotlib.pyplot as plt
@@ -2673,8 +2675,7 @@ Optional command line arguments:
     # a timestamp
     if useSensorsForEstimatesFlag:
         # subscribe to all simulation measurements for the bottom plot
-        gapps.subscribe('/topic/goss.gridappsd.simulation.output.' +
-                        simID, simulationCallback)
+        gapps.subscribe(simulation_output_topic(simID), simulationCallback)
 
     # query to get connectivity node,phase pairs
     queryBusToEst()
@@ -2708,21 +2709,17 @@ Optional command line arguments:
 
     # subscribe to either sensor or simulation measurements for the top plot
     if useSensorsForEstimatesFlag:
-        gapps.subscribe('/topic/goss.gridappsd.simulation.' +
-                        'gridappsd-sensor-simulator.' + simID + '.output',
-                        measCallback)
+        gapps.subscribe(service_output_topic('gridappsd-sensor-simulator',
+                                             simID), measCallback)
     else:
-        gapps.subscribe('/topic/goss.gridappsd.simulation.output.' +
-                        simID, measCallback)
+        gapps.subscribe(simulation_output_topic(simID), measCallback)
 
         if sensorSimulatorRunningFlag:
-            gapps.subscribe('/topic/goss.gridappsd.simulation.' +
-                            'gridappsd-sensor-simulator.' + simID + '.output',
-                            senCallback)
+            gapps.subscribe(service_output_topic('gridappsd-sensor-simulator',
+                                                 simID), senCallback)
 
     # subscribe to state-estimator output--with config file
-    gapps.subscribe('/topic/goss.gridappsd.state-estimator.out.' +
-                    simID, estCallback)
+    gapps.subscribe(service_output_topic('state-estimator', simID), estCallback)
 
     # interactive plot event loop allows both the ActiveMQ messages to be
     # received and plot GUI events
