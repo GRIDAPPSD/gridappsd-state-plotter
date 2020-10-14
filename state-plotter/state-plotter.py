@@ -1670,8 +1670,7 @@ def plotMeasurementData():
                     print('***MISMATCH Measurement show all pair: ' + pair + ', xdata #: ' + str(len(tsMeasDataList)) + ', ydata #: ' + str(len(measDataDict[pair])) + ', skipping pair', flush=True)
                     continue
 
-                measLinesDict[pair].set_xdata(tsMeasDataList)
-                measLinesDict[pair].set_ydata(measDataDict[pair])
+                measLinesDict[pair].set_data(tsMeasDataList, measDataDict[pair])
                 measYmin = min(measYmin, min(measDataDict[pair]))
                 measYmax = max(measYmax, max(measDataDict[pair]))
                 if firstMeasurementPlotFlag and len(plotBusDict)>0:
@@ -1702,8 +1701,7 @@ def plotMeasurementData():
                         continue
 
                     diffMeasDataFlag = True
-                    diffMeasLinesDict[pair+' Actual'].set_xdata(tsMeasDataList)
-                    diffMeasLinesDict[pair+' Actual'].set_ydata(measDataDict[pair])
+                    diffMeasLinesDict[pair+' Actual'].set_data(tsMeasDataList, measDataDict[pair])
                     measDiffYmin = min(measDiffYmin, min(measDataDict[pair]))
                     measDiffYmax = max(measDiffYmax, max(measDataDict[pair]))
 
@@ -1715,8 +1713,7 @@ def plotMeasurementData():
                         continue
 
                     diffMeasDataFlag = True
-                    diffMeasLinesDict[pair].set_xdata(tsMeasDataList)
-                    diffMeasLinesDict[pair].set_ydata(diffMeasDataDict[pair])
+                    diffMeasLinesDict[pair].set_data(tsMeasDataList, diffMeasDataDict[pair])
                     measDiffYmin = min(measDiffYmin, min(diffMeasDataDict[pair]))
                     measDiffYmax = max(measDiffYmax, max(diffMeasDataDict[pair]))
         #print(appName + ': measDiffYmin: ' + str(measDiffYmin) + ', measDiffYmax: ' + str(measDiffYmax), flush=True)
@@ -1803,8 +1800,7 @@ def plotMeasurementData():
                     print('***MISMATCH Measurement pair: ' + pair + ', xdata #: ' + str(len(tsMeasDataList[tsStartpt:tsEndpt])) + ', ydata #: ' + str(len(measDataDict[pair][tsStartpt:tsEndpt])) + ', tsStartpt: ' + str(tsStartpt) + ', tsEndpt: ' + str(tsEndpt) + ', skipping pair', flush=True)
                     continue
 
-                measLinesDict[pair].set_xdata(tsMeasDataList[tsStartpt:tsEndpt])
-                measLinesDict[pair].set_ydata(measDataDict[pair][tsStartpt:tsEndpt])
+                measLinesDict[pair].set_data(tsMeasDataList[tsStartpt:tsEndpt], measDataDict[pair][tsStartpt:tsEndpt])
                 measYmin = min(measYmin, min(measDataDict[pair][tsStartpt:tsEndpt]))
                 measYmax = max(measYmax, max(measDataDict[pair][tsStartpt:tsEndpt]))
                 if firstMeasurementPlotFlag and len(plotBusDict)>0:
@@ -1835,8 +1831,7 @@ def plotMeasurementData():
                         continue
 
                     diffMeasDataFlag = True
-                    diffMeasLinesDict[pair+' Actual'].set_xdata(tsMeasDataList[tsStartpt:tsEndpt])
-                    diffMeasLinesDict[pair+' Actual'].set_ydata(measDataDict[pair][tsStartpt:tsEndpt])
+                    diffMeasLinesDict[pair+' Actual'].set_data(tsMeasDataList[tsStartpt:tsEndpt], measDataDict[pair][tsStartpt:tsEndpt])
                     measDiffYmin = min(measDiffYmin, min(measDataDict[pair][tsStartpt:tsEndpt]))
                     measDiffYmax = max(measDiffYmax, max(measDataDict[pair][tsStartpt:tsEndpt]))
 
@@ -1848,8 +1843,7 @@ def plotMeasurementData():
                         print('***MISMATCH Difference Measurement pair: ' + pair + ', xdata #: ' + str(len(tsMeasDataList[tsStartpt:tsEndpt])) + ', ydata #: ' + str(len(diffMeasDataDict[pair][tsStartpt:tsEndpt])) + ', tsStartpt: ' + str(tsStartpt) + ', tsEndpt: ' + str(tsEndpt) + ', skipping pair', flush=True)
                         continue
 
-                    diffMeasLinesDict[pair].set_xdata(tsMeasDataList[tsStartpt:tsEndpt])
-                    diffMeasLinesDict[pair].set_ydata(diffMeasDataDict[pair][tsStartpt:tsEndpt])
+                    diffMeasLinesDict[pair].set_data(tsMeasDataList[tsStartpt:tsEndpt], diffMeasDataDict[pair][tsStartpt:tsEndpt])
                     measDiffYmin = min(measDiffYmin, min(diffMeasDataDict[pair][tsStartpt:tsEndpt]))
                     measDiffYmax = max(measDiffYmax, max(diffMeasDataDict[pair][tsStartpt:tsEndpt]))
 
@@ -1936,8 +1930,7 @@ def plotEstimateData():
                     print('***MISMATCH Estimate show all pair: ' + pair + ', xdata #: ' + str(len(tsEstDataList)) + ', ydata #: ' + str(len(estDataDict[pair])) + ', skipping pair', flush=True)
                     continue
 
-                estLinesDict[pair].set_xdata(tsEstDataList)
-                estLinesDict[pair].set_ydata(estDataDict[pair])
+                estLinesDict[pair].set_data(tsEstDataList, estDataDict[pair])
                 estYmin = min(estYmin, min(estDataDict[pair]))
                 estYmax = max(estYmax, max(estDataDict[pair]))
                 if firstEstimatePlotFlag and len(plotBusDict)>0:
@@ -1967,8 +1960,7 @@ def plotEstimateData():
                         print('***MISMATCH Difference Estimate show all pair: ' + pair + ', xdata #: ' + str(len(tsEstDataList)) + ', ydata #: ' + str(len(estDataDict[pair])) + ', skipping pair', flush=True)
                         continue
 
-                    diffEstLinesDict[pair+' Est'].set_xdata(tsEstDataList)
-                    diffEstLinesDict[pair+' Est'].set_ydata(estDataDict[pair])
+                    diffEstLinesDict[pair+' Est'].set_data(tsEstDataList, estDataDict[pair])
                     estDiffYmin = min(estDiffYmin, min(estDataDict[pair]))
                     estDiffYmax = max(estDiffYmax, max(estDataDict[pair]))
 
@@ -1980,8 +1972,7 @@ def plotEstimateData():
                         continue
 
                     diffEstDataFlag = True
-                    diffEstLinesDict[pair].set_xdata(tsEstDataList)
-                    diffEstLinesDict[pair].set_ydata(diffEstDataDict[pair])
+                    diffEstLinesDict[pair].set_data(tsEstDataList, diffEstDataDict[pair])
                     estDiffYmin = min(estDiffYmin, min(diffEstDataDict[pair]))
                     estDiffYmax = max(estDiffYmax, max(diffEstDataDict[pair]))
         #print(appName + ': estDiffYmin: ' + str(estDiffYmin) + ', estDiffYmax: ' + str(estDiffYmax), flush=True)
@@ -2067,8 +2058,7 @@ def plotEstimateData():
                     print('***MISMATCH Estimate pair: ' + pair + ', xdata #: ' + str(len(tsEstDataList[tsStartpt:tsEndpt])) + ', ydata #: ' + str(len(estDataDict[pair][tsStartpt:tsEndpt])) + ', tsStartpt: ' + str(tsStartpt) + ', tsEndpt: ' + str(tsEndpt) + ', skipping pair', flush=True)
                     continue
 
-                estLinesDict[pair].set_xdata(tsEstDataList[tsStartpt:tsEndpt])
-                estLinesDict[pair].set_ydata(estDataDict[pair][tsStartpt:tsEndpt])
+                estLinesDict[pair].set_data(tsEstDataList[tsStartpt:tsEndpt], estDataDict[pair][tsStartpt:tsEndpt])
                 estYmin = min(estYmin, min(estDataDict[pair][tsStartpt:tsEndpt]))
                 estYmax = max(estYmax, max(estDataDict[pair][tsStartpt:tsEndpt]))
                 if firstEstimatePlotFlag and len(plotBusDict)>0:
@@ -2098,8 +2088,7 @@ def plotEstimateData():
                         print('***MISMATCH Difference Estimate pair: ' + pair + ', xdata #: ' + str(len(tsEstDataList[tsStartpt:tsEndpt])) + ', ydata #: ' + str(len(estDataDict[pair][tsStartpt:tsEndpt])) + ', tsStartpt: ' + str(tsStartpt) + ', tsEndpt: ' + str(tsEndpt) + ', skipping pair', flush=True)
                         continue
 
-                    diffEstLinesDict[pair+' Est'].set_xdata(tsEstDataList[tsStartpt:tsEndpt])
-                    diffEstLinesDict[pair+' Est'].set_ydata(estDataDict[pair][tsStartpt:tsEndpt])
+                    diffEstLinesDict[pair+' Est'].set_data(tsEstDataList[tsStartpt:tsEndpt], estDataDict[pair][tsStartpt:tsEndpt])
                     estDiffYmin = min(estDiffYmin, min(estDataDict[pair][tsStartpt:tsEndpt]))
                     estDiffYmax = max(estDiffYmax, max(estDataDict[pair][tsStartpt:tsEndpt]))
 
@@ -2111,8 +2100,7 @@ def plotEstimateData():
                         print('***MISMATCH Difference Estimate pair: ' + pair + ', xdata #: ' + str(len(tsEstDataList[tsStartpt:tsEndpt])) + ', ydata #: ' + str(len(diffEstDataDict[pair][tsStartpt:tsEndpt])) + ', tsStartpt: ' + str(tsStartpt) + ', tsEndpt: ' + str(tsEndpt) + ', skipping pair', flush=True)
                         continue
 
-                    diffEstLinesDict[pair].set_xdata(tsEstDataList[tsStartpt:tsEndpt])
-                    diffEstLinesDict[pair].set_ydata(diffEstDataDict[pair][tsStartpt:tsEndpt])
+                    diffEstLinesDict[pair].set_data(tsEstDataList[tsStartpt:tsEndpt], diffEstDataDict[pair][tsStartpt:tsEndpt])
                     estDiffYmin = min(estDiffYmin, min(diffEstDataDict[pair][tsStartpt:tsEndpt]))
                     estDiffYmax = max(estDiffYmax, max(diffEstDataDict[pair][tsStartpt:tsEndpt]))
 
