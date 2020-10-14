@@ -1047,6 +1047,18 @@ def measurementNoConfigCallback(header, message):
                     diffMeasLinesDict[buspair+' Meas'], = uiDiffAx.plot([], [], label=buspair+' Meas.', color=color)
 
             meas = measVolt[measmrid]
+
+            # TODO first clue that a refactor is needed to handle missing data
+            # from the sensor service, but possible even for simulation data
+            # Need to be able to create new measDataDict entries whenever
+            # they don't exist instead of just on the first measurement
+            # As a side effect of that, the x-axis time data needs to be
+            # kept for each measDataDict entry instead of shared between
+            # all entries
+            if measkey not in meas:
+                print('*** measkey NOT FOUND buspair: ' + buspair + ', meas: ' + str(meas), flush=True)
+                continue
+
             measvval = meas[measkey]
             measvval = calcBusVNom(measvval, buspair)
 
