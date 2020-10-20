@@ -78,10 +78,6 @@ plotBusDict = {}
 simAllDataDict = {}
 senAllDataDict = {}
 
-tsMeasDataList = []
-tsMeasDataPausedList = []
-tsEstDataList = []
-tsEstDataPausedList = []
 measDataDict = {}
 measDataPausedDict = {}
 estDataDict = {}
@@ -90,6 +86,16 @@ diffMeasDataDict = {}
 diffMeasDataPausedDict = {}
 diffEstDataDict = {}
 diffEstDataPausedDict = {}
+
+tsMeasDataDict = {}
+tsMeasDataPausedDict = {}
+tsEstDataDict = {}
+tsEstDataPausedDict = {}
+tsDiffMeasDataDict = {}
+tsDiffMeasDataPausedDict = {}
+tsDiffEstDataDict = {}
+tsDiffEstDataPausedDict = {}
+
 measLinesDict = {}
 estLinesDict = {}
 diffMeasLinesDict = {}
@@ -119,8 +125,6 @@ plotShowAllFlag = False
 firstMeasurementPassFlag = True
 firstSensorPassFlag = True
 firstEstimatePassFlag = True
-firstMeasurementPlotFlag = True
-firstEstimatePlotFlag = True
 plotOverlayFlag = False
 plotLegendFlag = False
 plotMatchesFlag = True
@@ -395,9 +399,13 @@ def estimateConfigAppend(ts, buspair, item, estkey, measkey,
 
     measvval = None
     if not plotMatchesFlag:
-        if len(foundSet) == 1:
-            tsEstDataPausedList.append(ts - tsInit) if plotPausedFlag else tsEstDataList.append(ts - tsInit)
-        estDataPausedDict[buspair].append(estvval) if plotPausedFlag else estDataDict[buspair].append(estvval)
+        if plotPausedFlag:
+            estDataPausedDict[buspair].append(estvval)
+            tsEstDataPausedDict[buspair].append(ts - tsInit)
+        else:
+            estDataDict[buspair].append(estvval)
+            tsEstDataDict[buspair].append(ts - tsInit)
+
     if measDataTS is not None and buspair in busToMeasDict:
         for measmrid in busToMeasDict[buspair]:
             if buspair in foundDiffSet:
@@ -407,10 +415,14 @@ def estimateConfigAppend(ts, buspair, item, estkey, measkey,
                 meas = measDataTS[measmrid]
                 if measkey in meas:
                     foundDiffSet.add(buspair)
+
                     if plotMatchesFlag:
-                        if len(foundDiffSet) == 1:
-                            tsEstDataPausedList.append(ts - tsInit) if plotPausedFlag else tsEstDataList.append(ts - tsInit)
-                        estDataPausedDict[buspair].append(estvval) if plotPausedFlag else estDataDict[buspair].append(estvval)
+                        if plotPausedFlag:
+                            estDataPausedDict[buspair].append(estvval)
+                            tsEstDataPausedDict[buspair].append(ts - tsInit)
+                        else:
+                            estDataDict[buspair].append(estvval)
+                            tsEstDataDict[buspair].append(ts - tsInit)
 
                     if measmrid in simDataTS:
                         sim = simDataTS[measmrid]
@@ -426,7 +438,12 @@ def estimateConfigAppend(ts, buspair, item, estkey, measkey,
                                 diffestvval = 0.0
 
                             if not plotOverlayFlag:
-                                diffEstDataPausedDict[buspair+' Est'].append(diffestvval) if plotPausedFlag else diffEstDataDict[buspair+' Est'].append(diffestvval)
+                                if plotPausedFlag:
+                                    diffEstDataPausedDict[buspair+' Est'].append(diffestvval)
+                                    tsDiffEstDataPausedDict[buspair+' Est'].append(ts - tsInit)
+                                else:
+                                    diffEstDataDict[buspair+' Est'].append(diffestvval)
+                                    tsDiffEstDataDict[buspair+' Est'].append(ts - tsInit)
 
                             measvval = meas[measkey]
                             measvval = calcBusVNom(measvval, buspair)
@@ -528,13 +545,18 @@ def estimateNoConfigAppend(ts, buspair, item, estkey, measkey,
     #print(appName + ': timestamp: ' + str(ts), flush=True)
     #print(appName + ': estvval: ' + str(estvval), flush=True)
 
-    # only do the dictionary initializtion code on the first call
-    if firstEstimatePassFlag:
+    # do dictionary and plot lines initialization the first time
+    # the buspair is encountered
+    if buspair not in estDataDict:
         estDataDict[buspair] = []
+        tsEstDataDict[buspair] = []
         estDataPausedDict[buspair] = []
+        tsEstDataPausedDict[buspair] = []
         if not plotOverlayFlag:
             diffEstDataDict[buspair+' Est'] = []
+            tsDiffEstDataDict[buspair+' Est'] = []
             diffEstDataPausedDict[buspair+' Est'] = []
+            tsDiffEstDataPausedDict[buspair+' Est'] = []
 
         # create a lines dictionary entry per bus,phase pair for each plot
         if plotOverlayFlag:
@@ -571,9 +593,12 @@ def estimateNoConfigAppend(ts, buspair, item, estkey, measkey,
 
     measvval = None
     if not plotMatchesFlag:
-        if len(foundSet) == 1:
-            tsEstDataPausedList.append(ts - tsInit) if plotPausedFlag else tsEstDataList.append(ts - tsInit)
-        estDataPausedDict[buspair].append(estvval) if plotPausedFlag else estDataDict[buspair].append(estvval)
+        if plotPausedFlag:
+            estDataPausedDict[buspair].append(estvval)
+            tsEstDataPausedDict[buspair].append(ts - tsInit)
+        else:
+            estDataDict[buspair].append(estvval)
+            tsEstDataDict[buspair].append(ts - tsInit)
 
     if measDataTS is not None and buspair in busToMeasDict:
         for measmrid in busToMeasDict[buspair]:
@@ -584,10 +609,14 @@ def estimateNoConfigAppend(ts, buspair, item, estkey, measkey,
                 meas = measDataTS[measmrid]
                 if measkey in meas:
                     foundDiffSet.add(buspair)
+
                     if plotMatchesFlag:
-                        if len(foundDiffSet) == 1:
-                            tsEstDataPausedList.append(ts - tsInit) if plotPausedFlag else tsEstDataList.append(ts - tsInit)
-                        estDataPausedDict[buspair].append(estvval) if plotPausedFlag else estDataDict[buspair].append(estvval)
+                        if plotPausedFlag:
+                            estDataPausedDict[buspair].append(estvval)
+                            tsEstDataPausedDict[buspair].append(ts - tsInit)
+                        else:
+                            estDataDict[buspair].append(estvval)
+                            tsEstDataDict[buspair].append(ts - tsInit)
 
                     if measmrid in simDataTS:
                         sim = simDataTS[measmrid]
@@ -603,7 +632,12 @@ def estimateNoConfigAppend(ts, buspair, item, estkey, measkey,
                                 diffestvval = 0.0
 
                             if not plotOverlayFlag:
-                                diffEstDataPausedDict[buspair+' Est'].append(diffestvval) if plotPausedFlag else diffEstDataDict[buspair+' Est'].append(diffestvval)
+                                if plotPausedFlag:
+                                    diffEstDataPausedDict[buspair+' Est'].append(diffestvval)
+                                    tsDiffEstDataPausedDict[buspair+' Est'].append(ts - tsInit)
+                                else:
+                                    diffEstDataDict[buspair+' Est'].append(diffestvval)
+                                    tsDiffEstDataDict[buspair+' Est'].append(ts - tsInit)
 
                             measvval = meas[measkey]
                             measvval = calcBusVNom(measvval, buspair)
@@ -631,8 +665,6 @@ def estimateNoConfigAppend(ts, buspair, item, estkey, measkey,
 
 
 def estimateNoConfigCallback(header, message):
-    global firstEstimatePassFlag
-
     msgdict = message['message']
     ts = msgdict['timestamp']
     #print(appName + ': estimate timestamp: ' + str(ts), flush=True)
@@ -685,8 +717,6 @@ def estimateNoConfigCallback(header, message):
             if estimateNoConfigAppend(ts, buspair, item, estkey, measkey,
                                  foundSet, foundDiffSet, measDataTS, simDataTS):
                 break
-
-    firstEstimatePassFlag = False
 
     #if plotNumber > 0:
     #    print(appName + ': ' + str(len(estVolt)) + ' state-estimator measurements, ' + str(len(foundSet)) + ' node,phase pair matches (matching first ' + str(plotNumber) + '), ' + str(len(foundDiffSet)) + ' matches to measurement data', flush=True)
@@ -823,22 +853,43 @@ def estimateStatsCallback(header, message):
             else:
                 vangPrintWithoutMeas(ts, buspair, estvval)
 
-    tsEstDataPausedList.append(ts - tsInit) if plotPausedFlag else tsEstDataList.append(ts - tsInit)
-
     estmin = min(estlist)
     estmax = max(estlist)
     estmean = statistics.mean(estlist)
     eststdev = statistics.pstdev(estlist, estmean)
-    estDataPausedDict['Min'].append(estmin) if plotPausedFlag else estDataDict['Min'].append(estmin)
-    estDataPausedDict['Max'].append(estmax) if plotPausedFlag else estDataDict['Max'].append(estmax)
-    estDataPausedDict['Mean'].append(estmean) if plotPausedFlag else estDataDict['Mean'].append(estmean)
-    estDataPausedDict['Stdev Low'].append(estmean-eststdev) if plotPausedFlag else estDataDict['Stdev Low'].append(estmean-eststdev)
-    estDataPausedDict['Stdev High'].append(estmean+eststdev) if plotPausedFlag else estDataDict['Stdev High'].append(estmean+eststdev)
+    if plotPausedFlag:
+        estDataPausedDict['Min'].append(estmin)
+        tsEstDataPausedDict['Min'].append(ts - tsInit)
+        estDataPausedDict['Max'].append(estmax)
+        tsEstDataPausedDict['Max'].append(ts - tsInit)
+        estDataPausedDict['Mean'].append(estmean)
+        tsEstDataPausedDict['Mean'].append(ts - tsInit)
+        estDataPausedDict['Stdev Low'].append(estmean-eststdev)
+        tsEstDataPausedDict['Stdev Low'].append(ts - tsInit)
+        estDataPausedDict['Stdev High'].append(estmean+eststdev)
+        tsEstDataPausedDict['Stdev High'].append(ts - tsInit)
+    else:
+        estDataDict['Min'].append(estmin)
+        tsEstDataDict['Min'].append(ts - tsInit)
+        estDataDict['Max'].append(estmax)
+        tsEstDataDict['Max'].append(ts - tsInit)
+        estDataDict['Mean'].append(estmean)
+        tsEstDataDict['Mean'].append(ts - tsInit)
+        estDataDict['Stdev Low'].append(estmean-eststdev)
+        tsEstDataDict['Stdev Low'].append(ts - tsInit)
+        estDataDict['Stdev High'].append(estmean+eststdev)
+        tsEstDataDict['Stdev High'].append(ts - tsInit)
 
     if not plotOverlayFlag:
         if len(diffestlist) > 0:
             diffestmean = statistics.mean(diffestlist)
-            diffEstDataPausedDict['Mean Est'].append(diffestmean) if plotPausedFlag else diffEstDataDict['Mean Est'].append(diffestmean)
+            if plotPausedFlag:
+                diffEstDataPausedDict['Mean Est'].append(diffestmean)
+                tsDiffEstDataPausedDict['Mean Est'].append(ts - tsInit)
+            else:
+                diffEstDataDict['Mean Est'].append(diffestmean)
+                tsDiffEstDataDict['Mean Est'].append(ts - tsInit)
+
             if plotMagFlag:
                 print(appName + ': mean magnitude % diff estimate: ' + str(diffestmean), flush=True)
             else:
@@ -918,9 +969,13 @@ def measurementConfigCallback(header, message):
         # or if the buspair was previously processed (multiple mrids for
         # bus,phase pairs are possible where we just take the first)
         if buspair in plotBusDict and buspair not in foundSet:
+            meas = measVolt[measmrid]
+
+            if measkey not in meas:
+                continue
+
             foundSet.add(buspair)
 
-            meas = measVolt[measmrid]
             measvval = meas[measkey]
             measvval = calcBusVNom(measvval, buspair)
 
@@ -928,10 +983,12 @@ def measurementConfigCallback(header, message):
             #print(appName + ': timestamp: ' + str(ts), flush=True)
             #print(appName + ': measvval: ' + str(measvval), flush=True)
 
-            if len(foundSet) == 1:
-                tsMeasDataPausedList.append(ts - tsInit) if plotPausedFlag else tsMeasDataList.append(ts - tsInit)
-
-            measDataPausedDict[buspair].append(measvval) if plotPausedFlag else measDataDict[buspair].append(measvval)
+            if plotPausedFlag:
+                measDataPausedDict[buspair].append(measvval)
+                tsMeasDataPausedDict[buspair].append(ts - tsInit)
+            else:
+                measDataDict[buspair].append(measvval)
+                tsMeasDataDict[buspair].append(ts - tsInit)
 
             if not plotOverlayFlag and simDataTS and measmrid in simDataTS:
                 sim = simDataTS[measmrid]
@@ -946,7 +1003,12 @@ def measurementConfigCallback(header, message):
                     else:
                         diffmeasvval = 0.0
 
-                    diffMeasDataPausedDict[buspair+' Meas'].append(diffmeasvval) if plotPausedFlag else diffMeasDataDict[buspair+' Meas'].append(diffmeasvval)
+                    if plotPausedFlag:
+                        diffMeasDataPausedDict[buspair+' Meas'].append(diffmeasvval)
+                        tsDiffMeasDataPausedDict[buspair+' Meas'].append(ts - tsInit)
+                    else:
+                        diffMeasDataDict[buspair+' Meas'].append(diffmeasvval)
+                        tsDiffMeasDataDict[buspair+' Meas'].append(ts - tsInit)
 
             # no reason to keep checking more pairs if we've found all we
             # are looking for
@@ -998,6 +1060,7 @@ def measurementNoConfigCallback(header, message):
         simDataTS = findSimTS(ts)
 
     if firstMeasurementPassFlag:
+        firstMeasurementPassFlag = False
         # save first timestamp so what we plot is an offset from this
         tsInit = ts
         setTSZoomSliderVals(len(measVolt))
@@ -1017,81 +1080,87 @@ def measurementNoConfigCallback(header, message):
         buspair = measToBusDict[measmrid]
         bus, phase = buspair.split(',')
 
-        # only consider phases A, B, C and user-specified phases
-        #if phase!='A' and phase!='B' and phase!='C' or \
-        #   len(plotPhaseList)>0 and phase not in plotPhaseList:
+        # check user-specified phases
         if len(plotPhaseList)>0 and phase not in plotPhaseList:
             continue
 
         # skip if this is a buspair that was previously processed
         # (multiple mrids for bus,phase pairs are possible where we
         # just take the first)
-        if buspair not in foundSet:
-            foundSet.add(buspair)
+        if buspair in foundSet:
+            continue
 
-            # only do the dictionary initializtion code on the first call
-            if firstMeasurementPassFlag:
-                measDataDict[buspair] = []
-                measDataPausedDict[buspair] = []
-                if not plotOverlayFlag and sensorSimulatorRunningFlag:
-                    diffMeasDataDict[buspair+' Meas'] = []
-                    diffMeasDataPausedDict[buspair+' Meas'] = []
+        meas = measVolt[measmrid]
 
-                # create a lines dictionary entry per node/phase pair for each plot
-                measLinesDict[buspair], = uiMeasAx.plot([], [], label=buspair)
-                color = measLinesDict[buspair].get_color()
+        # TODO handle missing measurement values
+        if measkey not in meas:
+            print('*** ' + measkey + ' NOT FOUND for buspair: ' + buspair + ', meas: ' + str(meas), flush=True)
+            continue
 
-                if plotOverlayFlag:
-                    diffMeasLinesDict[buspair+' Actual'], = uiDiffAx.plot([], [], label=buspair+' Actual', color=color)
+        # only consider the buspair as found if the measurement value
+        # needed exists
+        foundSet.add(buspair)
+
+        measvval = meas[measkey]
+        measvval = calcBusVNom(measvval, buspair)
+
+        #print(appName + ': measurement bus,phase pair: ' + buspair, flush=True)
+        #print(appName + ': timestamp: ' + str(ts), flush=True)
+        #print(appName + ': measvval: ' + str(measvval), flush=True)
+
+        # do dictionary and plot lines initialization the first time
+        # the buspair is encountered
+        if buspair not in measDataDict:
+            measDataDict[buspair] = []
+            tsMeasDataDict[buspair] = []
+            measDataPausedDict[buspair] = []
+            tsMeasDataPausedDict[buspair] = []
+            if not plotOverlayFlag and sensorSimulatorRunningFlag:
+                diffMeasDataDict[buspair+' Meas'] = []
+                tsDiffMeasDataDict[buspair+' Meas'] = []
+                diffMeasDataPausedDict[buspair+' Meas'] = []
+                tsDiffMeasDataPausedDict[buspair+' Meas'] = []
+
+            # create a lines dictionary entry per node/phase pair
+            measLinesDict[buspair], = uiMeasAx.plot([], [], label=buspair)
+            color = measLinesDict[buspair].get_color()
+
+            if plotOverlayFlag:
+                diffMeasLinesDict[buspair+' Actual'], = uiDiffAx.plot([], [], label=buspair+' Actual', color=color)
+            else:
+                diffMeasLinesDict[buspair+' Meas'], = uiDiffAx.plot([], [], label=buspair+' Meas.', color=color)
+
+        if plotPausedFlag:
+            measDataPausedDict[buspair].append(measvval)
+            tsMeasDataPausedDict[buspair].append(ts - tsInit)
+        else:
+            measDataDict[buspair].append(measvval)
+            tsMeasDataDict[buspair].append(ts - tsInit)
+
+        if not plotOverlayFlag and simDataTS and measmrid in simDataTS:
+            sim = simDataTS[measmrid]
+            if measkey in sim:
+                simvval = sim[measkey]
+                simvval = calcBusVNom(simvval, buspair)
+
+                if not plotMagFlag:
+                    diffmeasvval = measvval - simvval
+                elif simvval != 0.0:
+                    diffmeasvval = abs(100.0*(measvval - simvval)/simvval)
                 else:
-                    diffMeasLinesDict[buspair+' Meas'], = uiDiffAx.plot([], [], label=buspair+' Meas.', color=color)
+                    diffmeasvval = 0.0
 
-            meas = measVolt[measmrid]
+                if plotPausedFlag:
+                    diffMeasDataPausedDict[buspair+' Meas'].append(diffmeasvval)
+                    tsDiffMeasDataPausedDict[buspair+' Meas'].append(ts - tsInit)
+                else:
+                    diffMeasDataDict[buspair+' Meas'].append(diffmeasvval)
+                    tsDiffMeasDataDict[buspair+' Meas'].append(ts - tsInit)
 
-            # TODO first clue that a refactor is needed to handle missing data
-            # from the sensor service, but possible even for simulation data
-            # Need to be able to create new measDataDict entries whenever
-            # they don't exist instead of just on the first measurement
-            # As a side effect of that, the x-axis time data needs to be
-            # kept for each measDataDict entry instead of shared between
-            # all entries
-            if measkey not in meas:
-                print('*** measkey NOT FOUND buspair: ' + buspair + ', meas: ' + str(meas), flush=True)
-                continue
-
-            measvval = meas[measkey]
-            measvval = calcBusVNom(measvval, buspair)
-
-            #print(appName + ': measurement bus,phase pair: ' + buspair, flush=True)
-            #print(appName + ': timestamp: ' + str(ts), flush=True)
-            #print(appName + ': measvval: ' + str(measvval), flush=True)
-
-            if len(foundSet) == 1:
-                tsMeasDataPausedList.append(ts - tsInit) if plotPausedFlag else tsMeasDataList.append(ts - tsInit)
-
-            measDataPausedDict[buspair].append(measvval) if plotPausedFlag else measDataDict[buspair].append(measvval)
-
-            if not plotOverlayFlag and simDataTS and measmrid in simDataTS:
-                sim = simDataTS[measmrid]
-                if measkey in sim:
-                    simvval = sim[measkey]
-                    simvval = calcBusVNom(simvval, buspair)
-
-                    if not plotMagFlag:
-                        diffmeasvval = measvval - simvval
-                    elif simvval != 0.0:
-                        diffmeasvval = abs(100.0*(measvval - simvval)/simvval)
-                    else:
-                        diffmeasvval = 0.0
-
-                    diffMeasDataPausedDict[buspair+' Meas'].append(diffmeasvval) if plotPausedFlag else diffMeasDataDict[buspair+' Meas'].append(diffmeasvval)
-
-            # no reason to keep checking more pairs if we've found all we
-            # are looking for
-            if plotNumber>0 and len(foundSet)==plotNumber:
-                break
-
-    firstMeasurementPassFlag = False
+        # no reason to keep checking more pairs if we've found all we
+        # are looking for
+        if plotNumber>0 and len(foundSet)==plotNumber:
+            break
 
     #if plotNumber > 0:
     #    print(appName + ': ' + str(len(measVolt)) + ' measurements, ' + str(len(foundSet)) + ' node,phase pair matches (matching first ' + str(plotNumber) + ')', flush=True)
@@ -1208,9 +1277,13 @@ def measurementStatsCallback(header, message):
         if buspair in foundSet:
             continue
 
+        meas = measVolt[measmrid]
+
+        if measkey not in meas:
+            continue
+
         foundSet.add(buspair)
 
-        meas = measVolt[measmrid]
         measvval = meas[measkey]
         measvval = calcBusVNom(measvval, buspair)
 
@@ -1235,22 +1308,44 @@ def measurementStatsCallback(header, message):
 
                 diffmeaslist.append(diffmeasvval)
 
-    tsMeasDataPausedList.append(ts - tsInit) if plotPausedFlag else tsMeasDataList.append(ts - tsInit)
-
     if len(measlist) > 0:
         measmin = min(measlist)
         measmax = max(measlist)
         measmean = statistics.mean(measlist)
         measstdev = statistics.pstdev(measlist, measmean)
-        measDataPausedDict['Min'].append(measmin) if plotPausedFlag else measDataDict['Min'].append(measmin)
-        measDataPausedDict['Max'].append(measmax) if plotPausedFlag else measDataDict['Max'].append(measmax)
-        measDataPausedDict['Mean'].append(measmean) if plotPausedFlag else measDataDict['Mean'].append(measmean)
-        measDataPausedDict['Stdev Low'].append(measmean-measstdev) if plotPausedFlag else measDataDict['Stdev Low'].append(measmean-measstdev)
-        measDataPausedDict['Stdev High'].append(measmean+measstdev) if plotPausedFlag else measDataDict['Stdev High'].append(measmean+measstdev)
+        if plotPausedFlag:
+            measDataPausedDict['Min'].append(measmin)
+            tsMeasDataPausedDict['Min'].append(ts - tsInit)
+            measDataPausedDict['Max'].append(measmax)
+            tsMeasDataPausedDict['Max'].append(ts - tsInit)
+            measDataPausedDict['Mean'].append(measmean)
+            tsMeasDataPausedDict['Mean'].append(ts - tsInit)
+            measDataPausedDict['Stdev Low'].append(measmean-measstdev)
+            tsMeasDataPausedDict['Stdev Low'].append(ts - tsInit)
+            measDataPausedDict['Stdev High'].append(measmean+measstdev)
+            tsMeasDataPausedDict['Stdev High'].append(ts - tsInit)
+        else:
+            measDataDict['Min'].append(measmin)
+            tsMeasDataDict['Min'].append(ts - tsInit)
+            measDataDict['Max'].append(measmax)
+            tsMeasDataDict['Max'].append(ts - tsInit)
+            measDataDict['Mean'].append(measmean)
+            tsMeasDataDict['Mean'].append(ts - tsInit)
+            measDataDict['Stdev Low'].append(measmean-measstdev)
+            tsMeasDataDict['Stdev Low'].append(ts - tsInit)
+            measDataDict['Stdev High'].append(measmean+measstdev)
+            tsMeasDataDict['Stdev High'].append(ts - tsInit)
+            tsMeasDataDict['Stats'].append(ts - tsInit)
 
     if not plotOverlayFlag and sensorSimulatorRunningFlag and len(diffmeaslist)>0:
         diffmeasmean = statistics.mean(diffmeaslist)
-        diffMeasDataPausedDict['Mean Meas'].append(diffmeasmean) if plotPausedFlag else diffMeasDataDict['Mean Meas'].append(diffmeasmean)
+        if plotPausedFlag:
+            diffMeasDataPausedDict['Mean Meas'].append(diffmeasmean)
+            tsDiffMeasDataPausedDict['Mean Meas'].append(ts - tsInit)
+        else:
+            diffMeasDataDict['Mean Meas'].append(diffmeasmean)
+            tsDiffMeasDataDict['Mean Meas'].append(ts - tsInit)
+
         if plotMagFlag:
             print(appName + ': mean magnitude % diff measurement: ' + str(diffmeasmean), flush=True)
         else:
@@ -1339,9 +1434,13 @@ def sensorConfigCallback(header, message):
         # or if the buspair was previously processed (multiple mrids for
         # bus,phase pairs are possible where we just take the first)
         if buspair in plotBusDict and buspair not in foundSet:
+            meas = measVolt[measmrid]
+
+            if measkey not in meas:
+                continue
+
             foundSet.add(buspair)
 
-            meas = measVolt[measmrid]
             measvval = meas[measkey]
             measvval = calcBusVNom(measvval, buspair)
 
@@ -1349,6 +1448,8 @@ def sensorConfigCallback(header, message):
             #print(appName + ': timestamp: ' + str(ts), flush=True)
             #print(appName + ': measvval: ' + str(measvval), flush=True)
 
+            # TODO we only process when not plotOverlayFlag so any reason
+            # not to move that check up earlier?
             if not plotOverlayFlag and simDataTS and measmrid in simDataTS:
                 sim = simDataTS[measmrid]
                 if measkey in sim:
@@ -1362,7 +1463,12 @@ def sensorConfigCallback(header, message):
                     else:
                         diffmeasvval = 0.0
 
-                    diffMeasDataPausedDict[buspair+' Meas'].append(diffmeasvval) if plotPausedFlag else diffMeasDataDict[buspair+' Meas'].append(diffmeasvval)
+                    if plotPausedFlag:
+                        diffMeasDataPausedDict[buspair+' Meas'].append(diffmeasvval)
+                        tsDiffMeasDataPausedDict[buspair+' Meas'].append(ts - tsInit)
+                    else:
+                        diffMeasDataDict[buspair+' Meas'].append(diffmeasvval)
+                        tsDiffMeasDataDict[buspair+' Meas'].append(ts - tsInit)
 
             # no reason to keep checking more pairs if we've found all we
             # are looking for
@@ -1376,8 +1482,6 @@ def sensorConfigCallback(header, message):
 
 
 def sensorNoConfigCallback(header, message):
-    global firstSensorPassFlag
-
     msgdict = message['message']
     ts = msgdict['timestamp']
 
@@ -1412,58 +1516,66 @@ def sensorNoConfigCallback(header, message):
         buspair = measToBusDict[measmrid]
         bus, phase = buspair.split(',')
 
-        # only consider phases A, B, C and user-specified phases
-        #if phase!='A' and phase!='B' and phase!='C' or \
-        #   len(plotPhaseList)>0 and phase not in plotPhaseList:
+        # consider user-specified phases
         if len(plotPhaseList)>0 and phase not in plotPhaseList:
             continue
 
         # skip if this is a buspair that was previously processed
         # (multiple mrids for bus,phase pairs are possible where we
         # just take the first)
-        if buspair not in foundSet:
-            foundSet.add(buspair)
+        if buspair in foundSet:
+            continue
 
-            # only do the dictionary initializtion code on the first call
-            if firstSensorPassFlag and not plotOverlayFlag:
-                diffMeasDataDict[buspair+' Meas'] = []
-                diffMeasDataPausedDict[buspair+' Meas'] = []
+        meas = measVolt[measmrid]
 
-                # create a lines dictionary entry per node/phase pair for each plot
-                if plotOverlayFlag:
-                    diffMeasLinesDict[buspair+' Actual'], = uiDiffAx.plot([], [], label=buspair+' Actual')
+        if measkey not in meas:
+            continue
+
+        foundSet.add(buspair)
+
+        measvval = meas[measkey]
+        measvval = calcBusVNom(measvval, buspair)
+
+        #print(appName + ': bus,phase pair: ' + buspair, flush=True)
+        #print(appName + ': timestamp: ' + str(ts), flush=True)
+        #print(appName + ': measvval: ' + str(measvval), flush=True)
+
+        # do dictionary and plot lines initialization the first time
+        # the buspair is encountered
+        if buspair+' Meas' not in diffMeasDataDict:
+            diffMeasDataDict[buspair+' Meas'] = []
+            diffMeasDataPausedDict[buspair+' Meas'] = []
+
+            # create a lines dictionary entry per node/phase pair for each plot
+            if plotOverlayFlag:
+                diffMeasLinesDict[buspair+' Actual'], = uiDiffAx.plot([], [], label=buspair+' Actual')
+            else:
+                diffMeasLinesDict[buspair+' Meas'], = uiDiffAx.plot([], [], label=buspair+' Meas.')
+
+        if not plotOverlayFlag and simDataTS and measmrid in simDataTS:
+            sim = simDataTS[measmrid]
+            if measkey in sim:
+                simvval = sim[measkey]
+                simvval = calcBusVNom(simvval, buspair)
+
+                if not plotMagFlag:
+                    diffmeasvval = measvval - simvval
+                elif simvval != 0.0:
+                    diffmeasvval = abs(100.0*(measvval - simvval)/simvval)
                 else:
-                    diffMeasLinesDict[buspair+' Meas'], = uiDiffAx.plot([], [], label=buspair+' Meas.')
+                    diffmeasvval = 0.0
 
-            meas = measVolt[measmrid]
-            measvval = meas[measkey]
-            measvval = calcBusVNom(measvval, buspair)
+                if plotPausedFlag:
+                    diffMeasDataPausedDict[buspair+' Meas'].append(diffmeasvval)
+                    tsDiffMeasDataPausedDict[buspair+' Meas'].append(ts - tsInit)
+                else:
+                    diffMeasDataDict[buspair+' Meas'].append(diffmeasvval)
+                    tsDiffMeasDataDict[buspair+' Meas'].append(ts - tsInit)
 
-            #print(appName + ': bus,phase pair: ' + buspair, flush=True)
-            #print(appName + ': timestamp: ' + str(ts), flush=True)
-            #print(appName + ': measvval: ' + str(measvval), flush=True)
-
-            if not plotOverlayFlag and simDataTS and measmrid in simDataTS:
-                sim = simDataTS[measmrid]
-                if measkey in sim:
-                    simvval = sim[measkey]
-                    simvval = calcBusVNom(simvval, buspair)
-
-                    if not plotMagFlag:
-                        diffmeasvval = measvval - simvval
-                    elif simvval != 0.0:
-                        diffmeasvval = abs(100.0*(measvval - simvval)/simvval)
-                    else:
-                        diffmeasvval = 0.0
-
-                    diffMeasDataPausedDict[buspair+' Meas'].append(diffmeasvval) if plotPausedFlag else diffMeasDataDict[buspair+' Meas'].append(diffmeasvval)
-
-            # no reason to keep checking more pairs if we've found all we
-            # are looking for
-            if plotNumber>0 and len(foundSet)==plotNumber:
-                break
-
-    firstSensorPassFlag = False
+        # no reason to keep checking more pairs if we've found all we
+        # are looking for
+        if plotNumber>0 and len(foundSet)==plotNumber:
+            break
 
     #if plotNumber > 0:
     #    print(appName + ': ' + str(len(measVolt)) + ' measurements, ' + str(len(foundSet)) + ' node,phase pair matches (matching first ' + str(plotNumber) + ')', flush=True)
@@ -1540,9 +1652,13 @@ def sensorStatsCallback(header, message):
         if buspair in foundSet:
             continue
 
+        meas = measVolt[measmrid]
+
+        if measkey not in measvval:
+            continue
+
         foundSet.add(buspair)
 
-        meas = measVolt[measmrid]
         measvval = meas[measkey]
         measvval = calcBusVNom(measvval, buspair)
 
@@ -1569,7 +1685,13 @@ def sensorStatsCallback(header, message):
 
     if not plotOverlayFlag and len(diffmeaslist)>0:
         diffmeasmean = statistics.mean(diffmeaslist)
-        diffMeasDataPausedDict['Mean Meas'].append(diffmeasmean) if plotPausedFlag else diffMeasDataDict['Mean Meas'].append(diffmeasmean)
+        if plotPausedFlag:
+            diffMeasDataPausedDict['Mean Meas'].append(diffmeasmean)
+            tsDiffMeasDataPausedDict['Mean Meas'].append(ts - tsInit)
+        else:
+            diffMeasDataDict['Mean Meas'].append(diffmeasmean)
+            tsDiffMeasDataDict['Mean Meas'].append(ts - tsInit)
+
         if plotMagFlag:
             print(appName + ': mean magnitude % diff measurement: ' + str(diffmeasmean), flush=True)
         else:
@@ -1643,87 +1765,120 @@ def updatePlots():
     # plotFig.canvas.flush_events()
 
 
-def plotMeasurementData():
-    global firstMeasurementPlotFlag, measDiffYmin, measDiffYmax
+def tsSlice(tsDataList, tsXmin, tsXmax):
+    tsStartpt = 0
+    if tsXmin > 0:
+        # don't assume 3 timesteps between points, calculate startpt
+        #tsStartpt = int(tsXmin/3.0)
+        for ix in range(len(tsDataList)):
+            #print(appName + ': tsStartpt ix: ' + str(ix) + ', tsDataList: ' + str(tsDataList[ix]), flush=True)
+            if tsDataList[ix] >= tsXmin:
+                # if it's feasible, set starting point to 1 before the
+                # calculated point so there is no data gap at the left edge
+                if ix > 1:
+                    tsStartpt = ix - 1
+                #print(appName + ': tsStartpt break ix: ' + str(ix) + ', tsDataList: ' + str(tsDataList[ix]), flush=True)
+                break
 
-    # avoid error by making sure there is data to plot, which really means
-    # lines, or 2 points, since single points don't show up and that little
-    # optimization keeps the plots from jumping around at the start before
-    # there is anything useful to look at
-    if len(tsMeasDataList) < 2:
-        return
+    # don't assume 3 timesteps between points, calculate endpt
+    #tsEndpt = int(tsXmax/3.0) + 1
+    tsEndpt = 0
+    if tsXmax > 0:
+        tsEndpt = len(tsDataList)-1
+        for ix in range(tsEndpt,-1,-1):
+            #print(appName + ': tsEndpt ix: ' + str(ix) + ', tsDataList: ' + str(tsDataList[ix]), flush=True)
+            if tsDataList[ix] <= tsXmax:
+                # if it's feasible, set ending point to 1 after the calculated
+                # point so there is no data gap at the right edge
+                if ix < tsEndpt:
+                    tsEndpt = ix + 1
+                #print(appName + ': tsEndpt break ix: ' + str(ix) + ', tsDataList: ' + str(tsDataList[ix]), flush=True)
+                break
+
+    # always add 1 to endpt because array slice uses -1 for upper bound
+    tsEndpt += 1
+    #print(appName + ': tsStartpt: ' + str(tsStartpt), flush=True)
+    #print(appName + ': tsEndpt: ' + str(tsEndpt) + '\n', flush=True)
+
+    return tsStartpt, tsEndpt
+
+
+def plotMeasurementData():
+    global measDiffYmin, measDiffYmax
 
     measDataFlag = False
     diffMeasDataFlag = False
 
     if plotShowAllFlag:
-        xupper = int(tsMeasDataList[-1])
-        if xupper > 0:
-            uiMeasAx.set_xlim(0, xupper)
-
+        measXmax = -sys.float_info.max
         measYmax = -sys.float_info.max
         measYmin = sys.float_info.max
         for pair in measDataDict:
             if len(measDataDict[pair]) > 0:
                 measDataFlag = True
-                if len(measDataDict[pair]) != len(tsMeasDataList):
-                    print('***MISMATCH Measurement show all pair: ' + pair + ', xdata #: ' + str(len(tsMeasDataList)) + ', ydata #: ' + str(len(measDataDict[pair])) + ', skipping pair', flush=True)
-                    continue
-
-                measLinesDict[pair].set_data(tsMeasDataList, measDataDict[pair])
+                measLinesDict[pair].set_data(tsMeasDataDict[pair], measDataDict[pair])
+                measXmax = max(measXmax, int(tsMeasDataDict[pair][-1]))
                 measYmin = min(measYmin, min(measDataDict[pair]))
                 measYmax = max(measYmax, max(measDataDict[pair]))
-                if firstMeasurementPlotFlag and len(plotBusDict)>0:
-                    measLegendLineList.append(measLinesDict[pair])
+
+                if pair in plotBusDict and \
+                   plotBusDict[pair] not in measLegendLabelList:
                     measLegendLabelList.append(plotBusDict[pair])
+                    measLegendLineList.append(measLinesDict[pair])
+
         #print(appName + ': measYmin: ' + str(measYmin) + ', measYmax: ' + str(measYmax), flush=True)
 
         #if plotStatsFlag:
         #    plt.sca(uiMeasAx)
         #    if len(measDataDict['Mean']) > 0:
-        #        if len(measDataDict['Mean']) != len(tsMeasDataList):
-        #            print('***MISMATCH Measurement show all statistics, xdata #: ' + str(len(tsMeasDataList)) + ', ydata #: ' + str(len(measDataDict['Mean'])) + ', skipping pair', flush=True)
-
                 # disable filling between lines because it's too much work
                 # for big models and causes matplotlib to freeze
-                #plt.fill_between(x=tsMeasDataList, y1=measDataDict['Mean'], y2=measDataDict['Stdev Low'], color=stdevBlue)
-                #plt.fill_between(x=tsMeasDataList, y1=measDataDict['Mean'], y2=measDataDict['Stdev High'], color=stdevBlue)
-                #plt.fill_between(x=tsMeasDataList, y1=measDataDict['Stdev Low'], y2=measDataDict['Min'], color=minmaxBlue)
-                #plt.fill_between(x=tsMeasDataList, y1=measDataDict['Stdev High'], y2=measDataDict['Max'], color=minmaxBlue)
+                #plt.fill_between(x=tsMeasDataDict['Mean'], y1=measDataDict['Mean'], y2=measDataDict['Stdev Low'], color=stdevBlue)
+                #plt.fill_between(x=tsMeasDataDict['Mean'], y1=measDataDict['Mean'], y2=measDataDict['Stdev High'], color=stdevBlue)
+                #plt.fill_between(x=tsMeasDataDict['Stdev Low'], y1=measDataDict['Stdev Low'], y2=measDataDict['Min'], color=minmaxBlue)
+                #plt.fill_between(x=tsMeasDataDict['Stdev High'], y1=measDataDict['Stdev High'], y2=measDataDict['Max'], color=minmaxBlue)
 
-        measDiffYmax = -sys.float_info.max
-        measDiffYmin = sys.float_info.max
+        if measDataFlag:
+            uiMeasAx.set_xlim(0, measXmax)
+        else:
+            return;
+
         if plotOverlayFlag:
+            measDiffYmin = measYmin
+            measDiffYmax = measYmax
+
             for pair in measDataDict:
                 if len(measDataDict[pair]) > 0:
-                    if len(measDataDict[pair]) != len(tsMeasDataList):
-                        print('***MISMATCH Difference Measurement show all pair: ' + pair + ', xdata #: ' + str(len(tsMeasDataList)) + ', ydata #: ' + str(len(measDataDict[pair])) + ', skipping pair', flush=True)
-                        continue
-
                     diffMeasDataFlag = True
-                    diffMeasLinesDict[pair+' Actual'].set_data(tsMeasDataList, measDataDict[pair])
-                    measDiffYmin = min(measDiffYmin, min(measDataDict[pair]))
-                    measDiffYmax = max(measDiffYmax, max(measDataDict[pair]))
+                    diffMeasLinesDict[pair+' Actual'].set_data(tsMeasDataDict[pair], measDataDict[pair])
 
         else:
+            measDiffYmin = sys.float_info.max
+            measDiffYmax = -sys.float_info.max
+
             for pair in diffMeasDataDict:
                 if len(diffMeasDataDict[pair]) > 0:
-                    if len(diffMeasDataDict[pair]) != len(tsMeasDataList):
-                        print('***MISMATCH Difference Measurement show all pair: ' + pair + ', xdata #: ' + str(len(tsMeasDataList)) + ', ydata #: ' + str(len(diffMeasDataDict[pair])) + ', skipping pair', flush=True)
-                        continue
-
                     diffMeasDataFlag = True
-                    diffMeasLinesDict[pair].set_data(tsMeasDataList, diffMeasDataDict[pair])
+                    diffMeasLinesDict[pair].set_data(tsDiffMeasDataDict[pair], diffMeasDataDict[pair])
                     measDiffYmin = min(measDiffYmin, min(diffMeasDataDict[pair]))
                     measDiffYmax = max(measDiffYmax, max(diffMeasDataDict[pair]))
         #print(appName + ': measDiffYmin: ' + str(measDiffYmin) + ', measDiffYmax: ' + str(measDiffYmax), flush=True)
 
     else:
+        measXmax = -sys.float_info.max
+        for pair in measDataDict:
+            if len(measDataDict[pair]) > 0:
+                measDataFlag = True
+                measXmax = max(measXmax, int(tsMeasDataDict[pair][-1]))
+
+        if not measDataFlag:
+            return
+
         tsZoom = int(uiTSZoomSldr.val)
         tsPan = int(uiTSPanSldr.val)
         if tsPan == 100:
             # this fills data from the right
-            tsXmax = tsMeasDataList[-1]
+            tsXmax = measXmax
             tsXmin = tsXmax - tsZoom
 
             # uncomment this code if filling from the left is preferred
@@ -1734,12 +1889,12 @@ def plotMeasurementData():
             tsXmin = 0
             tsXmax = tsZoom
         else:
-            tsMid = int(tsMeasDataList[-1]*tsPan/100.0)
+            tsMid = int(measXmax*tsPan/100.0)
             tsXmin = int(tsMid - tsZoom/2.0)
             tsXmax = tsXmin + tsZoom
             # this fills data from the right
-            if tsXmax > tsMeasDataList[-1]:
-                tsXmax = tsMeasDataList[-1]
+            if tsXmax > measXmax:
+                tsXmax = measXmax
                 tsXmin = tsXmax - tsZoom
             elif tsXmin < 0:
                 tsXmin = 0
@@ -1747,9 +1902,9 @@ def plotMeasurementData():
             # if filling from the left is preferred uncomment the lines
             # below and comment out the block if/elif block above
             #if tsXmin < 0:
-            #    tsXmax = tsMeasDataList[-1]
+            #    tsXmax = measXmax
             #    tsXmin = tsXmax - tsZoom
-            #elif tsXmax > tsMeasDataList[-1]:
+            #elif tsXmax > measXmax:
             #    tsXmin = 0
             #    tsXmax = tsZoom
 
@@ -1757,53 +1912,19 @@ def plotMeasurementData():
         #print(appName + ': tsXmin: ' + str(tsXmin), flush=True)
         #print(appName + ': tsXmax: ' + str(tsXmax), flush=True)
 
-        tsStartpt = 0
-        if tsXmin > 0:
-            # don't assume 3 timesteps between points, calculate startpt instead
-            #tsStartpt = int(tsXmin/3.0)
-            for ix in range(len(tsMeasDataList)):
-                #print(appName + ': tsStartpt ix: ' + str(ix) + ', tsMeasDataList: ' + str(tsMeasDataList[ix]), flush=True)
-                if tsMeasDataList[ix] >= tsXmin:
-                    # if it's feasible, set starting point to 1 before the
-                    # calculated point so there is no data gap at the left edge
-                    if ix > 1:
-                        tsStartpt = ix - 1
-                    #print(appName + ': tsStartpt break ix: ' + str(ix) + ', tsMeasDataList: ' + str(tsMeasDataList[ix]), flush=True)
-                    break
-
-        # don't assume 3 timesteps between points, calculate endpt instead
-        #tsEndpt = int(tsXmax/3.0) + 1
-        tsEndpt = 0
-        if tsXmax > 0:
-            tsEndpt = len(tsMeasDataList)-1
-            for ix in range(tsEndpt,-1,-1):
-                #print(appName + ': tsEndpt ix: ' + str(ix) + ', tsMeasDataList: ' + str(tsMeasDataList[ix]), flush=True)
-                if tsMeasDataList[ix] <= tsXmax:
-                    # if it's feasible, set ending point to 1 after the
-                    # calculated point so there is no data gap at the right edge
-                    if ix < tsEndpt:
-                        tsEndpt = ix + 1
-                    #print(appName + ': tsEndpt break ix: ' + str(ix) + ', tsMeasDataList: ' + str(tsMeasDataList[ix]), flush=True)
-                    break
-
-        # always add 1 to endpt because array slice uses -1 for upper bound
-        tsEndpt += 1
-        #print(appName + ': tsStartpt: ' + str(tsStartpt), flush=True)
-        #print(appName + ': tsEndpt: ' + str(tsEndpt) + '\n', flush=True)
-
         measYmax = -sys.float_info.max
         measYmin = sys.float_info.max
         for pair in measDataDict:
+            tsStartpt, tsEndpt = tsSlice(tsMeasDataDict[pair], tsXmin, tsXmax)
+
             if len(measDataDict[pair][tsStartpt:tsEndpt]) > 0:
                 measDataFlag = True
-                if len(measDataDict[pair][tsStartpt:tsEndpt]) != len(tsMeasDataList[tsStartpt:tsEndpt]):
-                    print('***MISMATCH Measurement pair: ' + pair + ', xdata #: ' + str(len(tsMeasDataList[tsStartpt:tsEndpt])) + ', ydata #: ' + str(len(measDataDict[pair][tsStartpt:tsEndpt])) + ', tsStartpt: ' + str(tsStartpt) + ', tsEndpt: ' + str(tsEndpt) + ', skipping pair', flush=True)
-                    continue
-
-                measLinesDict[pair].set_data(tsMeasDataList[tsStartpt:tsEndpt], measDataDict[pair][tsStartpt:tsEndpt])
+                measLinesDict[pair].set_data(tsMeasDataDict[pair][tsStartpt:tsEndpt], measDataDict[pair][tsStartpt:tsEndpt])
                 measYmin = min(measYmin, min(measDataDict[pair][tsStartpt:tsEndpt]))
                 measYmax = max(measYmax, max(measDataDict[pair][tsStartpt:tsEndpt]))
-                if firstMeasurementPlotFlag and len(plotBusDict)>0:
+
+                if pair in plotBusDict and \
+                   plotBusDict[pair] not in measLegendLabelList:
                     measLegendLineList.append(measLinesDict[pair])
                     measLegendLabelList.append(plotBusDict[pair])
         #print(appName + ': measYmin: ' + str(measYmin) + ', measYmax: ' + str(measYmax), flush=True)
@@ -1811,39 +1932,34 @@ def plotMeasurementData():
         #if plotStatsFlag:
         #    plt.sca(uiMeasAx)
         #    if len(measDataDict['Mean'][tsStartpt:tsEndpt]) > 0:
-        #        if len(measDataDict['Mean'][tsStartpt:tsEndpt]) != len(tsMeasDataList[tsStartpt:tsEndpt]):
-        #            print('***MISMATCH Measurement statistics, xdata #: ' + str(len(tsMeasDataList[tsStartpt:tsEndpt])) + ', ydata #: ' + str(len(measDataDict['Mean'][tsStartpt:tsEndpt])) + ', tsStartpt: ' + str(tsStartpt) + ', tsEndpt: ' + str(tsEndpt) + ', skipping pair', flush=True)
-
                 # disable filling between lines because it's too much work
                 # for big models and causes matplotlib to freeze
-                #plt.fill_between(x=tsMeasDataList[tsStartpt:tsEndpt], y1=measDataDict['Mean'][tsStartpt:tsEndpt], y2=measDataDict['Stdev Low'][tsStartpt:tsEndpt], color=stdevBlue)
-                #plt.fill_between(x=tsMeasDataList[tsStartpt:tsEndpt], y1=measDataDict['Mean'][tsStartpt:tsEndpt], y2=measDataDict['Stdev High'][tsStartpt:tsEndpt], color=stdevBlue)
-                #plt.fill_between(x=tsMeasDataList[tsStartpt:tsEndpt], y1=measDataDict['Stdev Low'][tsStartpt:tsEndpt], y2=measDataDict['Min'][tsStartpt:tsEndpt], color=minmaxBlue)
-                #plt.fill_between(x=tsMeasDataList[tsStartpt:tsEndpt], y1=measDataDict['Stdev High'][tsStartpt:tsEndpt], y2=measDataDict['Max'][tsStartpt:tsEndpt], color=minmaxBlue)
+                #plt.fill_between(x=tsMeasDataDict['Mean'][tsStartpt:tsEndpt], y1=measDataDict['Mean'][tsStartpt:tsEndpt], y2=measDataDict['Stdev Low'][tsStartpt:tsEndpt], color=stdevBlue)
+                #plt.fill_between(x=tsMeasDataDict['Mean'][tsStartpt:tsEndpt], y1=measDataDict['Mean'][tsStartpt:tsEndpt], y2=measDataDict['Stdev High'][tsStartpt:tsEndpt], color=stdevBlue)
+                #plt.fill_between(x=tsMeasDataDict['Stdev Low'][tsStartpt:tsEndpt], y1=measDataDict['Stdev Low'][tsStartpt:tsEndpt], y2=measDataDict['Min'][tsStartpt:tsEndpt], color=minmaxBlue)
+                #plt.fill_between(x=tsMeasDataDict['Stdev High'][tsStartpt:tsEndpt], y1=measDataDict['Stdev High'][tsStartpt:tsEndpt], y2=measDataDict['Max'][tsStartpt:tsEndpt], color=minmaxBlue)
 
         measDiffYmax = -sys.float_info.max
         measDiffYmin = sys.float_info.max
         if plotOverlayFlag:
             for pair in measDataDict:
-                if len(measDataDict[pair][tsStartpt:tsEndpt]) > 0:
-                    if len(measDataDict[pair][tsStartpt:tsEndpt]) != len(tsMeasDataList[tsStartpt:tsEndpt]):
-                        print('***MISMATCH Difference Measurement pair: ' + pair + ', xdata #: ' + str(len(tsMeasDataList[tsStartpt:tsEndpt])) + ', ydata #: ' + str(len(measDataDict[pair][tsStartpt:tsEndpt])) + ', tsStartpt: ' + str(tsStartpt) + ', tsEndpt: ' + str(tsEndpt) + ', skipping pair', flush=True)
-                        continue
+                tsStartpt, tsEndpt = tsSlice(tsMeasDataDict[pair],
+                                             tsXmin, tsXmax)
 
+                if len(measDataDict[pair][tsStartpt:tsEndpt]) > 0:
                     diffMeasDataFlag = True
-                    diffMeasLinesDict[pair+' Actual'].set_data(tsMeasDataList[tsStartpt:tsEndpt], measDataDict[pair][tsStartpt:tsEndpt])
+                    diffMeasLinesDict[pair+' Actual'].set_data(tsMeasDataDict[pair][tsStartpt:tsEndpt], measDataDict[pair][tsStartpt:tsEndpt])
                     measDiffYmin = min(measDiffYmin, min(measDataDict[pair][tsStartpt:tsEndpt]))
                     measDiffYmax = max(measDiffYmax, max(measDataDict[pair][tsStartpt:tsEndpt]))
 
         else:
             for pair in diffMeasDataDict:
+                tsStartpt, tsEndpt = tsSlice(tsDiffMeasDataDict[pair],
+                                             tsXmin, tsXmax)
+
                 if len(diffMeasDataDict[pair][tsStartpt:tsEndpt]) > 0:
                     diffMeasDataFlag = True
-                    if len(diffMeasDataDict[pair][tsStartpt:tsEndpt]) != len(tsMeasDataList[tsStartpt:tsEndpt]):
-                        print('***MISMATCH Difference Measurement pair: ' + pair + ', xdata #: ' + str(len(tsMeasDataList[tsStartpt:tsEndpt])) + ', ydata #: ' + str(len(diffMeasDataDict[pair][tsStartpt:tsEndpt])) + ', tsStartpt: ' + str(tsStartpt) + ', tsEndpt: ' + str(tsEndpt) + ', skipping pair', flush=True)
-                        continue
-
-                    diffMeasLinesDict[pair].set_data(tsMeasDataList[tsStartpt:tsEndpt], diffMeasDataDict[pair][tsStartpt:tsEndpt])
+                    diffMeasLinesDict[pair].set_data(tsDiffMeasDataDict[pair][tsStartpt:tsEndpt], diffMeasDataDict[pair][tsStartpt:tsEndpt])
                     measDiffYmin = min(measDiffYmin, min(diffMeasDataDict[pair][tsStartpt:tsEndpt]))
                     measDiffYmax = max(measDiffYmax, max(diffMeasDataDict[pair][tsStartpt:tsEndpt]))
 
@@ -1861,7 +1977,7 @@ def plotMeasurementData():
     if diffMeasDataFlag:
         # voltage value difference plot y-axis zoom and pan calculation
 
-        # compare with measurement min/max to get overall min/max
+        # compare estimate with measurement min/max to get overall min/max
         diffYmin = min(estDiffYmin, measDiffYmin)
         diffYmax = max(estDiffYmax, measDiffYmax)
 
@@ -1888,101 +2004,101 @@ def plotMeasurementData():
     uiDiffAx.yaxis.set_major_formatter(ticker.ScalarFormatter())
     uiDiffAx.grid(True)
 
-    if firstMeasurementPlotFlag:
-        if plotStatsFlag:
-            uiMeasAx.legend()
+    if plotStatsFlag:
+        uiMeasAx.legend()
+        if not plotOverlayFlag:
+            uiDiffAx.legend()
+
+    elif len(plotBusDict) > 0:
+        if plotLegendFlag or len(measLegendLineList)<=10:
+            cols = math.ceil(len(measLegendLineList)/8)
+            uiMeasAx.legend(measLegendLineList, measLegendLabelList, ncol=cols)
+
             if not plotOverlayFlag:
-                uiDiffAx.legend()
-
-        elif len(plotBusDict) > 0:
-            if plotLegendFlag or len(measLegendLineList)<=10:
-                cols = math.ceil(len(measLegendLineList)/8)
-                uiMeasAx.legend(measLegendLineList, measLegendLabelList, ncol=cols)
-
-        firstMeasurementPlotFlag = False
+                # bottom difference plot needs a legend because it has
+                # double the lines with different line types
+                cols = math.ceil((len(diffMeasLinesDict) + len(diffEstLinesDict))/8)
+                uiDiffAx.legend(ncol=cols)
 
     # flush all the plot changes
     updatePlots()
 
 
 def plotEstimateData():
-    global firstEstimatePlotFlag, estDiffYmin, estDiffYmax
+    global estDiffYmin, estDiffYmax
 
-    # avoid error by making sure there is data to plot, which really means
-    # lines, or 2 points, since single points don't show up and that little
-    # optimization keeps the plots from jumping around at the start before
-    # there is anything useful to look at
-    if len(tsEstDataList) < 2:
-        return
-
+    estDataFlag = False
     diffEstDataFlag = False
 
     if plotShowAllFlag:
-        xupper = int(tsEstDataList[-1])
-        if xupper > 0:
-            uiEstAx.set_xlim(0, xupper)
-
+        estXmax = -sys.float_info.max
         estYmax = -sys.float_info.max
         estYmin = sys.float_info.max
         for pair in estDataDict:
             if len(estDataDict[pair]) > 0:
-                if len(estDataDict[pair]) != len(tsEstDataList):
-                    print('***MISMATCH Estimate show all pair: ' + pair + ', xdata #: ' + str(len(tsEstDataList)) + ', ydata #: ' + str(len(estDataDict[pair])) + ', skipping pair', flush=True)
-                    continue
-
-                estLinesDict[pair].set_data(tsEstDataList, estDataDict[pair])
+                estDataFlag = True
+                estLinesDict[pair].set_data(tsEstDataDict[pair], estDataDict[pair])
+                estXmax = max(estXmax, int(tsEstDataDict[pair][-1]))
                 estYmin = min(estYmin, min(estDataDict[pair]))
                 estYmax = max(estYmax, max(estDataDict[pair]))
-                if firstEstimatePlotFlag and len(plotBusDict)>0:
-                    estLegendLineList.append(estLinesDict[pair])
+
+                if pair in plotBusDict and \
+                   plotBusDict[pair] not in estLegendLabelList:
                     estLegendLabelList.append(plotBusDict[pair])
+                    estLegendLineList.append(estLinesDict[pair])
         #print(appName + ': estYmin: ' + str(estYmin) + ', estYmax: ' + str(estYmax), flush=True)
 
         #if plotStatsFlag:
         #    plt.sca(uiEstAx)
         #    if len(estDataDict['Mean']) > 0:
-        #        if len(estDataDict['Mean']) != len(tsEstDataList):
-        #            print('***MISMATCH Estimate show all statistics, xdata #: ' + str(len(tsEstDataList)) + ', ydata #: ' + str(len(estDataDict['Mean'])) + ', skipping pair', flush=True)
-
                 # disable filling between lines because it's too much work
                 # for big models and causes matplotlib to freeze
-                #plt.fill_between(x=tsEstDataList, y1=estDataDict['Mean'], y2=estDataDict['Stdev Low'], color=stdevBlue)
-                #plt.fill_between(x=tsEstDataList, y1=estDataDict['Mean'], y2=estDataDict['Stdev High'], color=stdevBlue)
-                #plt.fill_between(x=tsEstDataList, y1=estDataDict['Stdev Low'], y2=estDataDict['Min'], color=minmaxBlue)
-                #plt.fill_between(x=tsEstDataList, y1=estDataDict['Stdev High'], y2=estDataDict['Max'], color=minmaxBlue)
+                #plt.fill_between(x=tsEstDataDict['Mean'], y1=estDataDict['Mean'], y2=estDataDict['Stdev Low'], color=stdevBlue)
+                #plt.fill_between(x=tsEstDataDict['Mean'], y1=estDataDict['Mean'], y2=estDataDict['Stdev High'], color=stdevBlue)
+                #plt.fill_between(x=tsEstDataDict['Stdev Low'], y1=estDataDict['Stdev Low'], y2=estDataDict['Min'], color=minmaxBlue)
+                #plt.fill_between(x=tsEstDataDict['Stdev High'], y1=estDataDict['Stdev High'], y2=estDataDict['Max'], color=minmaxBlue)
 
-        estDiffYmax = -sys.float_info.max
-        estDiffYmin = sys.float_info.max
+        if estDataFlag:
+            uiEstAx.set_xlim(0, estXmax)
+        else:
+            return;
+
         if plotOverlayFlag:
+            estDiffYmin = estYmin
+            estDiffYmax = estYmax
+
             for pair in estDataDict:
                 if len(estDataDict[pair]) > 0:
-                    if len(estDataDict[pair]) != len(tsEstDataList):
-                        print('***MISMATCH Difference Estimate show all pair: ' + pair + ', xdata #: ' + str(len(tsEstDataList)) + ', ydata #: ' + str(len(estDataDict[pair])) + ', skipping pair', flush=True)
-                        continue
-
-                    diffEstLinesDict[pair+' Est'].set_data(tsEstDataList, estDataDict[pair])
-                    estDiffYmin = min(estDiffYmin, min(estDataDict[pair]))
-                    estDiffYmax = max(estDiffYmax, max(estDataDict[pair]))
+                    diffEstDataFlag = True
+                    diffEstLinesDict[pair+' Est'].set_data(tsEstDataDict[pair], estDataDict[pair])
 
         else:
+            estDiffYmin = sys.float_info.max
+            estDiffYmax = -sys.float_info.max
+
             for pair in diffEstDataDict:
                 if len(diffEstDataDict[pair]) > 0:
-                    if len(diffEstDataDict[pair]) != len(tsEstDataList):
-                        print('***MISMATCH Difference Estimate show all pair: ' + pair + ', xdata #: ' + str(len(tsEstDataList)) + ', ydata #: ' + str(len(diffEstDataDict[pair])) + ', skipping pair', flush=True)
-                        continue
-
                     diffEstDataFlag = True
-                    diffEstLinesDict[pair].set_data(tsEstDataList, diffEstDataDict[pair])
+                    diffEstLinesDict[pair].set_data(tsDiffEstDataDict[pair], diffEstDataDict[pair])
                     estDiffYmin = min(estDiffYmin, min(diffEstDataDict[pair]))
                     estDiffYmax = max(estDiffYmax, max(diffEstDataDict[pair]))
         #print(appName + ': estDiffYmin: ' + str(estDiffYmin) + ', estDiffYmax: ' + str(estDiffYmax), flush=True)
 
     else:
+        estXmax = -sys.float_info.max
+        for pair in estDataDict:
+            if len(estDataDict[pair]) > 0:
+                estDataFlag = True
+                estXmax = max(estXmax, int(tsEstDataDict[pair][-1]))
+
+        if not estDataFlag:
+            return
+
         tsZoom = int(uiTSZoomSldr.val)
         tsPan = int(uiTSPanSldr.val)
         if tsPan == 100:
             # this fills data from the right
-            tsXmax = tsEstDataList[-1]
+            tsXmax = estXmax
             tsXmin = tsXmax - tsZoom
 
             # uncomment this code if filling from the left is preferred
@@ -1993,12 +2109,12 @@ def plotEstimateData():
             tsXmin = 0
             tsXmax = tsZoom
         else:
-            tsMid = int(tsEstDataList[-1]*tsPan/100.0)
+            tsMid = int(estXmax*tsPan/100.0)
             tsXmin = int(tsMid - tsZoom/2.0)
             tsXmax = tsXmin + tsZoom
             # this fills data from the right
-            if tsXmax > tsEstDataList[-1]:
-                tsXmax = tsEstDataList[-1]
+            if tsXmax > estXmax:
+                tsXmax = estXmax
                 tsXmin = tsXmax - tsZoom
             elif tsXmin < 0:
                 tsXmin = 0
@@ -2006,9 +2122,9 @@ def plotEstimateData():
             # if filling from the left is preferred uncomment the lines
             # below and comment out the block if/elif block above
             #if tsXmin < 0:
-            #    tsXmax = tsEstDataList[-1]
+            #    tsXmax = estXmax
             #    tsXmin = tsXmax - tsZoom
-            #elif tsXmax > tsEstDataList[-1]:
+            #elif tsXmax > estXmax:
             #    tsXmin = 0
             #    tsXmax = tsZoom
 
@@ -2016,52 +2132,18 @@ def plotEstimateData():
         #print(appName + ': tsXmin: ' + str(tsXmin), flush=True)
         #print(appName + ': tsXmax: ' + str(tsXmax), flush=True)
 
-        tsStartpt = 0
-        if tsXmin > 0:
-            # don't assume 3 timesteps between points, calculate startpt instead
-            #tsStartpt = int(tsXmin/3.0)
-            for ix in range(len(tsEstDataList)):
-                #print(appName + ': tsStartpt ix: ' + str(ix) + ', tsEstDataList: ' + str(tsEstDataList[ix]), flush=True)
-                if tsEstDataList[ix] >= tsXmin:
-                    # if it's feasible, set starting point to 1 before the
-                    # calculated point so there is no data gap at the left edge
-                    if ix > 1:
-                        tsStartpt = ix - 1
-                    #print(appName + ': tsStartpt break ix: ' + str(ix) + ', tsEstDataList: ' + str(tsEstDataList[ix]), flush=True)
-                    break
-
-        # don't assume 3 timesteps between points, calculate endpt instead
-        #tsEndpt = int(tsXmax/3.0) + 1
-        tsEndpt = 0
-        if tsXmax > 0:
-            tsEndpt = len(tsEstDataList)-1
-            for ix in range(tsEndpt,-1,-1):
-                #print(appName + ': tsEndpt ix: ' + str(ix) + ', tsEstDataList: ' + str(tsEstDataList[ix]), flush=True)
-                if tsEstDataList[ix] <= tsXmax:
-                    # if it's feasible, set ending point to 1 after the
-                    # calculated point so there is no data gap at the right edge
-                    if ix < tsEndpt:
-                        tsEndpt = ix + 1
-                    #print(appName + ': tsEndpt break ix: ' + str(ix) + ', tsEstDataList: ' + str(tsEstDataList[ix]), flush=True)
-                    break
-
-        # always add 1 to endpt because array slice uses -1 for upper bound
-        tsEndpt += 1
-        #print(appName + ': tsStartpt: ' + str(tsStartpt), flush=True)
-        #print(appName + ': tsEndpt: ' + str(tsEndpt) + '\n', flush=True)
-
         estYmax = -sys.float_info.max
         estYmin = sys.float_info.max
         for pair in estDataDict:
-            if len(estDataDict[pair][tsStartpt:tsEndpt]) > 0:
-                if len(estDataDict[pair][tsStartpt:tsEndpt]) != len(tsEstDataList[tsStartpt:tsEndpt]):
-                    print('***MISMATCH Estimate pair: ' + pair + ', xdata #: ' + str(len(tsEstDataList[tsStartpt:tsEndpt])) + ', ydata #: ' + str(len(estDataDict[pair][tsStartpt:tsEndpt])) + ', tsStartpt: ' + str(tsStartpt) + ', tsEndpt: ' + str(tsEndpt) + ', skipping pair', flush=True)
-                    continue
+            tsStartpt, tsEndpt = tsSlice(tsEstDataDict[pair], tsXmin, tsXmax)
 
-                estLinesDict[pair].set_data(tsEstDataList[tsStartpt:tsEndpt], estDataDict[pair][tsStartpt:tsEndpt])
+            if len(estDataDict[pair][tsStartpt:tsEndpt]) > 0:
+                estLinesDict[pair].set_data(tsEstDataDict[pair][tsStartpt:tsEndpt], estDataDict[pair][tsStartpt:tsEndpt])
                 estYmin = min(estYmin, min(estDataDict[pair][tsStartpt:tsEndpt]))
                 estYmax = max(estYmax, max(estDataDict[pair][tsStartpt:tsEndpt]))
-                if firstEstimatePlotFlag and len(plotBusDict)>0:
+
+                if pair in plotBusDict and \
+                   plotBusDict[pair] not in estLegendLabelList:
                     estLegendLineList.append(estLinesDict[pair])
                     estLegendLabelList.append(plotBusDict[pair])
         #print(appName + ': estYmin: ' + str(estYmin) + ', estYmax: ' + str(estYmax), flush=True)
@@ -2069,38 +2151,34 @@ def plotEstimateData():
         #if plotStatsFlag:
         #    plt.sca(uiEstAx)
         #    if len(estDataDict['Mean'][tsStartpt:tsEndpt]) > 0:
-        #        if len(estDataDict['Mean'][tsStartpt:tsEndpt]) != len(tsEstDataList[tsStartpt:tsEndpt]):
-        #            print('***MISMATCH Estimate statistics, xdata #: ' + str(len(tsEstDataList[tsStartpt:tsEndpt])) + ', ydata #: ' + str(len(estDataDict['Mean'][tsStartpt:tsEndpt])) + ', tsStartpt: ' + str(tsStartpt) + ', tsEndpt: ' + str(tsEndpt) + ', skipping pair', flush=True)
-
                 # disable filling between lines because it's too much work
                 # for big models and causes matplotlib to freeze
-                #plt.fill_between(x=tsEstDataList[tsStartpt:tsEndpt], y1=estDataDict['Mean'][tsStartpt:tsEndpt], y2=estDataDict['Stdev Low'][tsStartpt:tsEndpt], color=stdevBlue)
-                #plt.fill_between(x=tsEstDataList[tsStartpt:tsEndpt], y1=estDataDict['Mean'][tsStartpt:tsEndpt], y2=estDataDict['Stdev High'][tsStartpt:tsEndpt], color=stdevBlue)
-                #plt.fill_between(x=tsEstDataList[tsStartpt:tsEndpt], y1=estDataDict['Stdev Low'][tsStartpt:tsEndpt], y2=estDataDict['Min'][tsStartpt:tsEndpt], color=minmaxBlue)
-                #plt.fill_between(x=tsEstDataList[tsStartpt:tsEndpt], y1=estDataDict['Stdev High'][tsStartpt:tsEndpt], y2=estDataDict['Max'][tsStartpt:tsEndpt], color=minmaxBlue)
+                #plt.fill_between(x=tsEstDataDict['Mean'][tsStartpt:tsEndpt], y1=estDataDict['Mean'][tsStartpt:tsEndpt], y2=estDataDict['Stdev Low'][tsStartpt:tsEndpt], color=stdevBlue)
+                #plt.fill_between(x=tsEstDataDict['Mean'][tsStartpt:tsEndpt], y1=estDataDict['Mean'][tsStartpt:tsEndpt], y2=estDataDict['Stdev High'][tsStartpt:tsEndpt], color=stdevBlue)
+                #plt.fill_between(x=tsEstDataDict['Stdev Low'][tsStartpt:tsEndpt], y1=estDataDict['Stdev Low'][tsStartpt:tsEndpt], y2=estDataDict['Min'][tsStartpt:tsEndpt], color=minmaxBlue)
+                #plt.fill_between(x=tsEstDataDict['Stdev High'][tsStartpt:tsEndpt], y1=estDataDict['Stdev High'][tsStartpt:tsEndpt], y2=estDataDict['Max'][tsStartpt:tsEndpt], color=minmaxBlue)
 
         estDiffYmax = -sys.float_info.max
         estDiffYmin = sys.float_info.max
         if plotOverlayFlag:
             for pair in estDataDict:
-                if len(estDataDict[pair][tsStartpt:tsEndpt]) > 0:
-                    if len(estDataDict[pair][tsStartpt:tsEndpt]) != len(tsEstDataList[tsStartpt:tsEndpt]):
-                        print('***MISMATCH Difference Estimate pair: ' + pair + ', xdata #: ' + str(len(tsEstDataList[tsStartpt:tsEndpt])) + ', ydata #: ' + str(len(estDataDict[pair][tsStartpt:tsEndpt])) + ', tsStartpt: ' + str(tsStartpt) + ', tsEndpt: ' + str(tsEndpt) + ', skipping pair', flush=True)
-                        continue
+                tsStartpt, tsEndpt = tsSlice(tsEstDataDict[pair],
+                                             tsXmin, tsXmax)
 
-                    diffEstLinesDict[pair+' Est'].set_data(tsEstDataList[tsStartpt:tsEndpt], estDataDict[pair][tsStartpt:tsEndpt])
+                if len(estDataDict[pair][tsStartpt:tsEndpt]) > 0:
+                    diffEstDataFlag = True
+                    diffEstLinesDict[pair+' Est'].set_data(tsEstDataDict[pair][tsStartpt:tsEndpt], estDataDict[pair][tsStartpt:tsEndpt])
                     estDiffYmin = min(estDiffYmin, min(estDataDict[pair][tsStartpt:tsEndpt]))
                     estDiffYmax = max(estDiffYmax, max(estDataDict[pair][tsStartpt:tsEndpt]))
 
         else:
             for pair in diffEstDataDict:
+                tsStartpt, tsEndpt = tsSlice(tsDiffEstDataDict[pair],
+                                             tsXmin, tsXmax)
+
                 if len(diffEstDataDict[pair][tsStartpt:tsEndpt]) > 0:
                     diffEstDataFlag = True
-                    if len(diffEstDataDict[pair][tsStartpt:tsEndpt]) != len(tsEstDataList[tsStartpt:tsEndpt]):
-                        print('***MISMATCH Difference Estimate pair: ' + pair + ', xdata #: ' + str(len(tsEstDataList[tsStartpt:tsEndpt])) + ', ydata #: ' + str(len(diffEstDataDict[pair][tsStartpt:tsEndpt])) + ', tsStartpt: ' + str(tsStartpt) + ', tsEndpt: ' + str(tsEndpt) + ', skipping pair', flush=True)
-                        continue
-
-                    diffEstLinesDict[pair].set_data(tsEstDataList[tsStartpt:tsEndpt], diffEstDataDict[pair][tsStartpt:tsEndpt])
+                    diffEstLinesDict[pair].set_data(tsDiffEstDataDict[pair][tsStartpt:tsEndpt], diffEstDataDict[pair][tsStartpt:tsEndpt])
                     estDiffYmin = min(estDiffYmin, min(diffEstDataDict[pair][tsStartpt:tsEndpt]))
                     estDiffYmax = max(estDiffYmax, max(diffEstDataDict[pair][tsStartpt:tsEndpt]))
 
@@ -2118,7 +2196,7 @@ def plotEstimateData():
         print(appName + ': NOTE: no voltage value difference data to plot yet\n', flush=True)
     #print(appName + ': voltage value difference y-axis limits...', flush=True)
 
-    # compare with measurement min/max to get overall min/max
+    # compare estimate with measurement min/max to get overall min/max
     diffYmin = min(estDiffYmin, measDiffYmin)
     diffYmax = max(estDiffYmax, measDiffYmax)
 
@@ -2138,24 +2216,21 @@ def plotEstimateData():
     uiDiffAx.yaxis.set_major_formatter(ticker.ScalarFormatter())
     uiDiffAx.grid(True)
 
-    if firstEstimatePlotFlag:
-        if plotStatsFlag:
-            uiEstAx.legend()
+    if plotStatsFlag:
+        uiEstAx.legend()
+        if not plotOverlayFlag:
+            uiDiffAx.legend()
+
+    elif len(plotBusDict) > 0:
+        if plotLegendFlag or len(estLegendLineList)<=10:
+            cols = math.ceil(len(estLegendLineList)/8)
+            uiEstAx.legend(estLegendLineList, estLegendLabelList, ncol=cols)
+
             if not plotOverlayFlag:
-                uiDiffAx.legend()
-
-        elif len(plotBusDict) > 0:
-            if plotLegendFlag or len(estLegendLineList)<=10:
-                cols = math.ceil(len(estLegendLineList)/8)
-                uiEstAx.legend(estLegendLineList, estLegendLabelList, ncol=cols)
-
-                if not plotOverlayFlag:
-                    # bottom difference plot needs a legend because it has
-                    # double the lines with different line types
-                    cols = math.ceil((len(diffMeasLinesDict) + len(diffEstLinesDict))/8)
-                    uiDiffAx.legend(ncol=cols)
-
-        firstEstimatePlotFlag = False
+                # bottom difference plot needs a legend because it has
+                # double the lines with different line types
+                cols = math.ceil((len(diffMeasLinesDict) + len(diffEstLinesDict))/8)
+                uiDiffAx.legend(ncol=cols)
 
     # flush all the plot changes
     updatePlots()
@@ -2170,25 +2245,33 @@ def plotPauseCallback(event):
     uiPauseAx.images[0].set_data(playIcon if plotPausedFlag else pauseIcon)
 
     if not plotPausedFlag:
-        # add all the data that came in since the pause button was hit
-        tsEstDataList.extend(tsEstDataPausedList)
-        # clear the "paused" data so we build from scratch with the next pause
-        tsEstDataPausedList.clear()
+        for pair in measDataDict:
+            # add all the data that came in since the pause button was hit
+            measDataDict[pair].extend(measDataPausedDict[pair])
+            # clear the "paused" data so we build from scratch with the next pause
+            measDataPausedDict[pair].clear()
+            # now do the same extend/clear for timestamp data
+            tsMeasDataDict[pair].extend(tsMeasDataPausedDict[pair])
+            tsMeasDataPausedDict[pair].clear()
 
-        # now do the same extend/clear for all the data
         for pair in estDataDict:
             estDataDict[pair].extend(estDataPausedDict[pair])
             estDataPausedDict[pair].clear()
-            measDataDict[pair].extend(measDataPausedDict[pair])
-            measDataPausedDict[pair].clear()
+            tsEstDataDict[pair].extend(tsEstDataPausedDict[pair])
+            tsEstDataPausedDict[pair].clear()
 
         if not plotOverlayFlag:
             for pair in diffMeasDataDict:
                 diffMeasDataDict[pair].extend(diffMeasDataPausedDict[pair])
                 diffMeasDataPausedDict[pair].clear()
+                tsDiffMeasDataDict[pair].extend(tsDiffMeasDataPausedDict[pair])
+                tsDiffMeasDataPausedDict[pair].clear()
+
             for pair in diffEstDataDict:
                 diffEstDataDict[pair].extend(diffEstDataPausedDict[pair])
                 diffEstDataPausedDict[pair].clear()
+                tsDiffEstDataDict[pair].extend(tsDiffEstDataPausedDict[pair])
+                tsDiffEstDataPausedDict[pair].clear()
 
     plotDataCallback(None)
 
@@ -2709,12 +2792,15 @@ Optional command line arguments:
 
     # subscribe to either sensor or simulation measurements for the top plot
     if useSensorsForEstimatesFlag:
+        print('DEBUG: subscribing to primary sensor output', flush=True)
         gapps.subscribe(service_output_topic('gridappsd-sensor-simulator',
                                              simID), measCallback)
     else:
+        print('DEBUG: subscribing to primary simulation output', flush=True)
         gapps.subscribe(simulation_output_topic(simID), measCallback)
 
         if sensorSimulatorRunningFlag:
+            print('DEBUG: subscribing to secondary sensor output', flush=True)
             gapps.subscribe(service_output_topic('gridappsd-sensor-simulator',
                                                  simID), senCallback)
 
