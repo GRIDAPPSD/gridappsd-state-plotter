@@ -1084,6 +1084,7 @@ def measurementNoConfigCallback(header, message):
         measkey = 'angle'
 
     foundSet = set()
+    DEBUG_MISSING = 0
 
     for measmrid in measVolt:
         if measmrid not in measToBusDict:
@@ -1106,7 +1107,8 @@ def measurementNoConfigCallback(header, message):
 
         # TODO handle missing measurement values
         if measkey not in meas:
-            print('*** ' + measkey + ' NOT FOUND for buspair: ' + buspair + ', meas: ' + str(meas), flush=True)
+            #print('DEBUG: ' + measkey + ' NOT FOUND for buspair: ' + buspair + ', meas: ' + str(meas), flush=True)
+            DEBUG_MISSING += 1
             continue
 
         # only consider the buspair as found if the measurement value
@@ -1180,7 +1182,7 @@ def measurementNoConfigCallback(header, message):
     #else:
     #    print(appName + ': ' + str(len(len(measVolt))) + ' measurements, ' + str(len(foundSet)) + ' node,phase pair matches (matching all)', flush=True)
 
-    #print('DEBUG: # of pairs: ' + str(len(foundSet)), flush=True)
+    print('DEBUG: # of pairs found: ' + str(len(foundSet)) + ', # of missing values: ' + str(DEBUG_MISSING), flush=True)
     # update measurement plot with the new data
     plotMeasurementData()
 
@@ -1268,7 +1270,9 @@ def measurementStatsCallback(header, message):
         else:
             if sensorSimulatorRunningFlag:
                 diffMeasDataDict['Mean Meas'] = []
+                tsDiffMeasDataDict['Mean Meas'] = []
                 diffMeasDataPausedDict['Mean Meas'] = []
+                tsDiffMeasDataPausedDict['Mean Meas'] = []
 
                 # hardwire color to green specifically for this plot
                 diffMeasLinesDict['Mean Meas'], = uiDiffAx.plot([], [], label='Mean Measurement Error', color='green')
@@ -1395,23 +1399,6 @@ def simulationCallback(header, message):
     simAllDataDict[ts] = msgdict['measurements']
 
 
-def sensorCallback(header, message):
-    msgdict = message['message']
-    ts = msgdict['timestamp']
-
-    #print(appName + ': meaurement message timestamp: ' + str(ts), flush=True)
-    #print('>', end='', flush=True)
-    print('[sen]', end='', flush=True)
-    #print('('+str(ts)+')', end='', flush=True)
-    #pprint.pprint(msgdict)
-
-    # because we require Python 3.6, we can count on insertion ordered
-    # dictionaries
-    # otherwise a list should be used, but then I have to make it a list
-    # of tuples to store the timestamp as well
-    senAllDataDict[ts] = msgdict['measurements']
-
-
 def sensorConfigCallback(header, message):
     msgdict = message['message']
     ts = msgdict['timestamp']
@@ -1429,8 +1416,16 @@ def sensorConfigCallback(header, message):
     measVolt = msgdict['measurements']
     senAllDataDict[ts] = measVolt
 
+    # don't need to update bottom plot if it is an overlay
+    if plotOverlayFlag:
+        return
+
     # get the corresponding simulation measurement that was sent
     simDataTS = findSimTS(ts)
+
+    # can't update bottom plot without corresponding simulation data
+    if not simDataTS:
+        return
 
     # set the data element keys we want to extract
     if plotMagFlag:
@@ -1471,9 +1466,7 @@ def sensorConfigCallback(header, message):
             #print(appName + ': timestamp: ' + str(ts), flush=True)
             #print(appName + ': measvval: ' + str(measvval), flush=True)
 
-            # TODO we only process when not plotOverlayFlag so any reason
-            # not to move that check up earlier?
-            if not plotOverlayFlag and simDataTS and measmrid in simDataTS:
+            if measmrid in simDataTS:
                 sim = simDataTS[measmrid]
                 if measkey in sim:
                     simvval = sim[measkey]
