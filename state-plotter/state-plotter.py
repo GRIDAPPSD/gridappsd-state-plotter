@@ -2594,16 +2594,24 @@ def configPlot(busList):
         # create empty lists for the per pair data for each plot so we can
         # just do append calls when data to plot arrives
         estDataDict[pair] = []
+        tsEstDataDict[pair] = []
         estDataPausedDict[pair] = []
+        tsEstDataPausedDict[pair] = []
         measDataDict[pair] = []
+        tsMeasDataDict[pair] = []
         measDataPausedDict[pair] = []
+        tsMeasDataPausedDict[pair] = []
 
         if not plotOverlayFlag:
             diffEstDataDict[pair+' Est'] = []
+            tsDiffEstDataDict[pair+' Est'] = []
             diffEstDataPausedDict[pair+' Est'] = []
+            tsDiffEstDataPausedDict[pair+' Est'] = []
             if sensorSimulatorRunningFlag:
                 diffMeasDataDict[pair+' Meas'] = []
+                tsDiffMeasDataDict[pair+' Meas'] = []
                 diffMeasDataPausedDict[pair+' Meas'] = []
+                tsDiffMeasDataPausedDict[pair+' Meas'] = []
 
         # create a lines dictionary entry per node/phase pair for each plot
         measLinesDict[pair], = uiMeasAx.plot([], [], label=plotBusDict[pair])
