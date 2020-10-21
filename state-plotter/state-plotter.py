@@ -742,15 +742,25 @@ def estimateStatsCallback(header, message):
         firstEstimatePassFlag = False
 
         estDataDict['Min'] = []
+        tsEstDataDict['Min'] = []
         estDataDict['Max'] = []
+        tsEstDataDict['Max'] = []
         estDataDict['Mean'] = []
+        tsEstDataDict['Mean'] = []
         estDataDict['Stdev Low'] = []
+        tsEstDataDict['Stdev Low'] = []
         estDataDict['Stdev High'] = []
+        tsEstDataDict['Stdev High'] = []
         estDataPausedDict['Min'] = []
+        tsEstDataPausedDict['Min'] = []
         estDataPausedDict['Max'] = []
+        tsEstDataPausedDict['Max'] = []
         estDataPausedDict['Mean'] = []
+        tsEstDataPausedDict['Mean'] = []
         estDataPausedDict['Stdev Low'] = []
+        tsEstDataPausedDict['Stdev Low'] = []
         estDataPausedDict['Stdev High'] = []
+        tsEstDataPausedDict['Stdev High'] = []
 
         # create a lines dictionary entry for each plot line
         if plotOverlayFlag:
@@ -774,7 +784,9 @@ def estimateStatsCallback(header, message):
             estLinesDict['Mean'], = uiEstAx.plot([], [], label='Mean', color='red')
 
             diffEstDataDict['Mean Est'] = []
+            tsDiffEstDataDict['Mean Est'] = []
             diffEstDataPausedDict['Mean Est'] = []
+            tsDiffEstDataPausedDict['Mean Est'] = []
 
             # hardwire color to magenta specifically for this plot
             diffEstLinesDict['Mean Est'], = uiDiffAx.plot([], [], label='Mean Estimate Error', color='magenta')
@@ -1100,6 +1112,7 @@ def measurementNoConfigCallback(header, message):
         # only consider the buspair as found if the measurement value
         # needed exists
         foundSet.add(buspair)
+        #print('(' + buspair + ')', end='', flush=True) # DEBUG
 
         measvval = meas[measkey]
         measvval = calcBusVNom(measvval, buspair)
@@ -1167,6 +1180,7 @@ def measurementNoConfigCallback(header, message):
     #else:
     #    print(appName + ': ' + str(len(len(measVolt))) + ' measurements, ' + str(len(foundSet)) + ' node,phase pair matches (matching all)', flush=True)
 
+    #print('DEBUG: # of pairs: ' + str(len(foundSet)), flush=True)
     # update measurement plot with the new data
     plotMeasurementData()
 
@@ -1216,15 +1230,25 @@ def measurementStatsCallback(header, message):
         setTSZoomSliderVals(len(measVolt))
 
         measDataDict['Min'] = []
+        tsMeasDataDict['Min'] = []
         measDataDict['Max'] = []
+        tsMeasDataDict['Max'] = []
         measDataDict['Mean'] = []
+        tsMeasDataDict['Mean'] = []
         measDataDict['Stdev Low'] = []
+        tsMeasDataDict['Stdev Low'] = []
         measDataDict['Stdev High'] = []
+        tsMeasDataDict['Stdev High'] = []
         measDataPausedDict['Min'] = []
+        tsMeasDataPausedDict['Min'] = []
         measDataPausedDict['Max'] = []
+        tsMeasDataPausedDict['Max'] = []
         measDataPausedDict['Mean'] = []
+        tsMeasDataPausedDict['Mean'] = []
         measDataPausedDict['Stdev Low'] = []
+        tsMeasDataPausedDict['Stdev Low'] = []
         measDataPausedDict['Stdev High'] = []
+        tsMeasDataPausedDict['Stdev High'] = []
 
         # create a lines dictionary entry for each measurement plot line
         measLinesDict['Min'], = uiMeasAx.plot([], [], label='Minimum', color='cyan')
@@ -1335,7 +1359,6 @@ def measurementStatsCallback(header, message):
             tsMeasDataDict['Stdev Low'].append(ts - tsInit)
             measDataDict['Stdev High'].append(measmean+measstdev)
             tsMeasDataDict['Stdev High'].append(ts - tsInit)
-            tsMeasDataDict['Stats'].append(ts - tsInit)
 
     if not plotOverlayFlag and sensorSimulatorRunningFlag and len(diffmeaslist)>0:
         diffmeasmean = statistics.mean(diffmeaslist)
@@ -2792,15 +2815,12 @@ Optional command line arguments:
 
     # subscribe to either sensor or simulation measurements for the top plot
     if useSensorsForEstimatesFlag:
-        print('DEBUG: subscribing to primary sensor output', flush=True)
         gapps.subscribe(service_output_topic('gridappsd-sensor-simulator',
                                              simID), measCallback)
     else:
-        print('DEBUG: subscribing to primary simulation output', flush=True)
         gapps.subscribe(simulation_output_topic(simID), measCallback)
 
         if sensorSimulatorRunningFlag:
-            print('DEBUG: subscribing to secondary sensor output', flush=True)
             gapps.subscribe(service_output_topic('gridappsd-sensor-simulator',
                                                  simID), senCallback)
 
