@@ -2709,6 +2709,7 @@ Optional command line arguments:
     plotBusFlag = False
     plotPhaseFlag = False
     plotTitleFlag = False
+    plotMatchesForceFlag = False
     plotBusList = []
     for arg in sys.argv:
         if plotBusFlag:
@@ -2737,8 +2738,10 @@ Optional command line arguments:
             plotOverlayFlag = True
         elif arg.startswith('-match'):
             plotMatchesFlag = True
+            plotMatchesForceFlag = True
         elif arg.startswith('-nomatch'):
             plotMatchesFlag = False
+            plotMatchesForceFlag = True
         elif arg.startswith('-phys') or arg.startswith('-nocomp'):
             plotCompFlag = False
         elif arg.startswith('-comp'):
@@ -2783,6 +2786,11 @@ Optional command line arguments:
     if useSensorsForEstimatesFlag:
         # subscribe to all simulation measurements for the bottom plot
         gapps.subscribe(simulation_output_topic(simID), simulationCallback)
+
+        # if the user hasn't explicitly specified whether to plot matches
+        # don't plot matches when the sensor measurements are being used
+        if not plotMatchesForceFlag:
+            plotMatchesFlag = False
 
     # query to get connectivity node,phase pairs
     queryBusToEst()
