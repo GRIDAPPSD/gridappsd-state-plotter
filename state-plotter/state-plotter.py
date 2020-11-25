@@ -67,6 +67,9 @@ from matplotlib.widgets import CheckButtons
 from matplotlib.ticker import MaxNLocator
 from matplotlib import backend_bases
 
+#DEBUG_TOTAL = 0
+#DEBUG_TOTAL_MISSING = 0
+
 # global dictionaries and lists
 busToMeasDict = {}
 measToBusDict = {}
@@ -1084,7 +1087,8 @@ def measurementNoConfigCallback(header, message):
         measkey = 'angle'
 
     foundSet = set()
-    DEBUG_MISSING = 0
+    #DEBUG_MISSING = 0
+    #global DEBUG_TOTAL, DEBUG_TOTAL_MISSING
 
     for measmrid in measVolt:
         if measmrid not in measToBusDict:
@@ -1105,11 +1109,12 @@ def measurementNoConfigCallback(header, message):
 
         meas = measVolt[measmrid]
 
-        # TODO handle missing measurement values
         if measkey not in meas:
-            #print('DEBUG: ' + measkey + ' NOT FOUND for buspair: ' + buspair + ', meas: ' + str(meas), flush=True)
-            DEBUG_MISSING += 1
+            #print('\nDEBUG: ' + measkey + ' NOT FOUND for buspair: ' + buspair, flush=True)
+            #DEBUG_MISSING += 1
+            #DEBUG_TOTAL_MISSING += 1
             continue
+        #DEBUG_TOTAL += 1
 
         # only consider the buspair as found if the measurement value
         # needed exists
@@ -1182,7 +1187,12 @@ def measurementNoConfigCallback(header, message):
     #else:
     #    print(appName + ': ' + str(len(len(measVolt))) + ' measurements, ' + str(len(foundSet)) + ' node,phase pair matches (matching all)', flush=True)
 
-    print('DEBUG: # of pairs found: ' + str(len(foundSet)) + ', # of missing values: ' + str(DEBUG_MISSING), flush=True)
+    #print('\nDEBUG: # of pairs found: ' + str(len(foundSet)) + ', # of missing values: ' + str(DEBUG_MISSING), flush=True)
+    #if ts - tsInit >= 180:
+    #    print('DEBUG MISSING: ' + str(DEBUG_TOTAL_MISSING) + ' out of ' + str(DEBUG_TOTAL) + ' or ' + str(100.0*float(DEBUG_TOTAL_MISSING)/float(DEBUG_TOTAL)) + '%', flush=True)
+    #    for buspair in tsMeasDataDict:
+    #        print(buspair + ': ' + str(tsMeasDataDict[buspair]), flush=True)
+    #    exit()
     # update measurement plot with the new data
     plotMeasurementData()
 
