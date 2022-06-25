@@ -1396,7 +1396,7 @@ def simulationCallback(header, message):
     msgdict = message['message']
     ts = msgdict['timestamp']
 
-    #print(appName + ': meaurement message timestamp: ' + str(ts), flush=True)
+    #print(appName + ': measurement message timestamp: ' + str(ts), flush=True)
     #print('<', end='', flush=True)
     print('[sim]', end='', flush=True)
     #print('('+str(ts)+')', end='', flush=True)
@@ -1413,7 +1413,7 @@ def sensorConfigCallback(header, message):
     msgdict = message['message']
     ts = msgdict['timestamp']
 
-    #print(appName + ': meaurement message timestamp: ' + str(ts), flush=True)
+    #print(appName + ': measurement message timestamp: ' + str(ts), flush=True)
     #print('>', end='', flush=True)
     print('[sen]', end='', flush=True)
     #print('('+str(ts)+')', end='', flush=True)
@@ -1511,7 +1511,7 @@ def sensorNoConfigCallback(header, message):
     msgdict = message['message']
     ts = msgdict['timestamp']
 
-    #print(appName + ': meaurement message timestamp: ' + str(ts), flush=True)
+    #print(appName + ': measurement message timestamp: ' + str(ts), flush=True)
     #print('>', end='', flush=True)
     print('[sen]', end='', flush=True)
     #print('('+str(ts)+')', end='', flush=True)
@@ -1618,7 +1618,7 @@ def sensorStatsCallback(header, message):
     msgdict = message['message']
     ts = msgdict['timestamp']
 
-    #print(appName + ': meaurement message timestamp: ' + str(ts), flush=True)
+    #print(appName + ': measurement message timestamp: ' + str(ts), flush=True)
     #print('>', end='', flush=True)
     print('[sen]', end='', flush=True)
     #print('('+str(ts)+')', end='', flush=True)
