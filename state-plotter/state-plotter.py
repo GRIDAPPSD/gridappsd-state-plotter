@@ -2425,7 +2425,10 @@ def initPlot(configFlag):
     baseTitle += ', Simulation ID: ' + simID
     if plotTitle:
         baseTitle += ', ' + plotTitle
-    plotFig.canvas.set_window_title(baseTitle)
+    # GDB 3/16/23 set_window_title() call was bombing out plotter on my
+    # Ubuntu VM as currently configured so just suppress it--probably related
+    # to the GTK version I'm running
+    #plotFig.canvas.set_window_title(baseTitle)
 
     # shouldn't be necessary to catch close window event, but uncomment
     # if plt.show() doesn't consistently exit when the window is closed
