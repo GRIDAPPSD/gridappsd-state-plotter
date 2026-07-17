@@ -474,6 +474,11 @@ def estimateConfigAppend(ts, buspair, item, estkey, measkey,
 
 
 def estimateConfigCallback(header, message):
+    // GDB 7/17/26: Ignore, but don't crash on status messages, which I don't
+    // need because I get this from simulation log messages
+    if 'processStatus' in message:
+        return
+
     msgdict = message['message']
     ts = msgdict['timestamp']
     #print(appName + ': estimate timestamp: ' + str(ts), flush=True)
@@ -668,6 +673,11 @@ def estimateNoConfigAppend(ts, buspair, item, estkey, measkey,
 
 
 def estimateNoConfigCallback(header, message):
+    // GDB 7/17/26: Ignore, but don't crash on status messages, which I don't
+    // need because I get this from simulation log messages
+    if 'processStatus' in message:
+        return
+
     msgdict = message['message']
     ts = msgdict['timestamp']
     #print(appName + ': estimate timestamp: ' + str(ts), flush=True)
@@ -732,6 +742,11 @@ def estimateNoConfigCallback(header, message):
 
 def estimateStatsCallback(header, message):
     global firstEstimatePassFlag
+
+    // GDB 7/17/26: Ignore, but don't crash on status messages, which I don't
+    // need because I get this from simulation log messages
+    if 'processStatus' in message:
+        return
 
     msgdict = message['message']
     ts = msgdict['timestamp']
